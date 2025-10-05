@@ -1,0 +1,53 @@
+/* Variables globales del sistema */
+:root {
+  /* Layout */
+  --sidebar-width: 290px;
+  --sidebar-width-collapsed: 70px;
+  
+  /* Colores principales */
+  --sidebar-bg: #EAEAEA;
+  --page-bg: #ffffff;
+  --pill-bg: #ffffff;
+  --pill-active-bg: #f4a261;
+  --pill-active-bg-light: #fdf2e9;
+  --accent: #e69a37;
+  --accent-light: #ffecd1;
+  --text: #2c3e50;
+  --text-muted: #6c757d;
+  --border: #e9ecef;
+  
+  /* Colores de estado */
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #17a2b8;
+  
+  /* Sombras */
+  --sidebar-shadow: 0 0 20px rgba(0,0,0,0.1);
+  --pill-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --pill-hover-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Espaciado */
+  --spacing-xs: 5px;
+  --spacing-sm: 8px;
+  --spacing-md: 9px;
+  --spacing-lg: 20px;
+  --spacing-xl: 20px;
+  
+  /* Bordes */
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  
+  /* Z-index */
+  --z-sidebar: 1000;
+  --z-overlay: 999;
+  --z-loading: 9999;
+  --z-error: 10000;
+}

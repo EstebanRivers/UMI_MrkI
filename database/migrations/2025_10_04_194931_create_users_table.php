@@ -25,7 +25,6 @@ return new class extends Migration
             $table->integer('edad')->nullable();
 
             $table->foreignId('address_id')->nullable()->constrained('addresses')->onDelete('set null');
-            $table->foreignId('institution_id')->nullable()->constrained('institutions')->onDelete('restrict');
 
             $table->rememberToken();
             $table->timestamps();

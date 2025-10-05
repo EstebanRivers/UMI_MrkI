@@ -1,0 +1,173 @@
+/* Logo superior */
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 0px solid var(--border);
+  flex-shrink: 0; /* No se comprime */
+  cursor: default;
+}
+
+.brand-img {
+  width: 85%;
+  max-width: 120px;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* Menu - área flexible */
+.menu {
+  flex: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: var(--spacing-lg);
+}
+
+.menu ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+  overflow: hidden;
+  padding: 1px;
+}
+
+/* Pills del menu */
+.menu li a {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--pill-bg);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--pill-shadow);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+  min-height: 2%;
+  border: 1px solid transparent;
+}
+
+.menu li a:hover {
+  transform: translateY(-1px);
+  color: var(--accent);
+}
+
+.menu li.active a {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.menu li a:hover .icon {
+filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-rotate(355deg) brightness(89%) contrast(91%);
+  transform: scale(1.05);
+}
+
+.menu li.active a .icon {
+filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-rotate(355deg) brightness(89%) contrast(91%);
+  box-shadow: var(--pill-shadow);
+}
+
+
+/* Iconos */
+.menu li a .icon {
+  display: inline-flex;
+  width: 35px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  
+}
+
+
+.menu li a .text {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sidebar bottom - fijo en la parte inferior */
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0; /* No se comprime */
+  margin-top: auto;
+}
+
+/* Botón logout */
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background: var(--pill-bg);
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: var(--pill-shadow);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  width: 100%;
+  text-align: left;
+  min-height: 48px;
+}
+
+.btn-logout:hover {
+  background: #fee;
+  color: var(--danger);
+  transform: translateY(-1px);
+  box-shadow: var(--pill-hover-shadow);
+}
+
+.btn-logout .icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.btn-logout:hover .icon {
+  background: rgba(220, 53, 69, 0.2);
+  transform: scale(1.05);
+}
+
+/* Brand bottom */
+.brand-bottom {
+  background: linear-gradient(135deg, #0b2b3b, #1a4a5c);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md);
+  margin: 0 calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.brand-bottom img {
+  width: 100%;
+  max-width: 140px;
+  height: auto;
+  filter: brightness(1.1) drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+

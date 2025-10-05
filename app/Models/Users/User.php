@@ -28,9 +28,9 @@ class User extends Authenticatable
     }
 
     //La institución a la que pertenece el usuario.
-    public function institution(): BelongsTo
+    public function institution(): BelongsToMany
     {
-        return $this->belongsTo(Institution::class);
+        return $this->belongsToMany(Institution::class, 'institution_user');
     }
 
     public function address(): BelongsTo
@@ -62,25 +62,26 @@ class User extends Authenticatable
     {
         $contexts = [];
 
-        if ($this->relationLoaded('roles')) {
-            $this->load('roles');
-        }
-        if ($this->relationLoaded('institution')) {
-            $this->load('institution');
-        }
+        // Cargar las relaciones necesarias para evitar consultas N+1
+        $this->load('institutions.roles');
 
-        if ($this->roles->isEmpty()){
+        if ($this->institutions->isEmpty()){
             return $contexts;
         }
 
-        foreach ($this->roles as $role) {
-            $contexts[] = [
-                'institution_id' => $this->institution_id,
-                'institution_name' => $this->institution->name,
-                'role_id' => $role->id,
-                'role_name' => $role->name,
-                'display_name' => $role->display_name,
-            ];
+        foreach ($this->institutions as $institution) {
+            foreach ($this->roles as $role) {
+                // Verificamos si el usuario tiene el rol en la institución actual
+                if ($this->hasRoleInInstitution($role->name, $institution->id)) {
+                    $contexts[] = [
+                        'institution_id' => $institution->id,
+                        'institution_name' => $institution->name,
+                        'role_id' => $role->id,
+                        'role_name' => $role->name,
+                        'display_name' => $role->display_name,
+                    ];
+                }
+            }
         }
         return $contexts;
     }

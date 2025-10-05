@@ -1,0 +1,81 @@
+/* Layout principal */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--page-bg);
+  position: relative;
+  position: relative;
+}
+
+/* Sidebar - flex item fijo */
+.sidebar {
+  flex: 0 0 260px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  box-shadow: var(--sidebar-shadow);
+  z-index: var(--z-sidebar);
+  overflow: hidden;
+  min-width: 260px;
+  max-width: 260px;
+}
+
+/* Main content - flex item que se expande */
+.main-content {
+  flex: 1;
+  min-height: 100vh;
+  background: var(--page-bg);
+  padding: 10px;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Animaciones de contenido */
+.main-content {
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Centro home */
+.center-home {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.center-logo {
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+  margin-bottom: var(--spacing-lg);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  transition: transform var(--transition-normal);
+}
+
+.center-logo:hover {
+  transform: scale(1.05);
+}
+
+.welcome {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.3;
+}
