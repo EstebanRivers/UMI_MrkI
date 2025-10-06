@@ -1,17 +1,15 @@
 <aside class="sidebar" role="navigation" aria-label="Menú de navegación principal">
   <div class="sidebar-top">
     <div class="brand">
-      <!-- tu logo arriba -->
+      <!-- logo arriba -->
       <img src="{{ asset('images/logos/logoumi.png') }}" alt="Logo UHTA" class="brand-img" loading="lazy">
-      <img src="{{ asset('images/icons/gear-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-
     </div>
   </div>
 
   <nav class="menu" aria-label="Menú principal">
     <ul>
       <li class="@if(request()->routeIs('MiInformacion.*')) active @endif">
-        <a href="{{ route('layouts.MiInformacion.index') }}">
+        <a href="{{ route('MiInformacion.index') }}">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
@@ -20,7 +18,7 @@
       </li>
 
       <li class="@if(request()->routeIs('Cursos.*')) active @endif">
-        <a href="{{ route('layouts.Cursos.index') }}">
+        <a href="{{ route('Cursos.index') }}">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/desktop-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
@@ -29,7 +27,7 @@
       </li>
 
       <li class="@if(request()->routeIs('Facturacion.*')) active @endif">
-        <a href="{{ route('layouts.Facturacion.index') }}">
+        <a href="{{ route('Facturacion.index') }}">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/money-bill-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
@@ -37,21 +35,18 @@
         </a>
       </li>
 
-      @if (Auth::user() && Auth::user()->hasRole('master'))
-      {{-- Solo mostrar para usuarios con rol 'master' --}}
       <li class="@if(request()->routeIs('ControlAdmin.*')) active @endif">
-        <a href="{{ route('layouts.ControlAdmin.index') }}">
+        <a href="{{ route('ControlAdmin.index') }}">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/clipboard-regular-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Control Administrativo</span>
         </a>
       </li>
-      @endif
       
 
       <li class="@if(request()->routeIs('Ajustes.*')) active @endif">
-        <a href="{{ route('layouts.Ajustes.index') }}">
+        <a href="{{ route('Ajustes.index') }}">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/user-gear-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>

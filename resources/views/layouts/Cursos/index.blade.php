@@ -11,7 +11,7 @@
         <div>
             <h1 class="courses-title">Cursos Disponibles</h1>
             <p class="courses-subtitle">
-                @if(Auth::user()->hasAnyRole(['admin', 'docente']))
+                @if(Auth::user()->hasAnyRole(['master', 'docente']))
                     Gestiona y crea cursos para los estudiantes
                 @else
                     Explora y inscríbete a los cursos disponibles
@@ -19,7 +19,7 @@
             </p>
         </div>
         
-        @if(Auth::user()->hasAnyRole(['admin', 'docente']))
+        @if(Auth::user()->hasAnyRole(['master', 'docente']))
             <button onclick="window.navigateTo('{{ route('courses.create') }}')" class="btn-create">
                 + Crear Curso
             </button>

@@ -7,7 +7,7 @@
   <!-- Header -->
 <div class="profile-header">
         <h1 class="profile-title">PERFIL</h1>
-        <p class="profile-welcome">¡Bienvenido(a) {{ Auth::user()->name }}!</p>
+        <p class="profile-welcome">¡Bienvenido(a) {{ Auth::user()->nombre }}!</p>
     </div>
 <div class="profile-container">
 
@@ -19,13 +19,13 @@
             <!-- Icono de perfil -->
             <div class="profile-avatar">
                 <div class="profile-icon">
-                    <img src="{{ asset('icons/circle-user-solid-full.svg') }}" alt="Icono de usuario">
+                    <img src="{{ asset('images/icons/circle-user-solid-full.svg') }}" alt="Icono de usuario">
                 </div>
             </div>
             
             <!-- Nombre completo -->
             <h2 class="profile-name">
-                {{ Auth::user()->name }}
+                {{ Auth::user()->nombre }}
             </h2>
         </div>
 

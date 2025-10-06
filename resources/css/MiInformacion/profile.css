@@ -1,0 +1,172 @@
+/* Estilos para la página de perfil de usuario */
+
+.profile-container {
+    max-width: 700px;    
+    margin: 0px auto;
+    padding: 1px;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-title {
+    color: #333;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.profile-welcome {
+    color: #333;
+    margin: 0;
+    font-size: 16px;
+}
+
+.profile-card {
+    background: #ECF0F1;
+    border-radius: 20px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.profile-top-section {
+    text-align: center;
+    background: white;
+}
+
+.profile-avatar {
+    background: #fff;
+}
+
+.profile-icon {
+    width: 30%;
+    height: auto;
+    border-radius: 50%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+}
+
+.profile-name {
+    color: #000000;
+    font-size: 22px;
+    font-weight: 600;
+    border-top: 2px solid #DB5865;
+    width: 55%;
+    display: inline-block;
+    }
+
+.profile-details {
+    padding: 8px 10px 5px 40px;
+    background: #ECF0F1;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 2px;
+
+}
+
+.profile-grid-full {
+    grid-column: 1 / -1;
+}
+
+.profile-field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.profile-label {
+    color: #2c5aa0;
+    font-weight: 600;
+    font-size: 14px;
+    min-width: 80px;
+}
+
+.profile-label-wide {
+    min-width: 120px;
+}
+
+.profile-value {
+    color: #333;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.profile-section {
+    border-top: 2px solid #dee2e6;
+    padding-top: 20px;
+}
+
+.profile-section-title {
+    color: #2c5aa0;
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.profile-system-info {
+    border-top: 2px solid #dee2e6;
+    padding: 5px;
+    margin-top: 1px;
+}
+
+.profile-system-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.profile-system-text {
+    color: #666;
+    font-size: 12px;
+}
+
+.profile-system-right {
+    text-align: right;
+}
+
+.profile-role-badge {
+    background: #e69a37;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .profile-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    .profile-header {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 10px;
+    }
+    
+    .profile-system-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .profile-system-right {
+        text-align: left !important;
+    }
+}

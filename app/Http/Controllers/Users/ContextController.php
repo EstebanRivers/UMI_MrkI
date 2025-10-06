@@ -41,7 +41,9 @@ class ContextController extends Controller
         $request->session()->put('active_role_id', $activeContext['role_id']);
         $request->session()->put('active_role_name', $activeContext['role_name']);
         $request->session()->put('active_institution_name', $activeContext['institution_name']);
+        $request->session()->put('active_role_display_name', $activeContext['display_name']);
 
+        
         // 5. Redirigir al dashboard
         return redirect()->route('dashboard');
     }

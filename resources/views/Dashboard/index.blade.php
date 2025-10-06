@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Bienvenido - UMI')
+@section('title', 'Bienvenido - ' . session('active_institution_name'))
 
 @section('content')
 <div class="simple-welcome-container">
@@ -23,7 +23,7 @@
           default => '¡Bienvenido(a)'
         };
       @endphp
-      {{ $greeting }} {{ $user->name }}!
+      {{ $greeting }} {{ $user->nombre }}!
     </h1>
   </div>
 </div>

@@ -16,32 +16,36 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // 1. Encontrar las instituciones (ya creadas por InstitutionSeeder)
-        $forumInstitution = Institution::where('name', 'Forum')->first();
+        $forumMI = Institution::where('name', 'Forum Mundo Imperial')->first();
         $universidadMI = Institution::where('name', 'Universidad Mundo Imperial')->first();
+        $princessMI = Institution::where('name', 'Princess Mundo Imperial')->first();
+        $pierreMI = Institution::where('name', 'Pierre Mundo Imperial')->first();
 
         // 2. Encontrar los roles
-        $adminRole = Role::where('name', 'master')->first();
+        $masterRole = Role::where('name', 'master')->first();
 
         // 3. Crear el Usuario Master
         $masterUser = User::firstOrCreate(
             ['email' => 'master@UMI.com'],
             [
-                'nombre' => 'Usuario',
-                'apellido_paterno' => 'Master',
-                'apellido_materno' => '',
+                'nombre' => 'Esteban',
+                'apellido_paterno' => 'Rivera',
+                'apellido_materno' => 'Molina',
                 'password' => Hash::make('master1234'),
                 'RFC' => 'XAXX010101000',
             ]
         );
 
         // 4. Asignar MÚLTIPLES instituciones y roles al usuario
-        $masterUser->institution()->sync([
-            $forumInstitution->id,
+        $masterUser->institutions()->sync([
+            $forumMI->id,
             $universidadMI->id,
+            $princessMI->id,
+            $pierreMI->id,
         ]);
         
         $masterUser->roles()->sync([
-            $adminRole->id,
+            $masterRole->id,
         ]);
     }
 }

@@ -25,11 +25,55 @@
       <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
     </svg>
   </button>
-  
-  <div class="app-container">
-    @include('layouts.components.sidebar')
 
+  {{-- Contenedor principal: sidebar + contenido --}}
+  <div class="app-container">
+    {{-- Sidebar --}}
+    @include('layouts.components.sidebar')
+    
     <main class="main-content" id="main-content">
+       <div class="header">
+          <div class="header-user-info">
+             <span class="user-name">{{ Auth::user()->nombre }}</span>
+              <div class="user-context">
+                  <span class="user-role">{{-- Mostramos el nombre del rol activo desde la sesión --}}
+                      {{ session('active_role_display_name', ', Sin rol') }}
+                  </span>
+                  <span class="user-institution">en {{ session('active_institution_name', 'Sin institución') }}</span>
+              </div>
+          </div>
+          <div class="context-switcher">
+            @php
+                // Obtenemos los contextos disponibles directamente en la vista
+                $availableContexts = Auth::user()->getAvailableRoles();
+            @endphp
+
+            {{-- Solo mostramos el botón si hay más de un contexto para elegir --}}
+            @if (count($availableContexts) > 1)
+                <button id="context-switcher-button" class="context-switcher-button">
+                    <img src="{{ asset('images/icons/gear-solid-full.svg') }}" alt="Ajustes">
+                </button>
+
+                <div id="context-switcher-menu" class="context-switcher-menu">
+                    <div class="context-switcher-header">Cambiar de Unidad de Negocio</div>
+                    <ul>
+                        {{-- Iterar sobre cada contexto disponible para el usuario --}}
+                        @foreach ($availableContexts as $context)
+                            <li>
+                                {{-- Cada opción es un enlace a la ruta que cambia el contexto --}}
+                                <a href="{{ route('context.switch', ['roleId' => $context['role_id']]) }}">
+                                    <span class="role">{{ $context['display_name'] }}</span>
+                                    <span class="institution">{{ $context['institution_name'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+          </div>
+        </div>
+    
+      {{-- Contenido específico de cada página --}}
       @yield('content')
     </main>
   </div>

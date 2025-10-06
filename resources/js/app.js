@@ -350,3 +350,26 @@ window.addEventListener('beforeunload', () => {
         window.spaNav.clearCache();
     }
 });
+
+// resources/js/app.js
+
+document.addEventListener('DOMContentLoaded', function () {
+    const switcherButton = document.getElementById('context-switcher-button');
+    const switcherMenu = document.getElementById('context-switcher-menu');
+
+    if (switcherButton) {
+        switcherButton.addEventListener('click', function (event) {
+            // Evita que el clic en el botón cierre el menú inmediatamente
+            event.stopPropagation();
+            // Muestra u oculta el menú
+            switcherMenu.classList.toggle('show');
+        });
+    }
+
+    // Opcional: Cierra el menú si el usuario hace clic en cualquier otro lugar
+    window.addEventListener('click', function () {
+        if (switcherMenu && switcherMenu.classList.contains('show')) {
+            switcherMenu.classList.remove('show');
+        }
+    });
+});
