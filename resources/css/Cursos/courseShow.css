@@ -1,0 +1,145 @@
+/* Contenedor general */
+.course-viewer-container {
+    max-width: 1400px;
+    margin: auto;
+    padding: 18px;
+    font-family: 'Poppins', Tahoma, sans-serif;
+    background: #ECF0F1;
+    border-radius: 8px;
+}
+
+/* Encabezado */
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+.course-header h1 {
+    font-size: 1.8em;
+    margin: 5px;
+}
+
+/* Layout principal */
+.course-layout {
+    display: flex;
+    gap: 20px;
+}
+
+/* Panel de temario */
+.course-syllabus {
+    flex: 1;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    height: fit-content;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.course-syllabus h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+.topic-group {
+    margin-bottom: 15px;
+}
+.topic-group strong {
+    display: block;
+    font-size: 1em;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+.course-syllabus ul {
+    list-style: none;
+    padding-left: 15px;
+    margin: 0;
+}
+.course-syllabus li {
+    padding: 5px 0;
+    cursor: pointer;
+    color: #444;
+    transition: color 0.2s ease;
+}
+.course-syllabus li:hover,
+.course-syllabus .syllabus-link.active,
+.topic-group:hover {
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Panel de contenido */
+.content-viewer {
+    flex: 3;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.content-panel {
+    display: none;
+}
+.content-panel h2, 
+.content-panel h3 {
+    margin-top: 0;
+}
+.course-cover {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Formularios */
+.question-text {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: 20px;
+}
+.option-box {
+    margin-bottom: 8px;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+}
+.instructor-note {
+    margin-top: 15px;
+    font-style: italic;
+    color: #888;
+}
+
+/* Botones */
+.btn-primary,
+.btn-secondary,
+.btn-success {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.95em;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+}
+.btn-primary {
+    background: #007bff;
+    color: #fff;
+}
+.btn-primary:hover {
+    background: #0056b3;
+}
+.btn-secondary {
+    background: #6c757d;
+    color: #fff;
+}
+.btn-secondary:hover {
+    background: #545b62;
+}
+.btn-success {
+    background: #28a745;
+    color: #fff;
+}
+.btn-success:hover {
+    background: #1e7e34;
+}

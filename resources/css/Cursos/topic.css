@@ -1,0 +1,265 @@
+.topics-container {
+    max-width: 1200px;
+    margin: 1% auto;
+    padding: 20px;
+    font-family: 'Poppins', Tahoma, sans-serif;
+}
+
+/* Alertas */
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.alert-danger ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+/* Header */
+.topics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.topics-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.topic-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.subtopic-header{
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.topics-header h1 {
+    color: #333;
+    margin: 0;
+}
+.topics-header h2 {
+    color: #e69a37;
+    font-weight: 500;
+    margin-top: 5px;
+}
+.topics-header form{
+    display: inline-flex;
+
+}
+
+/* Layout */
+.topics-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+}
+
+/* Formularios */
+.topics-form,
+.topics-list {
+    padding: 20px;
+    border-radius: 12px;
+}
+.topics-form {
+    background: #ECF0F1;
+    max-height: fit-content;
+}
+.topics-list {
+    background: #ECF0F1;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.topics-list-content{
+    max-height: 500px;
+    overflow-y: auto;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Botones */
+.content-btn {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.btn-topic,
+.btn-subtopic,
+.btn-activities,
+.btn-secondary,
+.btn-success {
+    display: inline-block;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 8px;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+}
+.btn-topic,
+.btn-subtopic,
+.btn-activities {
+    background: #223F70;
+    color: white;
+    max-height: fit-content;
+    padding: 5px;
+    &:hover {
+        background: #0056b3;
+    }
+}
+
+.btn-secondary {
+    background: #223F70;
+    color: white;
+    width: 140px;
+    font-size: large;
+}
+.btn-secondary:hover {
+    background: #545b62;
+}
+.btn-success {
+    background: #223F70;
+    color: white;
+    max-width: fit-content;
+    max-height: fit-content;
+    &:hover {
+        background: #0056b3;
+    }
+}
+
+.btn-danger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-danger:hover {
+    filter: brightness(0) saturate(100%) invert(25%) sepia(93%) saturate(7470%) hue-rotate(355deg) brightness(92%) contrast(120%);
+}
+
+/* Tarjetas de temas */
+
+.topic-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.topic-card p {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 14px;
+}
+.topic-file {
+    margin-bottom: 10px;
+}
+.topic-file a {
+    text-decoration: none;
+    font-size: 14px;
+    color: #007bff;
+    font-weight: 500;
+}
+
+.activities-label {
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 0 10px;
+}
+
+.subtopics-container {
+  padding: 5px;
+  border-top: 1px solid #ddd;
+  margin-left: 15px;
+}
+
+.subtopic-actions {
+  margin-top: 10px;
+}
+
+/* Actividades */
+.activities-layout{
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    padding: 10px;
+}
+.activity-type {
+    font-size: 13px;
+    background-color: #e9ecef;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    font-weight: 550;
+    color: #555;
+}
+
+.activity-item {
+    font-size: 14px;
+    padding: 5px;
+    border-bottom: 3px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.delete-activity {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+.no-activities {
+    font-size: 13px;
+    color: #888;
+}
+
+/* Campos dinámicos */
+.activity-fields {
+    display: none;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+}
+.quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+.no-topics {
+    color: #666;
+    text-align: center;
+    padding: 40px 0;
+}

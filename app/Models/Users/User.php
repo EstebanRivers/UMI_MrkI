@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Users;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Role;
-use App\Models\Institution;
-use App\Models\Address;
-use App\Models\AcademicProfile;
-use App\Models\CorporateProfile;
+use App\Models\Users\Role;
+use App\Models\Users\Institution;
+use App\Models\Users\Address;
+use App\Models\Users\AcademicProfile;
+use App\Models\Users\CorporateProfile;
 
 class User extends Authenticatable
 {
@@ -27,8 +27,8 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'user_roles');
     }
 
-    //La institución a la que pertenece el usuario.
-    public function institution(): BelongsToMany
+    //Las instituciones a las que pertenece el usuario.
+    public function institutions(): BelongsToMany
     {
         return $this->belongsToMany(Institution::class, 'institution_user');
     }
@@ -47,9 +47,9 @@ class User extends Authenticatable
 
     
     // El perfil corporativo asociado al usuario.
-    public function corporateProfile(): HasOne
+    public function corporativeProfile(): HasOne
     {
-        return $this->hasOne(CorporateProfile::class);
+        return $this->hasOne(CorporativeProfile::class);
     }
 
     public function hasRole(string $role): bool
@@ -62,27 +62,27 @@ class User extends Authenticatable
     {
         $contexts = [];
 
-        // Cargar las relaciones necesarias para evitar consultas N+1
-        $this->load('institutions.roles');
+        // Carga las relaciones 'institutions' y 'roles' para optimizar.
+        $this->load('institutions', 'roles');
 
-        if ($this->institutions->isEmpty()){
+        if ($this->institutions->isEmpty() || $this->roles->isEmpty()) {
             return $contexts;
         }
 
+        // Como un usuario puede estar en varias instituciones y tener varios roles,
+        // simplemente combinamos cada institución con cada rol.
         foreach ($this->institutions as $institution) {
             foreach ($this->roles as $role) {
-                // Verificamos si el usuario tiene el rol en la institución actual
-                if ($this->hasRoleInInstitution($role->name, $institution->id)) {
-                    $contexts[] = [
-                        'institution_id' => $institution->id,
-                        'institution_name' => $institution->name,
-                        'role_id' => $role->id,
-                        'role_name' => $role->name,
-                        'display_name' => $role->display_name,
-                    ];
-                }
+                $contexts[] = [
+                    'institution_id'   => $institution->id,
+                    'institution_name' => $institution->name,
+                    'role_id'          => $role->id,
+                    'role_name'        => $role->name,
+                    'display_name'     => $role->display_name,
+                ];
             }
         }
+
         return $contexts;
     }
 
@@ -92,9 +92,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nombre',
+        'apellido_paterno',
+        'apellido_materno',
         'email',
         'password',
+        'RFC',
+        'telefono',
+        'fecha_nacimiento',
+        'edad',
+        'address_id',
     ];
 
     /**

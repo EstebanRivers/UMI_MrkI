@@ -27,7 +27,7 @@
   </button>
   
   <div class="app-container">
-    @include('components.sidebar')
+    @include('layouts.components.sidebar')
 
     <main class="main-content" id="main-content">
       @yield('content')

@@ -1,0 +1,215 @@
+/* ===== WRAPPER ===== */
+.courses-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #ECF0F1;
+    border-radius: 12px;
+}
+
+/* ===== HEADER ===== */
+.courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.courses-title {
+    color: #333;
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.courses-subtitle {
+    color: #666;
+    margin: 0;
+    font-size: 16px;
+}
+
+/* ===== BOTÓN CREAR CURSO ===== */
+.btn-create {
+    background: #223F70;
+    color: white;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(230, 154, 55, 0.3);
+    transition: all 0.2s ease;
+    &:hover {
+        background: rgb(26, 26, 132);
+    }
+}
+
+/* ===== FILTROS ===== */
+.courses-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px #BC8A55;
+    background: #ACACAC;
+    color: #FFFFFF;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: #BC8A55;
+    color: #FFFFFF;
+}
+
+/* Variantes */
+.filter-btn.available {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.filter-btn.available:hover {
+    background: #28a745;
+    color: white;
+}
+
+.filter-btn.enrolled {
+    border-color: #17a2b8;
+    color: #17a2b8;
+}
+
+.filter-btn.enrolled:hover {
+    background: #17a2b8;
+    color: white;
+}
+
+/* ===== CURSOS ===== */
+.courses-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));    
+    gap: 20px;
+}
+
+.course-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.course-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.course-info {
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.course-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.course-description {
+    font-size: 14px;
+    color: #555;
+}
+
+.course-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #777;
+}
+
+/* ===== BOTONES DE ACCIÓN ===== */
+.btn-display{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;    
+    grid-row: 2px;
+}
+
+.btn-view {
+    display: flex;
+    max-width: fit-content;
+    padding: 7px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin: 1px;
+    &:hover {
+        background: #223F70;
+    }
+}
+
+.btn-edit {
+    display: flex;
+    max-width: fit-content;
+    padding: 7px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin: 1px;
+    &:hover {
+        background: #e0a800;
+    }
+}
+
+.btn-delete {
+    display: flex;
+    padding: 7px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin: 1px;
+    &:hover {
+        background: #b52a37;
+    }
+}
+
+/* ===== MENSAJE SIN CURSOS ===== */
+.no-courses-message {
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+    padding: 40px 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .courses-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}

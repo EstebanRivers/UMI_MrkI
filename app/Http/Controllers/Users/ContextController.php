@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Users;
 
 use Illuminate\Http\Request;
 use App\Models\Users\User;
@@ -43,6 +43,6 @@ class ContextController extends Controller
         $request->session()->put('active_institution_name', $activeContext['institution_name']);
 
         // 5. Redirigir al dashboard
-        return redirect()->route('dashboard.index');
+        return redirect()->route('dashboard');
     }
 }

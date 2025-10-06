@@ -1,60 +1,59 @@
-<!-- resources/views/partials/sidebar.blade.php -->
 <aside class="sidebar" role="navigation" aria-label="Menú de navegación principal">
   <div class="sidebar-top">
     <div class="brand">
       <!-- tu logo arriba -->
-      <img src="{{ asset('images/LOGO2.png') }}" alt="Logo UHTA" class="brand-img" loading="lazy">
+      <img src="{{ asset('images/logos/logoumi.png') }}" alt="Logo UHTA" class="brand-img" loading="lazy">
+      <img src="{{ asset('images/icons/gear-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+
     </div>
   </div>
 
   <nav class="menu" aria-label="Menú principal">
     <ul>
-      <li class="@if(request()->routeIs('profile.*')) active @endif">
-        <a href="{{ route('profile.index') }}">
+      <li class="@if(request()->routeIs('MiInformacion.*')) active @endif">
+        <a href="{{ route('layouts.MiInformacion.index') }}">
           <span class="icon" aria-hidden="true">
-            <img src="{{ asset('icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+            <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Mi Información</span>
         </a>
       </li>
 
-      @if(Auth::user()->hasAnyRole(['docente', 'alumno', 'anfitrion', 'admin']))
-      <li class="@if(request()->routeIs('course.*')) active @endif">
-        <a href="{{ route('courses.index') }}">
+      <li class="@if(request()->routeIs('Cursos.*')) active @endif">
+        <a href="{{ route('layouts.Cursos.index') }}">
           <span class="icon" aria-hidden="true">
-            <img src="{{ asset('icons/desktop-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+            <img src="{{ asset('images/icons/desktop-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Cursos</span>
         </a>
       </li>
-      @endif
 
-      @if(Auth::user()->hasAnyRole(['alumno', 'admin']))
-      <li class="@if(request()->routeIs('billing.*')) active @endif">
-        <a href="{{ route('billing.index') }}">
+      <li class="@if(request()->routeIs('Facturacion.*')) active @endif">
+        <a href="{{ route('layouts.Facturacion.index') }}">
           <span class="icon" aria-hidden="true">
-            <img src="{{ asset('icons/money-bill-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+            <img src="{{ asset('images/icons/money-bill-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Facturación</span>
         </a>
       </li>
-      @endif
 
-      @if(Auth::user()->hasRole('admin'))
-      <li class="@if(request()->routeIs('admin.*')) active @endif">
-        <a href="{{ route('admin.index') }}">
+      @if (Auth::user() && Auth::user()->hasRole('master'))
+      {{-- Solo mostrar para usuarios con rol 'master' --}}
+      <li class="@if(request()->routeIs('ControlAdmin.*')) active @endif">
+        <a href="{{ route('layouts.ControlAdmin.index') }}">
           <span class="icon" aria-hidden="true">
-            <img src="{{ asset('icons/clipboard-regular-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+            <img src="{{ asset('images/icons/clipboard-regular-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Control Administrativo</span>
         </a>
       </li>
       @endif
+      
 
-      <li class="@if(request()->routeIs('settings.*')) active @endif">
-        <a href="{{ route('settings.index') }}">
+      <li class="@if(request()->routeIs('Ajustes.*')) active @endif">
+        <a href="{{ route('layouts.Ajustes.index') }}">
           <span class="icon" aria-hidden="true">
-            <img src="{{ asset('icons/user-gear-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+            <img src="{{ asset('images/icons/user-gear-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Ajustes</span>
         </a>
@@ -67,7 +66,7 @@
       @csrf
       <button type="submit" class="btn-logout" aria-label="Cerrar sesión">
         <span class="icon" aria-hidden="true">
-          <img src="{{ asset('icons/right-to-bracket-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+          <img src="{{ asset('images/icons/right-to-bracket-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
         </span>
         <span class="text">Cerrar sesión</span>
       </button>

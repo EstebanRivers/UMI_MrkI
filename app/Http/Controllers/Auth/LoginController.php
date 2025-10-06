@@ -38,11 +38,11 @@ class LoginController extends Controller
             if ($isAjax) {
                 return response()->json([
                     'success' => true,
-                    'redirect' => route('context.setContext')
+                    'redirect' => route('context.set')
                 ]);
             }
             
-            return redirect()->to(route('context.setContext'));
+            return redirect()->to(route('context.set'));
         }
 
         if ($isAjax) {
