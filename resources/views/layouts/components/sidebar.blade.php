@@ -1,8 +1,8 @@
 <aside class="sidebar" role="navigation" aria-label="Menú de navegación principal">
   <div class="sidebar-top">
-    <div class="brand">
+    <div class="brand" style="margin-bottom: 5px">
       <!-- logo arriba -->
-      <img src="{{ asset('images/logos/logoumi.png') }}" alt="Logo UHTA" class="brand-img" loading="lazy">
+      <img src="{{ asset('images/logos/' . session('active_institution_name') . '.png') }}" alt="Logo" style="width: 100%; height: auto; max-width: 130px;"> 
     </div>
   </div>
 

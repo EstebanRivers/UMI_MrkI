@@ -25,23 +25,22 @@
 }
 /* Header - barra superior */
 .header {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  height: 60px;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
   padding: 0 20px;
 }
 
-.header-user-info {
+.header-user-info, .context-switcher {
   display: flex;
   flex-direction: row;
-  margin-right: 20px;
+  margin-right: 0px;
+  align-items: flex-end;
 }
+
 .context-switcher {
-    position: relative; /* Contenedor padre para el posicionamiento absoluto del menú */
-    margin-left: auto; /* Empuja el botón a la derecha si está en un flex container */
+  position: relative; /* Para posicionar el menú desplegable */
+  margin-left: 15px;
 }
 
 .context-switcher-button {

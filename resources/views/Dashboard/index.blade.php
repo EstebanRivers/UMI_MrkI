@@ -6,7 +6,13 @@
 <div class="simple-welcome-container">
   <div class="welcome-content">
     <div class="logo-container">
-      <img src="{{ asset('images/uhta-logo.png') }}" alt="Mensaje Bienvenido" class="welcome-logo">
+        @if (session('active_institution_name') == 'Universidad Mundo Imperial')
+            {{-- Si la institución activa es 'Universidad Mundo Imperial', muestra su logo específico --}}
+            <img src="{{ asset('images/logos/Universidad Mundo Imperial.png') }}" alt="Logo Universidad Mundo Imperial" >
+        @else
+            {{-- Para TODAS las demás instituciones, muestra el logo por defecto --}}
+            <img src="{{ asset('images/logos/logomundoimperial.png') }}" alt="Logo Principal" style="width: 60%; height: auto;" >
+        @endif
     </div>
     <h1 class="welcome-message">
       @php

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - UHTA</title>
+    <title>Iniciar Sesión - Mundo Imperial</title>
     @vite(['resources/css/login.css', 'resources/js/app.js'])
 </head>
 <body>
@@ -12,10 +12,10 @@
     <div class="login-left">
         <img src="{{ asset('images/building.jpg') }}" alt="Logo UHTA" loading="lazy">
         <div class="logos">
-            <img src="{{ asset('images/logos/logopalacio.png') }}" alt="Logo Palacio" loading="lazy" style="width: 160px; height: auto;">
-            <img src="{{ asset('images/logos/logoprincess.png') }}" alt="Logo Princess" loading="lazy" style="width: 160px; height: auto;">
-            <img src="{{ asset('images/logos/logopierre.png') }}" alt="Logo Pierre" loading="lazy" style="width: 160px; height: auto;">
-            <img src="{{ asset('images/logos/logoumi.png') }}" alt="Logo UMI" loading="lazy" style="width: 150px; height: auto;">
+            <img src="{{ asset('images/logos/Palacio Mundo Imperial.png') }}" alt="Logo Palacio" loading="lazy" style="width: 160px; height: auto;">
+            <img src="{{ asset('images/logos/Princess Mundo Imperial.png') }}" alt="Logo Princess" loading="lazy" style="width: 160px; height: auto;">
+            <img src="{{ asset('images/logos/Pierre Mundo Imperial.png') }}" alt="Logo Pierre" loading="lazy" style="width: 160px; height: auto;">
+            <img src="{{ asset('images/logos/Universidad Mundo Imperial.png') }}" alt="Logo UMI" loading="lazy" style="width: 150px; height: auto;">
         </div>
     </div>
 

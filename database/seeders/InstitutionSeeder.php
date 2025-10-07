@@ -12,7 +12,7 @@ class InstitutionSeeder extends Seeder
      */
     public function run(): void
     {
-        Institution::firstOrCreate(['name' => 'Forum Mundo Imperial']);
+        Institution::firstOrCreate(['name' => 'Palacio Mundo Imperial']);
         Institution::firstOrCreate(['name' => 'Princess Mundo Imperial']);
         Institution::firstOrCreate(['name' => 'Pierre Mundo Imperial']);
         Institution::firstOrCreate(['name' => 'Universidad Mundo Imperial']);

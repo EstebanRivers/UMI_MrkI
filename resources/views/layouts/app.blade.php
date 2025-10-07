@@ -34,20 +34,15 @@
     <main class="main-content" id="main-content">
        <div class="header">
           <div class="header-user-info">
-             <span class="user-name">{{ Auth::user()->nombre }}</span>
+             <span class="user-name ">{{ Auth::user()->nombre }} </span>
               <div class="user-context">
-                  <span class="user-role">{{-- Mostramos el nombre del rol activo desde la sesión --}}
+                  <span class="user-role" style="margin-left: 0.3rem;">{{-- Mostramos el nombre del rol activo desde la sesión --}}
                       {{ session('active_role_display_name', ', Sin rol') }}
                   </span>
                   <span class="user-institution">en {{ session('active_institution_name', 'Sin institución') }}</span>
               </div>
           </div>
           <div class="context-switcher">
-            @php
-                // Obtenemos los contextos disponibles directamente en la vista
-                $availableContexts = Auth::user()->getAvailableRoles();
-            @endphp
-
             {{-- Solo mostramos el botón si hay más de un contexto para elegir --}}
             @if (count($availableContexts) > 1)
                 <button id="context-switcher-button" class="context-switcher-button">
@@ -61,7 +56,7 @@
                         @foreach ($availableContexts as $context)
                             <li>
                                 {{-- Cada opción es un enlace a la ruta que cambia el contexto --}}
-                                <a href="{{ route('context.switch', ['roleId' => $context['role_id']]) }}">
+                                <a href="{{ route('context.switch', ['institutionId' => $context['institution_id'], 'roleId' => $context['role_id']]) }}">
                                     <span class="role">{{ $context['display_name'] }}</span>
                                     <span class="institution">{{ $context['institution_name'] }}</span>
                                 </a>

@@ -12,7 +12,7 @@ class ContextController extends Controller
     /**
      * Establece el contexto inicial o cambia el contexto activo del usuario.
      */
-    public function setContext(Request $request, int $roleId = null)
+    public function setContext(Request $request, int $institutionId = null, int $roleId = null)
     {
         $user = Auth::user();
         
@@ -26,7 +26,12 @@ class ContextController extends Controller
         
         $activeContext = null;
 
-        if ($roleId) {
+        if ($institutionId && $roleId) {
+        // Busca el contexto que coincida EXACTAMENTE con ambos IDs
+        $activeContext = collect($availableContexts)->first(function ($context) use ($institutionId, $roleId) {
+            return $context['institution_id'] == $institutionId && $context['role_id'] == $roleId;
+        });
+        } elseif ($roleId) {
             // 2. Intentar encontrar el contexto solicitado por el usuario (desde el botón)
             $activeContext = collect($availableContexts)->firstWhere('role_id', $roleId);
         }
@@ -42,7 +47,7 @@ class ContextController extends Controller
         $request->session()->put('active_role_name', $activeContext['role_name']);
         $request->session()->put('active_institution_name', $activeContext['institution_name']);
         $request->session()->put('active_role_display_name', $activeContext['display_name']);
-
+        
         
         // 5. Redirigir al dashboard
         return redirect()->route('dashboard');

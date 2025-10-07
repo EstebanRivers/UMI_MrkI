@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // 1. Encontrar las instituciones (ya creadas por InstitutionSeeder)
-        $forumMI = Institution::where('name', 'Forum Mundo Imperial')->first();
+        $palacioMI = Institution::where('name', 'Palacio Mundo Imperial')->first();
         $universidadMI = Institution::where('name', 'Universidad Mundo Imperial')->first();
         $princessMI = Institution::where('name', 'Princess Mundo Imperial')->first();
         $pierreMI = Institution::where('name', 'Pierre Mundo Imperial')->first();
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
 
         // 4. Asignar MÚLTIPLES instituciones y roles al usuario
         $masterUser->institutions()->sync([
-            $forumMI->id,
+            $palacioMI->id,
             $universidadMI->id,
             $princessMI->id,
             $pierreMI->id,
