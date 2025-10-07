@@ -50,14 +50,14 @@
                 </button>
 
                 <div id="context-switcher-menu" class="context-switcher-menu">
-                    <div class="context-switcher-header">Cambiar de Unidad de Negocio</div>
+                    <div class="context-switcher-header">Unidad de Negocio</div>
                     <ul>
                         {{-- Iterar sobre cada contexto disponible para el usuario --}}
                         @foreach ($availableContexts as $context)
                             <li>
                                 {{-- Cada opción es un enlace a la ruta que cambia el contexto --}}
-                                <a href="{{ route('context.switch', ['institutionId' => $context['institution_id'], 'roleId' => $context['role_id']]) }}">
-                                    <span class="role">{{ $context['display_name'] }}</span>
+                                <a href="{{ route('context.switch', ['institutionId' => $context['institution_id'], 'roleId' => $context['role_id']]) }}"
+                                  data-no-spa>
                                     <span class="institution">{{ $context['institution_name'] }}</span>
                                 </a>
                             </li>

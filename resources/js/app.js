@@ -1,30 +1,3 @@
-
-function initializeContextSwitcher() {
-    // Evita instalar más de una vez
-    if (initializeContextSwitcher._initialized) return;
-    initializeContextSwitcher._initialized = true;
-
-    document.addEventListener('click', (event) => {
-        const button = event.target.closest('#context-switcher-button');
-        const menu = document.getElementById('context-switcher-menu');
-
-        // Si se hace clic en el botón, alternar visibilidad
-        if (button) {
-            event.stopPropagation();
-            if (menu) {
-                menu.classList.toggle('show');
-            }
-            return;
-        }
-
-        // Si se hace clic fuera, cerrar el menú
-        if (menu && menu.classList.contains('show')) {
-            menu.classList.remove('show');
-        }
-    });
-}
-
-
 // Navegación SPA optimizada y simplificada
 class SimpleSPANavigation {
     constructor() {
@@ -37,35 +10,45 @@ class SimpleSPANavigation {
     init() {
         this.setupEventListeners();
         this.updateActiveMenuItem();
-        this.preloadIdlePages();
+        this.preloadCriticalPages();
     }
 
     setupEventListeners() {
-        // --- MEJORA 2: Pre-carga al pasar el mouse (Preloading) ---
-        let hoverTimeout;
-        document.addEventListener('mouseenter', (e) => {
-            const link = e.target.closest('a[href^="/"]'); // Solo enlaces internos
-            if (link && this.shouldIntercept(link)) {
-                clearTimeout(hoverTimeout);
-                hoverTimeout = setTimeout(() => {
-                    this.preloadPage(link.href);
-                }, 80); // Un pequeño retraso para no ser demasiado agresivo
-            }
-        }, true); // Usar 'true' para capturar el evento en la fase de captura
-
+        // Interceptar clics en enlaces del menú 
         document.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
+            const link = e.target.closest('.menu a');
             if (link && this.shouldIntercept(link)) {
                 e.preventDefault();
+                this.setImmediateActivate(link);
                 this.navigate(link.href);
             }
         });
 
+        // Manejar botón atrás/adelante del navegador
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.page) {
                 this.loadPage(e.state.page, false);
             }
         });
+
+        // Precargar al hacer hover (optimizado)
+        let hoverTimeout;
+        document.addEventListener('mouseenter', (e) => {
+            const link = e.target.closest('.menu a');
+            if (link && this.shouldIntercept(link)) {
+                clearTimeout(hoverTimeout);
+                hoverTimeout = setTimeout(() => {
+                    this.preloadPage(link.href);
+                }, 200);
+            }
+        }, true);
+
+        document.addEventListener('mouseleave', (e) => {
+            const link = e.target.closest('.menu a');
+            if (link) {
+                clearTimeout(hoverTimeout);
+            }
+        }, true);
     }
 
     setImmediateActivate(link) {
@@ -113,71 +96,71 @@ class SimpleSPANavigation {
         }
     }
 
-   // Dentro de tu clase SimpleSPANavigation
-
-    async loadPage(url, pushState = true) {
-        this.isLoading = true;
+    async loadPage(url, updateHistory = true) {
+        // Verificar cache
         const cacheKey = this.getCacheKey(url);
+        if (this.cache.has(cacheKey)) {
+            const cached = this.cache.get(cacheKey);
+            if (Date.now() - cached.timestamp < 300000) { // 5 minutos
+                if (updateHistory) {
+                    history.pushState({ page: url }, '', url);
+                }
+                return cached.content;
+            }
+        }
 
         try {
-            let content;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-            // 1️⃣ Usa caché si está disponible
-            if (this.cache.has(cacheKey)) {
-                const cached = this.cache.get(cacheKey);
-                if (Date.now() - cached.timestamp < 300000) {
-                    content = cached;
-                } else {
-                    this.cache.delete(cacheKey);
-                }
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html',
+                    'X-CSRF-TOKEN': this.getCSRFToken(),
+                    'Cache-Control': 'no-cache'
+                },
+                credentials: 'same-origin',
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            // 2️⃣ Si no está en caché, cargar del servidor
+            const html = await response.text();
+            const content = this.parsePageContent(html);
+            
             if (!content) {
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 8000);
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'text/html'
-                    },
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeout);
-
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-                const html = await response.text();
-                content = this.parsePageContent(html);
-                this.cache.set(cacheKey, { ...content, timestamp: Date.now() });
+                throw new Error('Invalid page structure');
             }
 
-            // 3️⃣ Transición + render
-            this.updatePage(content, url);
+            // Cachear la página
+            this.cache.set(cacheKey, {
+                content: content,
+                timestamp: Date.now()
+            });
 
-            if (pushState) {
+            // Limpiar cache si es muy grande
+            if (this.cache.size > 15) {
+                this.cleanupCache();
+            }
+
+            if (updateHistory) {
                 history.pushState({ page: url }, content.title, url);
             }
 
-            this.updateActiveMenuItem();
-            initializeContextSwitcher();
-
+            return content;
         } catch (error) {
-            console.error('Error al navegar:', error);
-            if (!(error.name === 'AbortError')) {
-                window.location.href = url;
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout');
             }
-        } finally {
-            this.isLoading = false;
+            throw error;
         }
     }
-
-
-
-
 
     parsePageContent(html) {
         const parser = new DOMParser();
@@ -300,36 +283,14 @@ class SimpleSPANavigation {
     }
 
     async preloadPage(url) {
-        const cacheKey = this.getCacheKey(url);
-        if (this.cache.has(cacheKey) || this.isLoading) return;
-
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-
-            if (!response.ok) return;
-
-            const html = await response.text();
-            const parsed = this.parsePageContent(html);
-            if (!parsed) return;
-
-            // Guarda la versión parseada, no solo el HTML crudo
-            this.cache.set(cacheKey, { ...parsed, timestamp: Date.now() });
-
-            // Mantén el caché pequeño
-            if (this.cache.size > 20) this.cleanupCache();
-
-        } catch (error) {
-            console.warn('Precarga fallida:', error);
+        if (!this.cache.has(this.getCacheKey(url)) && !this.isLoading) {
+            try {
+                await this.loadPage(url, false);
+            } catch (error) {
+                // Silenciar errores de precarga
+            }
         }
     }
-
-
 
     handleNavigationError(error, url) {
         console.error('Navigation failed:', error);
@@ -373,24 +334,14 @@ class SimpleSPANavigation {
     navigateTo(url) {
         this.navigate(url);
     }
-
-    preloadIdlePages() {
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => this.preloadCriticalPages());
-        } else {
-            setTimeout(() => this.preloadCriticalPages(), 3000);
-        }
-    }
-
 }
 
-// --- Inicialización Principal ---
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.spaNav = new SimpleSPANavigation();
+    
+    // Exponer método de navegación globalmente
     window.navigateTo = (url) => window.spaNav.navigateTo(url);
-
-    // Ejecutamos la función del botón una vez en la carga inicial
-    initializeContextSwitcher();
 });
 
 // Limpiar al cerrar
@@ -399,3 +350,29 @@ window.addEventListener('beforeunload', () => {
         window.spaNav.clearCache();
     }
 });
+
+// --- Manejo permanente del botón context-switcher ---
+(function initializeContextSwitcher() {
+    // Evita registrar múltiples veces
+    if (initializeContextSwitcher._initialized) return;
+    initializeContextSwitcher._initialized = true;
+
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('#context-switcher-button');
+        const menu = document.getElementById('context-switcher-menu');
+
+        // Si el clic es en el botón, alternar menú
+        if (button) {
+            event.stopPropagation();
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+            return;
+        }
+
+        // Si se hace clic fuera, cerrar el menú
+        if (menu && menu.classList.contains('show')) {
+            menu.classList.remove('show');
+        }
+    });
+})();

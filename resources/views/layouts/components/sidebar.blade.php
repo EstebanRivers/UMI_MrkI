@@ -2,7 +2,7 @@
   <div class="sidebar-top">
     <div class="brand" style="margin-bottom: 5px">
       <!-- logo arriba -->
-      <img src="{{ asset('images/logos/' . session('active_institution_name') . '.png') }}" alt="Logo" style="width: 100%; height: auto; max-width: 130px;"> 
+      <img src="{{ asset('images/logos/' . session('active_institution_name') . '.png') }}" alt="Logo" style="width: 100%; height: auto; max-width: 130px;" loading="lazy">
     </div>
   </div>
 
