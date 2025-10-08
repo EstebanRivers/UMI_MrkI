@@ -178,16 +178,6 @@
             <!-- Información adicional del sistema -->
             <div class="profile-system-info">
                 <div class="profile-system-grid">
-                    <div>
-                        <span class="profile-system-text">
-                            <strong>Roles asignados:</strong>
-                            @foreach(Auth::user()->roles as $role)
-                                <span class="profile-role-badge">
-                                    {{ $role->display_name }}
-                                </span>
-                            @endforeach
-                        </span>
-                    </div>
                     <div class="profile-system-right">
                         <span class="profile-system-text">
                             <strong>Miembro desde:</strong> {{ Auth::user()->created_at->format('d/m/Y') }}

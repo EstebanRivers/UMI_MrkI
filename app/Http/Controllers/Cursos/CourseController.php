@@ -19,7 +19,7 @@ class CourseController extends Controller
      */
     public function index(): View
     {
-        $course = Course::all();
+        $course = Course::with('user')->latest()->get();
         return view('layouts.Cursos.index', compact('course'));
     }
 

@@ -35,6 +35,7 @@
         </a>
       </li>
 
+      @if(Auth::user()->hasRole('admin'))
       <li class="@if(request()->routeIs('ControlAdmin.*')) active @endif">
         <a href="{{ route('ControlAdmin.index') }}">
           <span class="icon" aria-hidden="true">
@@ -43,8 +44,9 @@
           <span class="text">Control Administrativo</span>
         </a>
       </li>
+      @endif
       
-
+      @if(Auth::user()->hasRole('admin'))
       <li class="@if(request()->routeIs('Ajustes.*')) active @endif">
         <a href="{{ route('Ajustes.index') }}">
           <span class="icon" aria-hidden="true">
@@ -53,6 +55,7 @@
           <span class="text">Ajustes</span>
         </a>
       </li>
+      @endif
     </ul>
   </nav>
 

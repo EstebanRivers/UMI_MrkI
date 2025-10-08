@@ -15,21 +15,22 @@
         @endif
     </div>
     <h1 class="welcome-message">
-      @php
-        $user = Auth::user();
-        $primaryRole = $user->roles->first();
-        $roleName = $primaryRole ? $primaryRole->display_name : 'Usuario';
+     @php
+        // Obtenemos el nombre del rol activo directamente de la sesión.
+        $activeRoleName = session('active_role_name');
         
-        // Personalizar saludo según el rol
-        $greeting = match($primaryRole?->name) {
-          'master' => '¡Bienvenido(a) Master',
-          'docente' => '¡Bienvenido(a) Maestro',
-          'alumno' => '¡Bienvenido(a) Estudiante',
-          'anfitrion' => '¡Bienvenido(a) Anfitrion',
-          default => '¡Bienvenido(a)'
+        // Obtenemos el nombre para mostrar (ej. "Administrador").
+        $roleDisplayName = session('active_role_display_name', 'Usuario');
+        // Personalizar saludo según el rol ACTIVO.
+        $greeting = match($activeRoleName) {
+            'master' => '¡Bienvenido(a) Master',
+            'docente' => '¡Bienvenido(a) Maestro',
+            'estudiante' => '¡Bienvenido(a) Estudiante', // Corregido de 'alumno' a 'estudiante'
+            'anfitrion' => '¡Bienvenido(a) Anfitrión',
+            default => '¡Bienvenido(a)'
         };
       @endphp
-      {{ $greeting }} {{ $user->nombre }}!
+      {{ $greeting }} {{ Auth::user()->nombre }}!
     </h1>
   </div>
 </div>

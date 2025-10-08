@@ -14,6 +14,7 @@ use App\Models\Users\Institution;
 use App\Models\Users\Address;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporativeProfile;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -37,12 +38,16 @@ class User extends Authenticatable
     }
 
     /**
-     * (Función original) Verifica si el usuario tiene un rol asignado,
+     * Verifica si el usuario tiene un rol asignado,
      * sin importar el contexto activo.
      */
     public function hasRole(string $roleName): bool
     {
-        return $this->roles()->where('name', $roleName)->exists();
+        return DB::table('user_roles_institution')
+        ->join('roles', 'user_roles_institution.role_id', '=', 'roles.id')
+        ->where('user_roles_institution.user_id', $this->id)
+        ->where('roles.name', $roleName)
+        ->exists();    
     }
 
     /**
@@ -51,33 +56,33 @@ class User extends Authenticatable
      */
     public function hasAnyRole(array $roles): bool
     {
-        return $this->roles()->whereIn('name', $roles)->exists();
+        return DB::table('user_roles_institution')
+        ->join('roles', 'user_roles_institution.role_id', '=', 'roles.id')
+        ->where('user_roles_institution.user_id', $this->id)
+        ->whereIn('roles.name', $roles)
+        ->exists();
     }
 
     public function getAvailableRoles(): array
     {
         $contexts = [];
 
-        // Carga las relaciones 'institutions' y 'roles' para optimizar.
-        $this->load('institutions', 'roles');
+       $userContexts = DB::table('user_roles_institution')
+        ->join('roles', 'user_roles_institution.role_id', '=', 'roles.id')
+        ->join('institutions', 'user_roles_institution.institution_id', '=', 'institutions.id')
+        ->where('user_roles_institution.user_id', $this->id)
+        ->select(
+            'institutions.id as institution_id',
+            'institutions.name as institution_name',
+            'roles.id as role_id',
+            'roles.name as role_name',
+            'roles.display_name'
+        )
+        ->get();
 
-        if ($this->institutions->isEmpty() || $this->roles->isEmpty()) {
-            return $contexts;
-        }
-
-        // Como un usuario puede estar en varias instituciones y tener varios roles,
-        // simplemente combinamos cada institución con cada rol.
-        foreach ($this->institutions as $institution) {
-            foreach ($this->roles as $role) {
-                $contexts[] = [
-                    'institution_id'   => $institution->id,
-                    'institution_name' => $institution->name,
-                    'role_id'          => $role->id,
-                    'role_name'        => $role->name,
-                    'display_name'     => $role->display_name,
-                ];
-            }
-        }
+    foreach ($userContexts as $context) {
+        $contexts[] = (array) $context; // Convertir el objeto a array
+    }
 
         return $contexts;
     }
