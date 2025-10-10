@@ -9,6 +9,7 @@ use App\Models\Users\Institution;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
 
@@ -21,8 +22,8 @@ class CourseController extends Controller
     public function index(): View
     {
         $activeInstitutionId = session('active_institution_id');
-        $courses = Course::where('institution_id', $activeInstitutionId)->latest()->get();
-        $course = Course::with('instructor')->latest()->get();
+        $course = Course::where('institution_id', $activeInstitutionId)->latest()->get();
+        $courses = Course::with('instructor')->latest()->get();
         
         return view('layouts.Cursos.index', compact('course'));
     }
