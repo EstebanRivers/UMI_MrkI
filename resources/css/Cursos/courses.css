@@ -112,6 +112,11 @@
     flex-direction: column;
 }
 
+.course-card-show {
+  display: block; /* Para que el enlace <a> se comporte como un bloque */
+  text-decoration: none; /* Quitar el subrayado azul de los enlaces */
+}
+
 .course-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);

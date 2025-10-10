@@ -238,7 +238,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-danger" title="Eliminar">
-                                                <img src="{{ asset('icons/Vector.svg') }}" alt="Eliminar" 
+                                                <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
                                                     style="width:24px;height:24px" loading="lazy">
                                             </button>
                                         </form>

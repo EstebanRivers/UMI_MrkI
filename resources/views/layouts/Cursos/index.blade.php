@@ -30,20 +30,22 @@
     <div class="courses-container">
         @forelse ($course as $courses)
             <div class="course-card">
-                <img src="{{ asset('storage/' . $courses->image) }}" alt="Imagen del curso">
-                <div class="course-info">
-                    <h3 class="course-title">{{ $courses->title }}</h3>
-                    <p class="course-description">{{ $courses->description }}</p>
-                    <div class="course-meta">
-                        <span>Créditos: {{ $courses->credits }}</span>
-                        <span>Horas: {{ $courses->hours }}</span>
-                    </div>
+                <a href="{{ route('course.show', $courses) }}" class="course-card-show">
+                    <img src="{{ asset('storage/' . $courses->image) }}" alt="Imagen del curso">
+                    <div class="course-info">
+                        <h3 class="course-title">{{ $courses->title }}</h3>
+                        <p class="course-description">{{ $courses->description }}</p>
+                        <div class="course-meta">
+                            <span>Créditos: {{ $courses->credits }}</span>
+                            <span>Horas: {{ $courses->hours }}</span>
+                        </div>
+                </a>
 
                     <div class="btn-display">
                         <button type="submit" class="btn-view">
-                            <a href="{{ route('course.show', $courses)}}">
+                            {{-- <a href="{{ route('course.show', $courses)}}"> --}}
                                 <img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy">
-                            </a>
+                            {{-- </a> --}}
                         </button>
 
                         {{-- EDITAR --}}

@@ -10,7 +10,7 @@
     {{-- ENCABEZADO --}}
     <header class="course-header">
         <h1>{{ $course->title }}</h1>
-        <a href="{{ route('courses.index') }}" class="btn-secondary">
+        <a href="{{ route('Cursos.index') }}" class="btn-secondary" style="width: fit-content">
             Volver a Cursos
         </a>
     </header>
@@ -75,7 +75,7 @@
                 <p>Selecciona un tema, subtema o actividad de la lista de la derecha para comenzar.</p>
                 @if($course->image)
                     <img src="{{ asset('storage/' . $course->image) }}" 
-                        alt="Portada del curso" class="course-cover">
+                        alt="Portada del curso" class="course-cover" >
                 @endif
             </div>
 

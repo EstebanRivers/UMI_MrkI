@@ -13,7 +13,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border-bottom: 1px solid #eee;
     padding-bottom: 15px;
 }
@@ -80,12 +80,9 @@
 .content-panel {
     display: none;
 }
-.content-panel h2, 
-.content-panel h3 {
-    margin-top: 0;
-}
+
 .course-cover {
-    max-width: 100%;
+    max-width: 87%;
     border-radius: 8px;
     margin-top: 10px;
 }

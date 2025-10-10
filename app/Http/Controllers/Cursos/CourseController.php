@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCourseRequest;
+
 
 class CourseController extends Controller
 {
@@ -41,16 +43,9 @@ class CourseController extends Controller
     /**
      * Guardar un nuevo curso
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCourseRequest $request): RedirectResponse
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'institution_id' => 'required|exists:institutions,id',
-            'credits' => 'required|integer|min:0',
-            'hours' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        $validatedData = $request->validated();
 
         $courseData = $validatedData;
 
