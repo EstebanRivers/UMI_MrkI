@@ -19,7 +19,7 @@ class TopicsController extends Controller
     {
         $course->load('topics.activities');
         $formActions = route('topics.store');
-        return view('course.topic.create', [
+        return view('layouts.Cursos.topic.create', [
             'course' => $course, 
             'formActions' => $formActions
         ]);

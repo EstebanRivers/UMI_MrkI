@@ -20,7 +20,7 @@
             <h1>Añadir Temas y Actividades</h1>
             <h2>Curso: {{ $course->title }}</h2>
         </div>
-        <a href="{{ route('courses.index') }}" class="btn-secondary">
+        <a href="{{ route('Cursos.index') }}" class="btn-secondary">
             Finalizar
         </a>
     </div>
@@ -178,7 +178,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-danger" title="Eliminar">
-                                    <img src="{{ asset('icons/Vector.svg') }}" alt="Eliminar" 
+                                    <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
                                         style="width:24px;height:24px" loading="lazy">
                                 </button>
                             </form>

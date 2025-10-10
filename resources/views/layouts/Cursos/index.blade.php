@@ -39,30 +39,35 @@
                         <span>Horas: {{ $courses->hours }}</span>
                     </div>
 
+                    @if(Auth::user()->hasActiveRole('master') || Auth::user()->hasActiveRole('gerente_capacitacion') || Auth::user()->hasActiveRole('docente'))
                     <div class="btn-display">
                         <button type="submit" class="btn-view">
                             <a href="{{ route('course.show', $courses)}}">
-                                <img src="{{asset('icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy">
+                                <img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy">
                             </a>
                         </button>
+
+                        {{-- EDITAR --}}
                         @can('update', $courses)
                             <button type="submit" class="btn-edit">
                                 <a href="{{ route('courses.edit', $courses) }}">
-                                <img src="{{asset('icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy">
+                                <img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy">
                                 </a>
                             </button>
                         @endcan
+                        
                         {{-- ELIMINAR --}}
                         @can('delete', $courses)
                             <form action="{{ route('courses.destroy', $courses) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este curso?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-delete">
-                                    <img src="{{asset('icons/Vector.svg')}}" alt="" style="width:38;height:25px" loading="lazy">
+                                    <img src="{{asset('images/icons/Vector.svg')}}" alt="" style="width:38;height:25px" loading="lazy">
                                 </button>
                             </form>
                         @endcan
                     </div>
+                    @endif
                 </div>
             </div>
         @empty

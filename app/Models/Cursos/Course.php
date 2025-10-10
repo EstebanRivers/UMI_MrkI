@@ -20,8 +20,8 @@ class Course extends Model
         'description',
         'credits',
         'hours',
-        'prerequisites',
         'instructor_id',
+        'institution_id',
         'image',
         //'category_id',
 

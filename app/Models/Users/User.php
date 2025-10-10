@@ -137,7 +137,7 @@ class User extends Authenticatable
     //El rol que pertenece al usuario.
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles');
+        return $this->belongsToMany(Role::class, 'user_roles_institution');
     }
 
     //Las instituciones a las que pertenece el usuario.

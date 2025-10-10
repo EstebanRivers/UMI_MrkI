@@ -22,7 +22,7 @@ class CourseController extends Controller
     {
         $activeInstitutionId = session('active_institution_id');
         $courses = Course::where('institution_id', $activeInstitutionId)->latest()->get();
-        $course = Course::with('user')->latest()->get();
+        $course = Course::with('instructor')->latest()->get();
         
         return view('layouts.Cursos.index', compact('course'));
     }
@@ -35,7 +35,7 @@ class CourseController extends Controller
         $course = Course::all();
         $institutions = Institution::all();
 
-        return view('layouts.Cursos.create',compact('course'), compact($institutions));
+        return view('layouts.Cursos.create',compact('course'), compact('institutions'));
     }
 
     /**
@@ -62,7 +62,7 @@ class CourseController extends Controller
 
         $course = Course::create($courseData);
 
-        return redirect()->route('layouts.Cursos.topic.create', ['course' => $course->id])->with('success', 'Curso creado exitosamente.');
+        return redirect()->route('course.topic.create', ['course' => $course->id])->with('success', 'Curso creado exitosamente.');
     }
 
     /**

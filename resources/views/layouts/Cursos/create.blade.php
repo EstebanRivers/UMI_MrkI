@@ -36,9 +36,9 @@
         </div>
 
         <div style="margin-bottom: 20px;">
-            <label for="institution_id" style="display: block; margin-bottom: 8px; font-weight: 600;">Unidad de Negocio</label>
+            <label for="institution_id" style=" display: block; margin-bottom: 8px; font-weight: 600;">Unidad de Negocio</label>
             <select name="institution_id" id="institution_id" required style=" padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-                <option value="" disabled selected>Selecciona la insitucion...</option>
+                <option value="" disabled selected>Selecciona la insitucion</option>
                 @foreach($institutions as $institution)
                     <option value="{{ $institution->id }}">{{ $institution->name }}</option>
                 @endforeach
