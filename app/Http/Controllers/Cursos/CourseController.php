@@ -121,7 +121,7 @@ class CourseController extends Controller
 
 
         // Redirigimos al usuario a la lista de cursos con un mensaje de éxito
-        return redirect()->route('layouts.Cursos.index')->with('success', '¡Curso actualizado exitosamente!');
+        return redirect()->route('Cursos.index')->with('success', '¡Curso actualizado exitosamente!');
 
     }
 
@@ -132,6 +132,6 @@ class CourseController extends Controller
     {
         $course->delete();
 
-        return redirect()->route('layouts.Cursos.index')->with('success', 'Curso borrado exitosamente');
+        return redirect()->route('Cursos.index')->with('success', 'Curso borrado exitosamente');
     }
 }
