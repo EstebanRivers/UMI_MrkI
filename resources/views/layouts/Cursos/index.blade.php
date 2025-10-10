@@ -39,7 +39,6 @@
                         <span>Horas: {{ $courses->hours }}</span>
                     </div>
 
-                    @if(Auth::user()->hasActiveRole('master') || Auth::user()->hasActiveRole('gerente_capacitacion') || Auth::user()->hasActiveRole('docente'))
                     <div class="btn-display">
                         <button type="submit" class="btn-view">
                             <a href="{{ route('course.show', $courses)}}">
@@ -67,7 +66,6 @@
                             </form>
                         @endcan
                     </div>
-                    @endif
                 </div>
             </div>
         @empty

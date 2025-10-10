@@ -23,7 +23,6 @@ class CourseController extends Controller
     {
         $activeInstitutionId = session('active_institution_id');
         $course = Course::where('institution_id', $activeInstitutionId)->latest()->get();
-        $courses = Course::with('instructor')->latest()->get();
         
         return view('layouts.Cursos.index', compact('course'));
     }
