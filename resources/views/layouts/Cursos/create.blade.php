@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Crear Nuevo Curso - UMI')
+@section('title', 'Crear Nuevo Curso - ' . session('active_institution_name'))
 
 @section('content')
-<div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+<div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #ECF0F1; border-radius: 12px;">
     <h1 style="color: #333; margin-bottom: 30px; font-size: 28px;">Crear Nuevo Curso</h1>
 
     @if ($errors->any())
@@ -35,6 +35,16 @@
                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;"></textarea>
         </div>
 
+        <div style="margin-bottom: 20px;">
+            <label for="institution_id" style="display: block; margin-bottom: 8px; font-weight: 600;">Unidad de Negocio</label>
+            <select name="institution_id" id="institution_id" required style=" padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                <option value="" disabled selected>Selecciona la insitucion...</option>
+                @foreach($institutions as $institution)
+                    <option value="{{ $institution->id }}">{{ $institution->name }}</option>
+                @endforeach
+            </select >
+        </div>
+
         {{-- Créditos y Horas --}}
         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
             <div style="flex: 1;">
@@ -47,18 +57,6 @@
                 <input type="number" id="hours" name="hours" required value="40"
                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
             </div>
-        </div>
-
-        {{-- Prerrequisitos --}}
-        <div style="margin-bottom: 20px;">
-            <label for="prerequisites" style="display: block; margin-bottom: 8px; font-weight: 600;">Prerrequisitos (opcional)</label>
-            <select id="prerequisites" name="prerequisites[]" multiple
-                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; min-height: 120px;">
-                @foreach ($course as $courses)
-                    <option value="{{ $courses->id }}">{{ $courses->title }}</option>
-                @endforeach
-            </select>
-            <small style="color: #666;">Mantén presionada la tecla Ctrl (o Cmd en Mac) para seleccionar varios cursos.</small>
         </div>
         
         {{-- Imagen del curso --}}

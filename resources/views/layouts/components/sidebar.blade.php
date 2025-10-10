@@ -35,7 +35,7 @@
         </a>
       </li>
 
-      @if(Auth::user()->hasRole('admin'))
+      @if(Auth::user()->hasRole('master'))
       <li class="@if(request()->routeIs('ControlAdmin.*')) active @endif">
         <a href="{{ route('ControlAdmin.index') }}">
           <span class="icon" aria-hidden="true">
@@ -46,7 +46,7 @@
       </li>
       @endif
       
-      @if(Auth::user()->hasRole('admin'))
+      @if(Auth::user()->hasRole('master'))
       <li class="@if(request()->routeIs('Ajustes.*')) active @endif">
         <a href="{{ route('Ajustes.index') }}">
           <span class="icon" aria-hidden="true">

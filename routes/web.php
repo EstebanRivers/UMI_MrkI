@@ -33,7 +33,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         ->name('context.switch');
 
     // Dashboard - accesible para todos los usuarios autenticados
-    Route::get('/dashboard', function () {return view('dashboard.index');
+    Route::get('/bienvenido', function () {return view('dashboard.index');
     })->name('dashboard');
 
     // Mi Informacion
@@ -41,8 +41,8 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         return view('layouts.MiInformacion.index'); 
     })->name('MiInformacion.index');
 
+    // Cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
-
        // Gestión de cursos - solo para admins y docentes
     Route::middleware(['role:master,docente'])->group(function () {
         Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
@@ -60,7 +60,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
     });
 
-    // Facturación - solo para roles específicos
+    // Facturación 
     Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); 
     })->name('Facturacion.index');
     
@@ -71,7 +71,9 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         })->name('ControlAdmin.index');
     });
 
-    Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
-    })->name('Ajustes.index');
+    Route::middleware(['role:master'])->group(function () {
+        Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
+        })->name('Ajustes.index');
+    });
 
 });

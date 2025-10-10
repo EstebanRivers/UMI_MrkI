@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cursos;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use App\Models\Cursos\Course;
+use App\Models\Users\Institution;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +20,10 @@ class CourseController extends Controller
      */
     public function index(): View
     {
+        $activeInstitutionId = session('active_institution_id');
+        $courses = Course::where('institution_id', $activeInstitutionId)->latest()->get();
         $course = Course::with('user')->latest()->get();
+        
         return view('layouts.Cursos.index', compact('course'));
     }
 
@@ -29,7 +33,9 @@ class CourseController extends Controller
     public function create(): View
     {
         $course = Course::all();
-        return view('layouts.Cursos.create', compact('course'));
+        $institutions = Institution::all();
+
+        return view('layouts.Cursos.create',compact('course'), compact($institutions));
     }
 
     /**
@@ -40,10 +46,9 @@ class CourseController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'institution_id' => 'required|exists:institutions,id',
             'credits' => 'required|integer|min:0',
             'hours' => 'required|integer|min:0',
-            'prerequisites' => 'nullable|array',
-            'prerequisites.*' => 'exists:courses,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -53,14 +58,6 @@ class CourseController extends Controller
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('courses', 'public');
             $courseData['image'] = $path;
-        }
-
-         //unset($courseData['image']); 
-
-
-
-        if (!empty($validatedData['prerequisites'])) {
-            $courseData['prerequisites'] = json_encode($validatedData['prerequisites']);
         }
 
         $course = Course::create($courseData);
@@ -100,7 +97,6 @@ class CourseController extends Controller
             'description' => 'required|string',
             'credits' => 'required|integer|min:0',
             'hours' => 'required|integer|min:0',
-            'prerequisites' => 'nullable|array',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 

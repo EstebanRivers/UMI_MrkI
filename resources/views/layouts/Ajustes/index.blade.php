@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Ajustes - UMI')
+@section('title', 'Ajustes - ' . session('active_institution_name'))
 
 @vite(['resources/css/courses.css', 'resources/js/app.js'])
 

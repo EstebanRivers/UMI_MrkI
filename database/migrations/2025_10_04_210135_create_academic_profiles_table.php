@@ -15,10 +15,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->primary('user_id');
 
-            $table->string('campus')->nullable();
             $table->string('carrera')->nullable();
+            $table->integer('semestre')->nullable();
             $table->string('departamento')->nullable();
-            $table->json('modulos')->nullable();
+            $table->json('rol')->nullable();
 
             $table->json('documentos')->nullable();
             $table->timestamps();

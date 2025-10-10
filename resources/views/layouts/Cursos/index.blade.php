@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Cursos - UMI')
+@section('title', 'Cursos - ' . session('active_institution_name'))
 
 @vite(['resources/css/courses.css', 'resources/js/app.js'])
 
@@ -25,18 +25,6 @@
             </button>
         @endif
     </div>
-
-    <!-- Filtros rápidos -->
-    {{-- <div class="courses-filters">
-        <button class="filter-btn active" data-filter="all">Todos</button>
-        <button class="filter-btn" data-filter="basico">Básico</button>
-        <button class="filter-btn" data-filter="intermedio">Intermedio</button>
-        <button class="filter-btn" data-filter="avanzado">Avanzado</button>
-        @if(Auth::user()->hasAnyRole(['alumno', 'anfitrion']))
-            <button class="filter-btn available" data-filter="available">Disponibles para mí</button>
-            <button class="filter-btn enrolled" data-filter="enrolled">Mis Cursos</button>
-        @endif
-    </div> --}}
 
     <!-- Grid de cursos -->
     <div class="courses-container">
@@ -64,7 +52,7 @@
                                 </a>
                             </button>
                         @endcan
-                        {{-- NUEVO FORMULARIO PARA ELIMINAR --}}
+                        {{-- ELIMINAR --}}
                         @can('delete', $courses)
                             <form action="{{ route('courses.destroy', $courses) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este curso?');">
                                 @csrf
@@ -87,45 +75,6 @@
 
 
 <script>
-// Filtros
-document.addEventListener('DOMContentLoaded', function() {
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const courseCards = document.querySelectorAll('.course-card');
-    
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Actualizar botones activos
-            filterBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            const filter = this.dataset.filter;
-            
-            courseCards.forEach(card => {
-                let show = false;
-                
-                switch(filter) {
-                    case 'all':
-                        show = true;
-                        break;
-                    case 'basico':
-                    case 'intermedio':
-                    case 'avanzado':
-                        show = card.dataset.difficulty === filter;
-                        break;
-                    case 'available':
-                        show = card.dataset.available === 'true';
-                        break;
-                    case 'enrolled':
-                        show = card.dataset.enrolled === 'true';
-                        break;
-                }
-                
-                card.style.display = show ? 'block' : 'none';
-            });
-        });
-    });
-});
-
 // Inscripción a cursos
 function enrollInCourse(courseId) {
     if (!confirm('¿Estás seguro de que quieres inscribirte a este curso?')) {

@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#e69a37">
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
   <title>@yield('title','Dashboard')</title>
 
   {{-- Preload critical resources --}}

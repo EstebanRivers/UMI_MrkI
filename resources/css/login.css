@@ -37,10 +37,10 @@ html, body {
 }
 .logos {
     position: absolute;
-    bottom: 0%;
+    bottom: 2%;
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-end;
     gap: 100px;
     filter: brightness(0) invert(1);
 }
