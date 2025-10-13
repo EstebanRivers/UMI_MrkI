@@ -48,19 +48,13 @@ class CourseController extends Controller
     {
         $user = auth::user();
         $activeInstitutionId = session('active_institution_id');
-        $institution = Institution::find($activeInstitutionId);
-        $activeInstitutionName = session('active_institution_name');
 
-        // Caso especial para el usuario Master
-        // Si el usuario es master, le pasamos TODAS las instituciones para que pueda elegir.
-        if ($user->hasActiveRole(Role::MASTER)) {
-            $viewData['institutions'] = Institution::all();
+        if ($user->hasActiveRole('master')) {
+            $institutions = Institution::all();
         } else {
-            // Para otros usuarios, solo pueden crear en su institución activa.
-            $viewData['institutions'] = collect([$institution]);
+            $institution = Institution::find($activeInstitutionId);
+            $institutions = collect([$institution]);
         }
-        // CORREGIDO: Solo cargar la institución activa, no todas
-        $institutions = Institution::find($activeInstitutionId);
 
         return view('layouts.Cursos.create', compact('institutions'));
     }

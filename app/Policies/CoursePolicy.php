@@ -27,7 +27,7 @@ class CoursePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasAnyActiveRole(['master', 'docente', 'alumno']);
     }
 
     /**
@@ -35,7 +35,9 @@ class CoursePolicy
      */
     public function view(User $user, Course $course): bool
     {
-        return false;
+        $activeInstitutionId = session('active_institution_id');
+
+        return $course->institution_id == $activeInstitutionId;
     }
 
     /**
@@ -43,7 +45,7 @@ class CoursePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasAnyActiveRole(['master', 'docente']);
     }
 
     /**
@@ -51,7 +53,15 @@ class CoursePolicy
      */
     public function update(User $user, Course $course): bool
     {
-        return false;
+        $activeInstitutionId = session('active_institution_id');
+
+        if ($course->institution_id != $activeInstitutionId) {
+            return false;
+        }
+
+        return $user->hasActiveRole('docente')
+            ? $course->instructor_id == $user->id
+            : false;
     }
 
     /**
@@ -59,7 +69,15 @@ class CoursePolicy
      */
     public function delete(User $user, Course $course): bool
     {
-        return false;
+        $activeInstitutionId = session('active_institution_id');
+
+        if ($course->institution_id != $activeInstitutionId) {
+            return false;
+        }
+
+        return $user->hasActiveRole('docente')
+            ? $course->instructor_id == $user->id
+            : false;
     }
 
     /**
@@ -67,7 +85,7 @@ class CoursePolicy
      */
     public function restore(User $user, Course $course): bool
     {
-        return false;
+        return $user->hasActiveRole('master');
     }
 
     /**
@@ -75,6 +93,6 @@ class CoursePolicy
      */
     public function forceDelete(User $user, Course $course): bool
     {
-        return false;
+        return $user->hasActiveRole('master');
     }
 }
