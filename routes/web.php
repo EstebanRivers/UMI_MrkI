@@ -43,12 +43,13 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
 
     // Cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
+    
        // Gestión de cursos - solo para admins y docentes
     Route::middleware(['role:master, docente'])->group(function () {
         Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
         Route::post('/cursos', [CourseController::class, 'store'])->name('courses.store');
-        Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
         Route::get('/cursos/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+        Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
         Route::put('/cursos/{course}', [CourseController::class, 'update'])->name('courses.update');
         Route::delete('/cursos/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
         Route::get('/cursos/{course}/temas/crear', [TopicsController::class, 'create'])->name('course.topic.create');
