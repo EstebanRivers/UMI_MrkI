@@ -35,14 +35,49 @@
                       style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;"></textarea>
         </div>
 
+        {{-- Carrera --}}
+        @isset($career)
         <div style="margin-bottom: 20px;">
-            <label for="institution_id" style=" display: block; margin-bottom: 8px; font-weight: 600;">Unidad de Negocio</label>
-            <select name="institution_id" id="institution_id" required style=" padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-                <option value="" disabled selected>Selecciona la insitucion</option>
-                @foreach($institutions as $institution)
-                    <option value="{{ $institution->id }}">{{ $institution->name }}</option>
+            <label for="career_id" style=" display: block; margin-bottom: 8px; font-weight: 600;">Carrera</label>
+            <select name="career_id" id="career_id" required style=" padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                <option value="" disabled selected>Selecciona la Carrera</option>
+                @foreach($institutions->where('name', 'Universidad Mundo Imperial')->first()->careers ?? [] as $career)
+                    <option value="{{ $career->id }}">{{ $career->name }}</option>
                 @endforeach
             </select >
+        </div>
+        @endisset
+
+        {{-- Departamentos y Puestos --}}
+        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+            @isset($department)
+            <div style="flex: 1;">
+                <label for="department_id" style="display: block; margin-bottom: 8px; font-weight: 600;">Dirigido a Departamento</label>
+                <select name="departament_id" id="departament_id" required style=" padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                    <option value="" disabled selected>Selecciona el Departamento</option>
+                    @foreach($institutions->where('name', '!=', 'Universidad Mundo Imperial') as $institution)
+                        @foreach($institution->departments as $department)
+                            <option value="{{ $department->id }}">{{ $department->name }}</option>
+                        @endforeach                    
+                    @endforeach
+                </select >
+            </div>
+            @endisset
+            @isset($workstation)
+            <div style="flex: 1;">
+                <label for="workstation_id" style="display: block; margin-bottom: 8px; font-weight: 600;">Dirigido al Puesto</label>
+                <select name="workstation_id" id="workstation_id" required style=" padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                    <option value="" disabled selected>Selecciona el Puesto de trabajo</option>
+                    @foreach($institutions->where('name', '!=', 'Universidad Mundo Imperial') as $institution)
+                         @foreach($institution->departments as $department)
+                            @foreach($department->workstations as $workstation)
+                                <option value="{{ $workstation->id }}">{{ $workstation->name }} ({{ $department->name }})</option>
+                            @endforeach
+                        @endforeach                  
+                    @endforeach
+                </select >
+            </div>
+            @endisset
         </div>
 
         {{-- Créditos y Horas --}}

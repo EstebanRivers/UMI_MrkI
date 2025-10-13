@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use App\Models\Cursos\Course;
 use App\Models\Users\Institution;
+use App\Models\Users\Role;
+use App\Models\Users\Department;
+use App\Models\Users\Workstation;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -24,32 +27,80 @@ class CourseController extends Controller
     public function index(): View
     {
         $activeInstitutionId = session('active_institution_id');
-        $course = Course::where('institution_id', $activeInstitutionId)->latest()->get();
-        
-        return view('layouts.Cursos.index', compact('course'));
+        $activeRoleName = session('active_role_name');
+
+        // CORREGIDO: Usar la variable correcta y filtrada
+        $course = Course::with('instructor', 'institution')
+            ->where('institution_id', $activeInstitutionId)
+            ->latest()
+            ->get();
+
+        // Para roles específicos, mostrar información adicional
+        $canManageCourses = in_array($activeRoleName, ['master', 'docente']);
+
+        return view('layouts.Cursos.index', compact('course', 'canManageCourses'));
     }
 
     /**
-     * Crear un nuevo curso
+     * Mostrar formulario de creación de curso
      */
     public function create(): View
     {
-        $course = Course::all();
-        $institutions = Institution::all();
+        $user = auth::user();
+        $activeInstitutionId = session('active_institution_id');
+        $institution = Institution::find($activeInstitutionId);
+        $activeInstitutionName = session('active_institution_name');
 
-        return view('layouts.Cursos.create',compact('course'), compact('institutions'));
+        // Caso especial para el usuario Master
+        // Si el usuario es master, le pasamos TODAS las instituciones para que pueda elegir.
+        if ($user->hasActiveRole(Role::MASTER)) {
+            $viewData['institutions'] = Institution::all();
+        } else {
+            // Para otros usuarios, solo pueden crear en su institución activa.
+            $viewData['institutions'] = collect([$institution]);
+        }
+        // CORREGIDO: Solo cargar la institución activa, no todas
+        $institutions = Institution::find($activeInstitutionId);
+
+        return view('layouts.Cursos.create', compact('institutions'));
     }
 
     /**
      * Guardar un nuevo curso
      */
-    public function store(StoreCourseRequest $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $validatedData = $request->validated();
+        $activeInstitutionId = session('active_institution_id');
+        $activeRoleName = session('active_role_name');
+
+        // VALIDACIÓN DE SEGURIDAD: Verificar que la institución proporcionada coincida con la activa
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'institution_id' => 'required|exists:institutions,id',
+            'credits' => 'required|integer|min:0|max:100',
+            'hours' => 'required|integer|min:0|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        // SEGURIDAD: Forzar que el curso se cree en la institución activa
+        if ($validatedData['institution_id'] != $activeInstitutionId) {
+            Log::warning('Intento de crear curso en institución no autorizada', [
+                'user_id' => Auth::id(),
+                'active_institution_id' => $activeInstitutionId,
+                'attempted_institution_id' => $validatedData['institution_id'],
+                'ip' => $request->ip()
+            ]);
+
+            return redirect()->back()->withErrors([
+                'institution_id' => 'No tienes autorización para crear cursos en esa institución.'
+            ])->withInput();
+        }
 
         $courseData = $validatedData;
-
         $courseData['instructor_id'] = Auth::id();
+
+        // Manejo de imagen
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('courses', 'public');
             $courseData['image'] = $path;
@@ -57,76 +108,161 @@ class CourseController extends Controller
 
         $course = Course::create($courseData);
 
-        return redirect()->route('course.topic.create', ['course' => $course->id])->with('success', 'Curso creado exitosamente.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Course $course)
-    {
-        $course->load('topics.activities');
-
-        return view('layouts.Cursos.show', ['course'=>$course]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Course $course)
-    {
-        return view('layouts.Cursos.edit', ['course' => $course]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Course $course)
-    {
-        // Autorización: Usamos la Policy para asegurar que el usuario puede editar este curso
-        $this->authorize('update', $course);
-
-        // Validación: Las reglas son casi idénticas a las de 'store'
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'credits' => 'required|integer|min:0',
-            'hours' => 'required|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        Log::info('Curso creado exitosamente', [
+            'course_id' => $course->id,
+            'instructor_id' => Auth::id(),
+            'institution_id' => $activeInstitutionId,
+            'role' => $activeRoleName
         ]);
 
-        // Manejo de la nueva imagen (si se subió una)
+        return redirect()->route('course.topic.create', ['course' => $course->id])
+            ->with('success', 'Curso creado exitosamente.');
+    }
+
+    /**
+     * Mostrar detalles de un curso
+     */
+    public function show(Course $course): View
+    {
+        $activeInstitutionId = session('active_institution_id');
+
+        // VALIDACIÓN DE SEGURIDAD: Verificar que el curso pertenece a la institución activa
+        if ($course->institution_id != $activeInstitutionId) {
+            Log::warning('Intento de acceso a curso de otra institución', [
+                'user_id' => Auth::id(),
+                'course_id' => $course->id,
+                'course_institution_id' => $course->institution_id,
+                'user_active_institution_id' => $activeInstitutionId
+            ]);
+
+            abort(403, 'No tienes acceso a este curso. Pertenece a otra institución.');
+        }
+
+        // Cargar relaciones necesarias
+        $course->load(['topics.subtopics.activities', 'instructor', 'institution']);
+
+        return view('layouts.Cursos.show', compact('course'));
+    }
+
+    /**
+     * Mostrar formulario de edición
+     */
+    public function edit(Course $course): View
+    {
+        $activeInstitutionId = session('active_institution_id');
+
+        // VALIDACIÓN DE SEGURIDAD: Verificar institución
+        if ($course->institution_id != $activeInstitutionId) {
+            Log::warning('Intento de editar curso de otra institución', [
+                'user_id' => Auth::id(),
+                'course_id' => $course->id,
+                'course_institution_id' => $course->institution_id,
+                'user_active_institution_id' => $activeInstitutionId
+            ]);
+
+            abort(403, 'No puedes editar cursos de otra institución.');
+        }
+
+        // Autorización adicional: Verificar que el usuario es el instructor o master
+        $this->authorize('update', $course);
+
+        return view('layouts.Cursos.edit', compact('course'));
+    }
+
+    /**
+     * Actualizar curso
+     */
+    public function update(Request $request, Course $course): RedirectResponse
+    {
+        $activeInstitutionId = session('active_institution_id');
+
+        // VALIDACIÓN DE SEGURIDAD: Verificar institución
+        if ($course->institution_id != $activeInstitutionId) {
+            Log::warning('Intento de actualizar curso de otra institución', [
+                'user_id' => Auth::id(),
+                'course_id' => $course->id,
+                'course_institution_id' => $course->institution_id,
+                'user_active_institution_id' => $activeInstitutionId
+            ]);
+
+            abort(403, 'No puedes actualizar cursos de otra institución.');
+        }
+
+        // Autorización: Policy
+        $this->authorize('update', $course);
+
+        // Validación
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'credits' => 'required|integer|min:0|max:100',
+            'hours' => 'required|integer|min:0|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        // Manejo de imagen
         if ($request->hasFile('image')) {
-            // Borramos la imagen antigua para no acumular archivos basura
             if ($course->image) {
                 Storage::disk('public')->delete($course->image);
             }
-            // Guardamos la nueva imagen y actualizamos la ruta
             $validatedData['image'] = $request->file('image')->store('courses', 'public');
         }
 
-        // Actualizamos el curso con los datos validados
         $course->update($validatedData);
 
-         // Si el usuario hizo clic en "Guardar y Editar Temas"
+        Log::info('Curso actualizado', [
+            'course_id' => $course->id,
+            'user_id' => Auth::id()
+        ]);
+
+        // Redirigir según la acción solicitada
         if ($request->input('action') == 'save_and_continue') {
             return redirect()->route('course.topic.create', ['course' => $course->id])
-                    ->with('success', '¡Curso actualizado! Ahora puedes editar sus temas.');
+                ->with('success', 'Curso actualizado. Ahora puedes editar sus temas.');
         }
 
-
-        // Redirigimos al usuario a la lista de cursos con un mensaje de éxito
-        return redirect()->route('Cursos.index')->with('success', '¡Curso actualizado exitosamente!');
-
+        return redirect()->route('Cursos.index')
+            ->with('success', 'Curso actualizado exitosamente.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar curso
      */
-    public function destroy(Course $course)
+    public function destroy(Course $course): RedirectResponse
     {
+        $activeInstitutionId = session('active_institution_id');
+
+        // VALIDACIÓN DE SEGURIDAD: Verificar institución
+        if ($course->institution_id != $activeInstitutionId) {
+            Log::warning('Intento de eliminar curso de otra institución', [
+                'user_id' => Auth::id(),
+                'course_id' => $course->id,
+                'course_institution_id' => $course->institution_id,
+                'user_active_institution_id' => $activeInstitutionId
+            ]);
+
+            abort(403, 'No puedes eliminar cursos de otra institución.');
+        }
+
+        // Autorización: Policy
+        $this->authorize('delete', $course);
+
+        // Eliminar imagen asociada
+        if ($course->image) {
+            Storage::disk('public')->delete($course->image);
+        }
+
+        $courseTitle = $course->title;
         $course->delete();
 
-        return redirect()->route('Cursos.index')->with('success', 'Curso borrado exitosamente');
+        Log::info('Curso eliminado', [
+            'course_id' => $course->id,
+            'course_title' => $courseTitle,
+            'user_id' => Auth::id(),
+            'institution_id' => $activeInstitutionId
+        ]);
+
+        return redirect()->route('Cursos.index')
+            ->with('success', 'Curso "' . $courseTitle . '" eliminado exitosamente.');
     }
 }

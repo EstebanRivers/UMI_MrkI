@@ -6,6 +6,9 @@ use Illuminate\Database\Seeder;
 use App\Models\Users\User;
 use App\Models\Users\Role;
 use App\Models\Users\Institution;
+use App\Models\Users\Department;
+use App\Models\Users\Workstation;
+use App\Models\Users\Career;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
@@ -53,8 +56,34 @@ class UserSeeder extends Seeder
         }
 
         $universidadMI = Institution::where('name', 'Universidad Mundo Imperial')->first();
-        $palacioMI = Institution::where('name', 'Palacio Mundo Imperial')->first();
+            if ($universidadMI) {
+                Career::firstOrCreate(['name' => 'Ingenieria en Sistemas', 'institution_id' => $universidadMI->id]);
+                Career::firstOrCreate(['name' => 'Administracion de Empresas', 'institution_id' => $universidadMI->id]);
+            }
 
+        $palacioMI = Institution::where('name', 'Palacio Mundo Imperial')->first();
+            if ($palacioMI) {
+                Department::firstOrCreate(['name' => 'Talento Humano', 'institution_id' => $palacioMI->id]);
+                Department::firstOrCreate(['name' => 'Calidad', 'institution_id' => $palacioMI->id]);
+            }
+        
+        $talentoHumanoDep = Department::where('name', 'Talento Humano')->first();
+           if ($talentoHumanoDep) { 
+            Workstation::firstOrCreate(
+                [
+                    'name' => 'Reclutador',
+                    'department_id' => $talentoHumanoDep->id,
+                    'institution_id' => $talentoHumanoDep->institution_id,
+                ]
+            );
+            Workstation::firstOrCreate(
+                [
+                    'name' => 'Analista de Nomina',
+                    'department_id' => $talentoHumanoDep->id,
+                    'institution_id' => $talentoHumanoDep->institution_id,
+                ]
+            );
+        }
         $alumnoRole = Role::where('name', 'estudiante')->first();
         $anfitrionRole = Role::where('name','anfitrion')->first();
 
