@@ -56,7 +56,6 @@ class LoginController extends Controller
             'email' => 'Las credenciales no coinciden con nuestros registros.',
         ]);
     }
-    
 
     
     //Cerrar sesión

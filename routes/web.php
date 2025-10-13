@@ -21,7 +21,7 @@ Route::get('/', function () {
 });
 
 // --- RUTAS DEL CONTEXTO ACTIVO (Requieren estar autenticado) ---
-Route::middleware(['auth', 'ajax', 'spa','verified'])->group(function () {
+Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // 1. Ruta para establecer el contexto inicial al iniciar sesión (GET/POST)
     // No requiere {roleId} aquí, el controlador toma el rol por defecto.
     Route::match(['get', 'post'], '/set-context', [ContextController::class, 'setContext'])
@@ -42,18 +42,12 @@ Route::middleware(['auth', 'ajax', 'spa','verified'])->group(function () {
     })->name('MiInformacion.index');
 
     // Cursos
-    Route::get('/cursos', [CourseController::class, 'index'])
-        ->middleware('role:master,docente,anfitrion,estudiante')
-        ->name('Cursos.index');
-    
-    Route::get('/cursos/{course}', [CourseController::class, 'show'])
-        ->middleware('role:master,docente,anfitrion,estudiante')
-        ->name('course.show');
-
+    Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
        // Gestión de cursos - solo para admins y docentes
     Route::middleware(['role:master, docente'])->group(function () {
         Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
         Route::post('/cursos', [CourseController::class, 'store'])->name('courses.store');
+        Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
         Route::get('/cursos/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
         Route::put('/cursos/{course}', [CourseController::class, 'update'])->name('courses.update');
         Route::delete('/cursos/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');

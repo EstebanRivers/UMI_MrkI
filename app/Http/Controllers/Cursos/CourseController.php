@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Cursos;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\StoreCourseRequest; 
 use App\Models\Cursos\Course;
 use App\Models\Users\Institution;
+use App\Models\Users\Role;
+use App\Models\Users\Department;
+use App\Models\Users\Workstation;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCourseRequest;
 
 
 class CourseController extends Controller
@@ -43,26 +46,36 @@ class CourseController extends Controller
      */
     public function create(): View
     {
-         // Obtenemos el ID de la institución de la sesión actual del usuario
-        $institutionId = session('active_institution_id');
+        $user = auth::user();
+        $activeInstitutionId = session('active_institution_id');
 
-        // Cargamos la institución actual con sus relaciones (carreras, departamentos, etc.)
-        $currentInstitution = Institution::with(['careers', 'departments.workstations'])->find($institutionId);
+        if ($user->hasActiveRole('master')) {
+            $institutions = Institution::all();
+        } else {
+            $institution = Institution::find($activeInstitutionId);
+            $institutions = collect([$institution]);
+        }
 
-        // Pasamos solo la institución actual a la vista.
-        return view('layouts.Cursos.create', compact('currentInstitution'));
+        return view('layouts.Cursos.create', compact('institutions'));
     }
 
     /**
      * Guardar un nuevo curso
      */
-    public function store(StoreCourseRequest $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $activeInstitutionId = session('active_institution_id');
         $activeRoleName = session('active_role_name');
 
         // VALIDACIÓN DE SEGURIDAD: Verificar que la institución proporcionada coincida con la activa
-        $validatedData = $request->validated();
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'institution_id' => 'required|exists:institutions,id',
+            'credits' => 'required|integer|min:0|max:100',
+            'hours' => 'required|integer|min:0|max:1000',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
 
         // SEGURIDAD: Forzar que el curso se cree en la institución activa
         if ($validatedData['institution_id'] != $activeInstitutionId) {
@@ -105,6 +118,20 @@ class CourseController extends Controller
      */
     public function show(Course $course): View
     {
+        $activeInstitutionId = session('active_institution_id');
+
+        // VALIDACIÓN DE SEGURIDAD: Verificar que el curso pertenece a la institución activa
+        if ($course->institution_id != $activeInstitutionId) {
+            Log::warning('Intento de acceso a curso de otra institución', [
+                'user_id' => Auth::id(),
+                'course_id' => $course->id,
+                'course_institution_id' => $course->institution_id,
+                'user_active_institution_id' => $activeInstitutionId
+            ]);
+
+            abort(403, 'No tienes acceso a este curso. Pertenece a otra institución.');
+        }
+
         // Cargar relaciones necesarias
         $course->load(['topics.subtopics.activities', 'instructor', 'institution']);
 

@@ -4,13 +4,10 @@ namespace App\Policies;
 
 use App\Models\Cursos\Course;
 use App\Models\Users\User;
-use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
 
 class CoursePolicy
 {
-    use HandlesAuthorization;
-
     /**
      * El método 'before' se ejecuta antes que cualquier otra regla.
      * Es perfecto para darle acceso total a un super-administrador.
@@ -30,7 +27,7 @@ class CoursePolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasAnyActiveRole(['master', 'docente', 'alumno']);
     }
 
     /**
@@ -40,31 +37,7 @@ class CoursePolicy
     {
         $activeInstitutionId = session('active_institution_id');
 
-        if ($course->institution_id != $activeInstitutionId) {
-            return false;
-        }
-
-        // Un docente puede ver cualquier curso de su institución.
-        if ($user->hasActiveRole('docente')) {
-            return true;
-        }
-
-        // Un estudiante solo puede ver el curso si está dirigido a su carrera.
-        if ($user->hasActiveRole('estudiante')) {
-            $academicProfile = $user->academicProfile;
-            return $academicProfile && $course->career_id === $academicProfile->career_id;
-        }
-
-        // Un anfitrión solo puede ver el curso si está dirigido a su departamento o puesto.
-        if ($user->hasActiveRole('anfitrion')) {
-            $corporateProfile = $user->corporateProfile;
-            return $corporateProfile && (
-                $course->department_id === $corporateProfile->department_id ||
-                $course->workstation_id === $corporateProfile->workstation_id
-            );
-        }
-
-        return false;
+        return $course->institution_id == $activeInstitutionId;
     }
 
     /**

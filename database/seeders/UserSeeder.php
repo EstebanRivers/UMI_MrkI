@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Users\User;
 use App\Models\Users\Role;
-use App\Models\Users\AcademicProfile;
-use App\Models\Users\CorporateProfile;
 use App\Models\Users\Institution;
 use App\Models\Users\Department;
 use App\Models\Users\Workstation;
@@ -94,17 +92,6 @@ class UserSeeder extends Seeder
             throw new \Exception('No se pudo encontrar un Rol o Institución. Revisa los nombres en UserSeeder.');
         }
 
-        // 2. Obtener los perfiles específicos
-        $ingenieriaCareer = Career::where('name', 'Ingenieria en Sistemas')->where('institution_id', $universidadMI->id)->first();
-        $talentoHumanoDep = Department::where('name', 'Talento Humano')->where('institution_id', $palacioMI->id)->first();
-        $reclutadorWorkstation = Workstation::where('name', 'Reclutador')->where('department_id', $talentoHumanoDep->id)->first();
-
-        // Asegurarse de que los perfiles específicos existen
-        if (!$ingenieriaCareer || !$talentoHumanoDep || !$reclutadorWorkstation) {
-            throw new \Exception('Error en el Seeder: No se encontró la carrera, departamento o puesto especificado.');
-        }
-
-        // 3. Crear el usuario "Tribilin"
         $multiRoleUser = User::firstOrCreate(
             ['email' => 'multirol@UMI.com'],
             [
@@ -116,32 +103,23 @@ class UserSeeder extends Seeder
             ]
         );
 
-       // 4. Asignar rol de "estudiante" y perfil académico en la Universidad
-        DB::table('user_roles_institution')->updateOrInsert(
-            ['user_id' => $multiRoleUser->id, 'institution_id' => $universidadMI->id],
-            ['role_id' => $alumnoRole->id, 'created_at' => now(), 'updated_at' => now()]
-        );
+        // Asignar rol "estudiante" SOLO en la Universidad
+        DB::table('user_roles_institution')->insert([
+            'user_id' => $multiRoleUser->id,
+            'role_id' => $alumnoRole->id,
+            'institution_id' => $universidadMI->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        // CORRECCIÓN AQUÍ: Busca el perfil solo por user_id
-        AcademicProfile::updateOrInsert(
-            ['user_id' => $multiRoleUser->id],
-            ['career_id' => $ingenieriaCareer->id]
-        );
+        // Asignar rol "anfitrion" SOLO en el Palacio
+        DB::table('user_roles_institution')->insert([
+            'user_id' => $multiRoleUser->id,
+            'role_id' => $anfitrionRole->id,
+            'institution_id' => $palacioMI->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-
-        // 5. Asignar rol de "anfitrion" y perfil corporativo en el Palacio
-        DB::table('user_roles_institution')->updateOrInsert(
-            ['user_id' => $multiRoleUser->id, 'institution_id' => $palacioMI->id],
-            ['role_id' => $anfitrionRole->id, 'created_at' => now(), 'updated_at' => now()]
-        );
-
-        // CORRECCIÓN AQUÍ: Busca el perfil solo por user_id
-        CorporateProfile::updateOrInsert(
-            ['user_id' => $multiRoleUser->id],
-            [
-                'department_id' => $talentoHumanoDep->id,
-                'workstation_id' => $reclutadorWorkstation->id,
-            ]
-        );
     }
 }
