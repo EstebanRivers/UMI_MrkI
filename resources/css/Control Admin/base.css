@@ -43,3 +43,72 @@
 .empty-text{
     text-align: center;
 }
+
+.carrer-card {
+    width: 300px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #ecf0f1;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.carrer-name{
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.carrer-card-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.carrer-info{
+    font-size: 14px;
+    color: #777;
+    flex-grow: 1;
+}
+
+.carrer-btn-section{
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.line-separator{
+    border-top: 3px solid #db5865;
+    margin: 10px 0;
+}
+
+.table{
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0;
+    background-color: #efefef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.thead{
+    background-color: #223f70;
+    color: white;
+    border-radius: 25px;
+}
+
+.thead th:first-child {
+    border-top-left-radius: 8px; /* Esquina superior izquierda */
+}
+
+.thead th:last-child {
+    border-top-right-radius: 8px; /* Esquina superior derecha */
+}
+
+.tbody td{
+    background-color: #fafafa;
+}

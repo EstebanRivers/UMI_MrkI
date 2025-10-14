@@ -1,0 +1,8 @@
+.user-table table{
+    background-color: blue;
+    border: 12px;
+
+}
+.user-table th{
+    background-color: aqua;
+}

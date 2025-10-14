@@ -1,52 +1,52 @@
-<div id="popupRegister">
-    <div class="header-popup">
-        <div class="popup-title">
+<div id="miModal" class="modal">
 
+  <div class="modal-contenido">
+    <span class="cerrar">&times;</span> <h2>Agregar Nueva Carrera</h2>
+    <form method="post" action="">
+        @csrf <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="name" name="nombre">
         </div>
-        <div class="popup-close">
-
+        <div>
+            <label for="nombre">RVOE:</label>
+            <input type="text" id="official_id" name="rvoe">
         </div>
-        <form>
-            <div>
-                <label>Nombre:</label>
-                <input>
-            </div>
-            <div>
-                <label>RVOE: Acuerdo Numero:</label>
-                <input>
-            </div>
-            <div>
-                <label>Profesionalización y empleabilidad:</label>
-                <input>
-            </div>
-            <div>
-                <label>Objetivo general:</label>
-                <input>
-            </div>
-            <div>
-                <label>Elige Ser:</label>
-                <input>
-            </div>
-            <div>
+        <div>
+            <label for="nombre">Desc1:</label>
+            <input type="text" id="description1" name="descripcion1">
+        </div>
+        <div>
+            <label for="nombre">Desc2:</label>
+            <input type="text" id="description2" name="descripcion2">
+        </div>
+        <div>
+            <label for="nombre">Desc3:</label>
+            <input type="text" id="description3" name="descripcion3">
+        </div>
+        
+        <div class="options">
+            <div class="Checkboxes">
+                <label for="nombre">Modalidad:</label>
                 <div>
-                    <label>Modalidad:</label>
-                    
+                    <input type="radio" id="type" name="tipo_carrera" value="Presencial">
+                    <label for="nombre">Presencial:</label>
                 </div>
                 <div>
-                    <label>Nombre:</label>
-                    <select>
-
-                    </select>
+                    <input type="radio" id="type" name="tipo_carrera" value="En linea">
+                    <label for="nombre">En linea:</label>
                 </div>
             </div>
-            <div>
-                <button>
-                    <svg>
-
-                    </svg>
-                    Agregar
-                </button>
+            <div clas="lists">
+                <label for="nombre">No. de semestres:</label>
+                <select id="semesters" name="semestres">
+                    @for ($i = 1; $i <= 15; $i++)
+                    <option value="{{ $i }}">{{ $i }}</option>
+                    @endfor
+                </select>
             </div>
-        </form>
-    </div>
+        </div>
+      <button type="submit">Guardar</button>
+    </form>
+  </div>
+
 </div>
