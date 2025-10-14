@@ -40,6 +40,7 @@ class StoreCourseRequest extends FormRequest
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación de imagen
             'credits' => $creditsRule,
             'hours' => 'required|integer|min:0',
+            'workstation_id' => 'nullable|exists:workstations,id',
           
         ];
     }

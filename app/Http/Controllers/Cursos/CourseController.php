@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreCourseRequest; 
 use App\Models\Cursos\Course;
 use App\Models\Users\Institution;
+use App\Models\Users\Department;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -49,8 +50,15 @@ class CourseController extends Controller
         // Cargamos la institución actual con sus relaciones (carreras, departamentos, etc.)
         $currentInstitution = Institution::with(['careers', 'departments.workstations'])->find($institutionId);
 
+        $departmentWorkstationsMap = [];
+        if ($currentInstitution->departments) {
+            $departmentWorkstationsMap = $currentInstitution->departments->mapWithKeys(function ($department) {
+                return [$department->id => $department->workstations->toArray()];
+            });
+        }
+
         // Pasamos solo la institución actual a la vista.
-        return view('layouts.Cursos.create', compact('currentInstitution'));
+        return view('layouts.Cursos.create', compact('currentInstitution', 'departmentWorkstationsMap'));
     }
 
     /**

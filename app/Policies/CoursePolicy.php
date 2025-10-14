@@ -57,10 +57,21 @@ class CoursePolicy
         // Un anfitrión solo puede ver el curso si está dirigido a su departamento o puesto.
         if ($user->hasActiveRole('anfitrion')) {
             $corporateProfile = $user->corporateProfile;
-            return $corporateProfile && (
-                $course->department_id === $corporateProfile->department_id ||
-                $course->workstation_id === $corporateProfile->workstation_id
-            );
+            // Si el usuario no tiene perfil corporativo, no puede ver ningún curso.
+            if (!$corporateProfile) {
+                return false;
+            }
+
+            // El usuario SÍ puede ver el curso si:
+            // 1. El curso pertenece a su departamento Y...
+            return $course->department_id === $corporateProfile->department_id &&
+                   (
+                       // 2a. ...el curso es para TODO el departamento (ningún puesto específico).
+                       is_null($course->workstation_id) ||
+
+                       // 2b. ...el curso es específicamente para su puesto de trabajo.
+                       $course->workstation_id === $corporateProfile->workstation_id
+                   );
         }
 
         return false;

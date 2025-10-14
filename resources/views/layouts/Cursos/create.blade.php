@@ -85,14 +85,9 @@
                 </div>
                 <div style="flex: 1;">
                     <label for="workstation_id" style="display: block; margin-bottom: 8px; font-weight: 600;">Dirigido al Puesto</label>
-                    <select name="workstation_id" id="workstation_id" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-                        <option value="" disabled selected>Selecciona el Puesto de trabajo</option>
-                        {{-- Itera anidando sobre los puestos de cada departamento --}}
-                        @foreach($currentInstitution->departments as $department)
-                            @foreach($department->workstations as $workstation)
-                                <option value="{{ $workstation->id }}">{{ $workstation->name }} ({{ $department->name }})</option>
-                            @endforeach
-                        @endforeach
+                    <select name="workstation_id" id="workstation_id" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;" disabled>
+                        <option value="" selected>Primero selecciona un departamento</option>
+                        <option value="">Todos los Puestos del Departamento</option>
                     </select>
                 </div>
             </div>
@@ -113,3 +108,50 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Se ejecuta cuando todo el HTML ha sido cargado
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // 1. Obtenemos los datos que pasamos desde el controlador
+        const departmentWorkstations = @json($departmentWorkstationsMap);
+
+        // 2. Obtenemos referencias a nuestros dos menús desplegables
+        const departmentSelect = document.getElementById('department_id');
+        const workstationSelect = document.getElementById('workstation_id');
+
+        // 3. Añadimos un "oyente" que se activa cuando el usuario cambia el departamento
+        departmentSelect.addEventListener('change', function () {
+            // Limpiamos las opciones anteriores de puestos (dejando las 2 primeras)
+            while (workstationSelect.options.length > 2) {
+                workstationSelect.remove(2);
+            }
+
+            // Obtenemos el ID del departamento seleccionado
+            const selectedDepartmentId = this.value;
+
+            // Si el usuario seleccionó un departamento válido...
+            if (selectedDepartmentId && departmentWorkstations[selectedDepartmentId]) {
+                // Habilitamos el menú de puestos
+                workstationSelect.disabled = false;
+                workstationSelect.querySelector('option').textContent = 'Selecciona el Puesto (Opcional)';
+                
+                // Obtenemos la lista de puestos para ese departamento
+                const workstations = departmentWorkstations[selectedDepartmentId];
+                
+                // Añadimos cada puesto como una nueva opción en el menú
+                workstations.forEach(function (workstation) {
+                    const option = new Option(workstation.name, workstation.id);
+                    workstationSelect.add(option);
+                });
+
+            } else {
+                // Si no se seleccionó un departamento, deshabilitamos el menú de puestos
+                workstationSelect.disabled = true;
+                workstationSelect.querySelector('option').textContent = 'Primero selecciona un departamento';
+            }
+        });
+    });
+</script>
+@endpush
