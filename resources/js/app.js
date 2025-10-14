@@ -376,3 +376,47 @@ window.addEventListener('beforeunload', () => {
         }
     });
 })();
+
+// Espera a que todo el contenido del DOM esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // 1. Seleccionar los elementos clave por ID
+    const menu = document.getElementById('popupRegister');
+    const abrirBtn = document.getElementById('openCreateCarrer');
+    const cerrarBtn = document.getElementById('cerrarRegistroBtn');
+    
+    // Si alguno de los elementos no existe, sal de la función para evitar errores
+    if (!menu || !abrirBtn || !cerrarBtn) {
+        return; 
+    }
+
+    // 2. Función para abrir el menú
+    function abrirMenu() {
+        menu.classList.remove('hidden'); // Remueve la clase 'hidden' para mostrarlo
+    }
+
+    // 3. Función para cerrar el menú
+    function cerrarMenu() {
+        menu.classList.add('hidden'); // Agrega la clase 'hidden' para ocultarlo
+    }
+    
+    // 4. Asignar los eventos a los botones
+    abrirBtn.addEventListener('click', abrirMenu);
+    cerrarBtn.addEventListener('click', cerrarMenu);
+
+    // 5. Opcional: Cerrar al presionar la tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && !menu.classList.contains('hidden')) {
+            cerrarMenu();
+        }
+    });
+
+    // 6. Opcional: Cerrar al hacer click en el fondo (fuera del panel)
+    menu.addEventListener('click', function(event) {
+        // Solo cerrar si el clic es directamente en el fondo del div del menú,
+        // no en un hijo del menú (como el formulario o el botón de registro)
+        if (event.target === menu) {
+            cerrarMenu();
+        }
+    });
+});

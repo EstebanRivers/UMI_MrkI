@@ -69,6 +69,10 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::middleware(['role:master'])->group(function () {
         Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
         })->name('ControlAdmin.index');
+        Route::get('/Carreras', function () { return view('layouts.ControlAdmin.carrers'); 
+        })->name('ControlAdmin.carrers');
+        Route::get('/ListaUuarios', function () { return view('layouts.ControlAdmin.users'); 
+        })->name('ControlAdmin.users');
     });
 
     Route::middleware(['role:master'])->group(function () {

@@ -1,0 +1,45 @@
+.container{
+    flex-grow: 1;
+    padding: 20px;
+}
+
+.content-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.content-title{
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.option-carrer button{
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.option-carrer button:hover {
+  transform: translateY(-1px);
+  color: var(--accent);
+}
+
+.empty-carrers{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    background-color: #efefef;
+    text-align: center;
+}
+.empty-text{
+    text-align: center;
+}

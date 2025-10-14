@@ -7,6 +7,7 @@
 @section('content')
 <div class ="container">
     <h1 class="page-title">Control Administrativo</h1>
-
+    <a href="{{ route('ControlAdmin.carrers') }}">Carreras</a>
+    <a href="{{ route('ControlAdmin.users') }}">Usarios</a>
 </div>
 @endsection
