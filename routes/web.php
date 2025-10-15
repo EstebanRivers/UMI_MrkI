@@ -9,6 +9,7 @@ use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\AdmonCont\CarrerController;
 use App\Http\Controllers\AdmonCont\UserController;
+use App\Http\Controllers\AdmonCont\generalController;
 
 
 // Rutas de autenticación
@@ -69,16 +70,19 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // Control Administrativo - Carreras
     Route::get('/carrers', [CarrerController::class, 'index'])->name('Carreras.index');
     Route::middleware(['role:master'])->group(function () {
+    //Listas
     Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
     Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
     Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
     Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
-
+    //Horarios
+    Route::get('/horarios', [generalController::class, 'index'])->name('Horarios.index');
+    Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
 
 
     });
 
-    //V1
+    //V1-DEPRECATED
     Route::middleware(['role:master'])->group(function () {
         Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
         })->name('ControlAdmin.index');
