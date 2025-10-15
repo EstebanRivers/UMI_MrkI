@@ -16,27 +16,24 @@ class UserController extends Controller
     use AuthorizesRequests;
     public function index(Request $request): View
     {
-        // Obtener el nombre de la ruta.
         $routeName = $request->route()->getName();
+        $listType = match ($routeName) {
+        'Listas.students.index' => 'students',
+        'Listas.members.index' => 'members',
+        'Listas.users.index' => 'users',
+        'Listas.materias.index' => 'materias',
+        default => null, // Si la ruta no coincide con nada
+    };
 
-        $listType = '';
-        if ($routeName === 'Listas.students.index') {
-            $listType = 'students';
-        } elseif ($routeName === 'Listas.members.index') {
-            $listType = 'members';
-        } elseif ($routeName === 'Listas.users.index') {
-            $listType = 'users';
-        } elseif ($routeName === 'Listas.courses.index'){
-            $listType = 'courses';
-        } else {
+    if (is_null($listType)) {
+        abort(404); // Detener si la ruta no está definida en la lista
+    }
 
-        }
-
-        $viewPath = 'layouts.ControlAdmin.Listas.' . $listType . '.index';
-        
-        return view($viewPath, [
-            // 'data' => $data // Aquí pasarías los datos si los tuvieras
-        ]);
+    $viewPath = 'layouts.ControlAdmin.Listas.' . $listType . '.index';
+    
+    return view($viewPath, [
+        // ...
+    ]);
         
     }
 }

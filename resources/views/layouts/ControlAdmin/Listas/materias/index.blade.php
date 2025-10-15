@@ -1,8 +1,14 @@
+@extends('layouts.app')
+
+@section('title', 'Control Administrativo - ' . session('active_institution_name'))
+
+@vite(['resources/css/control_admin/base.css', 'resources/js/app.js'])
+
 @section('content')
 <div class ="container">
     <div class ="content-header">
         <div class="content-title">
-            <h1>Lista de Miembros</h1>
+            <h1>Lista de Materias</h1>
         </div>
         <div class="option-carrer">
              <button id="openCreateCarrer">Agregar Carrera</button>
@@ -14,9 +20,9 @@
                 <tr>
                     <th>Carrera</th>
                     <th>Nombre</th>
-                    <th>Apellido Paterno</th>
-                    <th>Apellido Materno</th>
-                    <th>Años Activo</th>
+                    <th>No. Créditos</th>
+                    <th>Semestre</th>
+                    <th>Modalidad</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -31,6 +37,7 @@
                         {{-- <td>{{ $registro->columna3_db }}</td> Reemplaza 'columna3_db' con el nombre real de tu campo --}}
                         {{-- <td>{{ $registro->columna4_db }}</td> Reemplaza 'columna4_db' con el nombre real de tu campo --}}
                         {{-- <td>{{ $registro->columna5_db }}</td> Reemplaza 'columna5_db' con el nombre real de tu campo --}}
+                        
                         {{-- COLUMNA DE ACCIONES: Contiene los 3 botones --}}
                         <td>
                             <a href="{{-- {{ route('ruta.ver', $registro->id) }} --}}" class="btn btn-sm btn-info">Ver</a>

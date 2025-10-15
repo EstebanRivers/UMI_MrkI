@@ -72,7 +72,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
     Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
     Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
-    Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.courses.index');
+    Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
 
 
 
