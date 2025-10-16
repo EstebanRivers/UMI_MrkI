@@ -7,7 +7,7 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
-use App\Http\Controllers\AdmonCont\CarrerController;
+use App\Http\Controllers\AdmonCont\store\careerController;
 use App\Http\Controllers\AdmonCont\UserController;
 use App\Http\Controllers\AdmonCont\generalController;
 
@@ -67,8 +67,8 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     })->name('Facturacion.index');
     
     
-    // Control Administrativo - Carreras
-    Route::get('/carrers', [CarrerController::class, 'index'])->name('Carreras.index');
+    // Control Administrativo
+    
     Route::middleware(['role:master'])->group(function () {
     //Listas
     Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
@@ -78,6 +78,12 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     //Horarios
     Route::get('/horarios', [generalController::class, 'index'])->name('Horarios.index');
     Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
+    //Carreras
+    Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');
+    Route::post('/carreras', [careerController::class, 'store'])->name('career.store');
+    Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
+    
+    
 
 
     });
@@ -86,11 +92,6 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::middleware(['role:master'])->group(function () {
         Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
         })->name('ControlAdmin.index');
-        Route::get('/Carreras', function () { return view('layouts.ControlAdmin.carrers'); 
-        })->name('ControlAdmin.carrers');
-        Route::get('/ListaUuarios', function () { return view('layouts.ControlAdmin.users'); 
-        })->name('ControlAdmin.users');
-
     });
 
     Route::middleware(['role:master'])->group(function () {
