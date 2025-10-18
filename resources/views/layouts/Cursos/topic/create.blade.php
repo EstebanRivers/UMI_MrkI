@@ -131,19 +131,62 @@
                                     <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí">
                                 </div>
                                 <div>
-                                    <label>Opciones de respuesta (marca la correcta):</label>
-                                    @for ($i = 0; $i < 4; $i++)
-                                        <div class="quiz-option">
-                                            <input type="radio" name="content[correct_answer]" value="{{ $i }}">
-                                            <input type="text" name="content[options][]" class="form-field-cuestionario" placeholder="Opción {{ $i + 1 }}">
-                                        </div>
-                                    @endfor
+                                <label>Opciones de respuesta (marca la correcta):</label>
+                                @for ($i = 0; $i < 4; $i++)
+                                    <div class="quiz-option">
+                                        <input type="radio" name="content[correct_answer]" value="{{ $i }}">
+                                        <input type="text" name="content[options][]" class="form-field-cuestionario" placeholder="Opción {{ $i + 1 }}">
                                 </div>
+                                @endfor
                             </div>
                         </div>
                 </form>
-            </div>            
-        </div>
+            </div>
+            {{-- 2.4 FORMULARIO DE EDICIÓN DE TEMA (Inicialmente oculto) --}}
+            <div id="form-edit-topic" class="form-mode-container" style="display: none;">
+                <div class="header-topic">
+                    <h3>Editando Tema</h3>
+                    <p id="edit-topic-context" style="color: #007bff; font-weight: bold;"></p>
+                </div>
+                <form id="edit-topic-form" action="" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    
+                    {{-- Campo oculto para el ID del tema --}}
+                    <input type="hidden" name="topic_id" id="edit-topic-id">
+                    <input type="hidden" name="course_id" value="{{ $course->id }}">
+
+                    {{-- Título --}}
+                    <div class="form-group">
+                        <label for="edit-title">Título del Tema</label>
+                        <input type="text" id="edit-title" name="title" required>
+                    </div>
+
+                    {{-- Descripción --}}
+                    <div class="form-group">
+                        <label for="edit-description">Descripción Detallada del Tema</label>
+                        <textarea id="edit-description" name="description" rows="5"></textarea>
+                    </div>
+
+                    {{-- Archivo --}}
+                    <div class="form-group">
+                        <label for="edit-file">Reemplazar Archivo (Opcional)</label>
+                        <input type="file" id="edit-file" name="file">
+                        <div id="current-file-info" style="margin-top: 5px;">
+                            <small id="current-file-text"></small>
+                            {{-- Campo oculto para mantener el file_path actual si no se sube nuevo archivo --}}
+                            <input type="hidden" name="current_file_path" id="current-file-path">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-success">Guardar Cambios</button>
+                        <button type="button" id="cancel-edit-btn" class="btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>   
+    </div>         
 
         {{-- Columna lista de temas --}}                
         <div class="topics-list">
@@ -172,16 +215,27 @@
                                 <p class="topic-description">{{ $topic->description }}</p>
                             </div>
 
-                            {{-- Botón eliminar tema --}}
-                            <form action="{{ route('topics.destroy', $topic) }}" method="POST" 
-                                onsubmit="return confirm('¿Eliminar este tema y todas sus actividades?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-danger" title="Eliminar">
-                                    <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
+                            <div class="topic-actions"> 
+                                {{-- BOTÓN DE EDITAR --}}
+                                <button type="button" class="btn-edit-topic" 
+                                        data-edit-url="{{ route('topics.edit', $topic) }}"
+                                        data-update-url="{{ route('topics.update', $topic) }}"
+                                        title="Editar Tema">
+                                    <img src="{{ asset('images/icons/pen-to-square-solid-full.svg') }}" alt="Editar"
                                         style="width:24px;height:24px" loading="lazy">
                                 </button>
-                            </form>
+
+                                {{-- Botón eliminar tema --}}
+                                <form action="{{ route('topics.destroy', $topic) }}" method="POST" 
+                                    onsubmit="return confirm('¿Eliminar este tema y todas sus actividades?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-danger" title="Eliminar">
+                                        <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
+                                            style="width:24px;height:24px" loading="lazy">
+                                    </button>
+                                </form>
+                            </div>
                         </div>
 
                         {{-- Archivo adjunto --}}
@@ -273,11 +327,12 @@
                         </div>
                     @endif
                 </div>
-            @empty
-                <div class="no-topics">
-                    <p>Aún no has añadido ningún tema a este curso.</p>
-                </div>
-            @endforelse
+                @empty
+                    <div class="no-topics">
+                        <p>Aún no has añadido ningún tema a este curso.</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
     </div>
 </div>
@@ -287,173 +342,225 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // 1. VARIABLES DE ESTADO
+        // ===================================================
+        // 1. VARIABLES DE ESTADO Y REFERENCIAS AL DOM
+        // ===================================================
         let selectedTopicId = null;
         let selectedSubtopicId = null;
         let currentMode = 'topic'; // Inicia en modo tema
 
-        // 2. REFERENCIAS DOM
         const modeButtons = document.querySelectorAll('.content-btn button');
         const formContainers = document.querySelectorAll('.form-mode-container');
         const topicCards = document.querySelectorAll('.topic-card');
         const subtopicTopicIdField = document.getElementById('subtopic-topic-id');
         const selectionContextP = document.getElementById('selection-context');
+        const editTopicForm = document.getElementById('edit-topic-form');
+        const editTopicContext = document.getElementById('edit-topic-context');
+        const currentFileLink = document.getElementById('current-file-link');
 
-        // 3. FUNCIONES DE LÓGICA
-        
-        // Muestra el formulario correcto y actualiza los botones de modo
+        // ===================================================
+        // 2. DEFINICIÓN DE FUNCIONES
+        // ===================================================
+
+        /**
+         * Muestra el formulario correcto según el modo y actualiza los botones.
+         */
         function setFormMode(mode) {
             currentMode = mode;
-            
-            // Oculta todos los formularios y resalta el botón de modo activo
             formContainers.forEach(container => container.style.display = 'none');
             modeButtons.forEach(btn => btn.classList.remove('active', 'btn-primary'));
 
-            // Muestra el formulario y resalta el botón
-            document.getElementById(`form-${mode}`).style.display = 'block';
-            
-            const activeBtn = document.getElementById(`mode-${mode}`);
-            if (activeBtn) {
-                activeBtn.classList.add('active', 'btn-primary');
+            // Muestra el formulario correcto (de forma segura)
+            const formToShow = document.getElementById(`form-${mode}`);
+            if (formToShow) {
+                formToShow.style.display = 'block';
+            } else {
+                console.error(`Error: No se encontró el contenedor del formulario con id: 'form-${mode}'`);
+                document.getElementById('form-topic').style.display = 'block'; // Fallback
             }
-             if (mode === 'activity') {
+            
+            if (mode !== 'edit-topic'){
+                // Resalta el botón de modo correspondiente, si existe
+                const activeBtn = document.getElementById(`mode-${mode}`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active', 'btn-primary');
+                }
+            }
+            
+
+            // Lógica para rellenar IDs en el formulario de actividad
+            if (mode === 'activity') {
                 const topicIdField = document.getElementById('activity-topic-id');
                 const subtopicIdField = document.getElementById('activity-subtopic-id');
-
                 if (selectedSubtopicId) {
-                    // Caso 1: Se seleccionó un Subtema (Actividad pertenece al Subtema)
                     subtopicIdField.value = selectedSubtopicId;
-                    topicIdField.value = ''; // Tema debe ser NULL
-                    
-                } else if (selectedTopicId) {
-                    // Caso 2: Solo se seleccionó un Tema (Actividad pertenece al Tema)
-                    topicIdField.value = selectedTopicId;
-                    subtopicIdField.value = ''; // Subtema debe ser NULL
-                    
-                } else {
-                    // Caso de seguridad: Sin selección (Actividad no se enviará)
                     topicIdField.value = '';
+                } else if (selectedTopicId) {
+                    topicIdField.value = selectedTopicId;
                     subtopicIdField.value = '';
                 }
             }
-        };
-        
+        }
 
-        // Actualiza el contexto y habilita/deshabilita botones
+        /**
+         * Actualiza el estado de la selección (qué tema/subtema está activo).
+         */
         function updateSelectionState(topicId, subtopicId, topicTitle, subtopicTitle = null) {
             selectedTopicId = topicId;
             selectedSubtopicId = subtopicId;
 
-            // Limpia la selección visual anterior
             topicCards.forEach(card => card.classList.remove('selected'));
             document.querySelectorAll('.subtopic-item').forEach(card => card.classList.remove('selected'));
 
-            // Actualiza el contexto de selección
             let context = '';
             if (selectedSubtopicId) {
-                // Modo Subtema seleccionado
                 context = `${topicTitle} > ${subtopicTitle}`;
-                document.getElementById('mode-subtopic').disabled = true; // No puedes crear un subtema bajo otro subtema
+                document.getElementById('mode-subtopic').disabled = true;
             } else if (selectedTopicId) {
-                // Modo Tema seleccionado (para añadir subtemas o actividades)
                 context = topicTitle;
                 document.getElementById('mode-subtopic').disabled = false;
             } else {
-                // Sin selección (Solo modo Tema)
-                context = '';
                 document.getElementById('mode-subtopic').disabled = true;
-                document.getElementById('mode-activity').disabled = true;
             }
             selectionContextP.textContent = context ? `Selección actual: ${context}` : '';
-
-            // Habilita/Deshabilita el botón de Actividad
-            const canAddActivity = selectedTopicId || selectedSubtopicId; // Puedes añadir actividad si hay un tema o subtema seleccionado
+            
+            const canAddActivity = selectedTopicId || selectedSubtopicId;
             document.getElementById('mode-activity').disabled = !canAddActivity;
-        };
+        }
 
-        // 4. EVENT LISTENERS
 
-        // Manejar el clic en los botones de modo (+ Tema, + Subtema, + Actividad)
+        // ===================================================
+        // 3. ASIGNACIÓN DE EVENT LISTENERS (EJECUCIÓN)
+        // ===================================================
+
+        // Listener para los botones de modo (+ Tema, + Subtema, + Actividad)
         modeButtons.forEach(btn => {
             btn.addEventListener('click', function() {
                 const mode = this.dataset.mode;
-                
-                // Si cambiamos el modo, configuramos el formulario y los datos
                 setFormMode(mode);
 
                 if (mode === 'subtopic' && selectedTopicId) {
-                    // Si cambiamos a modo Subtema, configuramos la acción y el hidden field
-                    const actionRoute = `/topics/${selectedTopicId}/subtopics`; // Usar la URL de la ruta: topics.subtopics.store
-                    document.getElementById('subtopic-form').action = actionRoute;
+                    document.getElementById('subtopic-form').action = `/topics/${selectedTopicId}/subtopics`;
                     subtopicTopicIdField.value = selectedTopicId;
-
-                } else if (mode === 'activity' && (selectedTopicId || selectedSubtopicId)) {
-                    // Lógica para modo Actividad (lo implementaremos después)
                 }
             });
         });
 
-        // Manejar la selección de Temas y Subtemas en la lista
+        // Listeners para la selección de Temas y Subtemas
         topicCards.forEach(card => {
             const topicId = card.dataset.topicId;
             const topicTitle = card.dataset.topicTitle;
             
-            // Clic en el Tema
-            card.addEventListener('click', function() {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('.topic-actions')) {
+                    return; 
+                }
                 updateSelectionState(topicId, null, topicTitle);
                 this.classList.add('selected');
-                setFormMode('subtopic'); // Por convención, al seleccionar un Tema, cambias a modo Subtema
+                setFormMode('subtopic');
                 document.getElementById('subtopic-form').action = `/topics/${selectedTopicId}/subtopics`;
                 subtopicTopicIdField.value = selectedTopicId;
-
             });
 
-            // Lógica para subtemas (debes agregar data-subtopic-id a los divs de subtema)
-            const subtopics = card.querySelectorAll('.subtopic-item');
-            subtopics.forEach(subcard => {
+            card.querySelectorAll('.subtopic-item').forEach(subcard => {
                 const subtopicId = subcard.dataset.subtopicId;
                 const subtopicTitle = subcard.dataset.subtopicTitle;
                 
                 subcard.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Evita que se dispare el evento del padre (Topic)
+                    e.stopPropagation();
                     updateSelectionState(topicId, subtopicId, topicTitle, subtopicTitle);
                     this.classList.add('selected');
-                    setFormMode('activity'); // Por convención, al seleccionar un Subtema, cambias a modo Actividad
+                    setFormMode('activity');
                 });
             });
         });
-        
-        // Configurar estado inicial
-        setFormMode(currentMode);
-        
-        // 5. LÓGICA ADICIONAL PARA EL FORMULARIO DE ACTIVIDADES
-        // Seleccionamos todos los selectores de tipo de actividad
-        const selectors = document.querySelectorAll('.activity-type-selector');
 
-        selectors.forEach(selector => {
+       // --- Listener delegado para los botones de EDITAR tema ---
+        document.addEventListener('click', async function(e) {
+            const button = e.target.closest('.btn-edit-topic');
+            if (!button) return;
+
+            e.stopPropagation();
+
+            const editUrl = button.dataset.editUrl;
+            const updateUrl = button.dataset.updateUrl; // ✅ Nueva línea
+            const editTopicForm = document.getElementById('edit-topic-form');
+
+            try {
+                const response = await fetch(editUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error al cargar los datos del tema.');
+
+                const topic = await response.json();
+
+                // Rellenar formulario de edición
+                document.getElementById('edit-title').value = topic.title;
+                document.getElementById('edit-description').value = topic.description || '';
+                document.getElementById('edit-topic-id').value = topic.id;
+                document.getElementById('edit-topic-context').textContent = `Editando: "${topic.title}"`;
+                
+                // ✅ Usar la URL de actualización que ya viene con el parámetro
+                editTopicForm.action = updateUrl;
+
+                // Manejar el archivo actual
+                const currentFileText = document.getElementById('current-file-text');
+                const currentFilePath = document.getElementById('current-file-path');
+                
+                if (topic.file_path) {
+                    currentFileText.innerHTML = `Archivo actual: <a href="/storage/${topic.file_path}" target="_blank">Ver archivo</a>`;
+                    currentFilePath.value = topic.file_path;
+                } else {
+                    currentFileText.innerHTML = 'No hay archivo adjunto actualmente.';
+                    currentFilePath.value = '';
+                }
+
+                // Mostrar el formulario de edición
+                setFormMode('edit-topic');
+
+            } catch (error) {
+                console.error('Error al intentar obtener los datos para editar:', error);
+                alert('Ocurrió un error al cargar los datos para edición.');
+            }
+        });
+
+        // Asegurar que el formulario de tema se muestre correctamente al cancelar edición
+        document.getElementById('cancel-edit-btn').addEventListener('click', function() {
+            setFormMode('topic');
+            // Limpiar el formulario de edición
+            document.getElementById('edit-topic-form').reset();
+            document.getElementById('current-file-text').innerHTML = '';
+            document.getElementById('current-file-path').value = '';
+        });
+
+        // Listeners para el selector de tipo de actividad
+        document.querySelectorAll('.activity-type-selector').forEach(selector => {
             selector.addEventListener('change', function () {
                 const selectedType = this.value;
                 const form = this.closest('form');
-                
-                // Ocultamos todos los campos de actividad dentro de este formulario
                 const allFields = form.querySelectorAll('.activity-fields');
 
                 allFields.forEach(field => {
                     field.style.display = 'none';
-                    // Deshabilitamos los inputs para que no se envíen si están ocultos
                     field.querySelectorAll('.form-field-cuestionario').forEach(input => input.required = false);
                 });
 
-                // Mostramos los campos del tipo seleccionado
                 const activeFields = form.querySelector('#fields-' + selectedType);
                 if (activeFields) {
                     activeFields.style.display = 'block';
-                    // Habilitamos los inputs para que sean requeridos al mostrarse
                     activeFields.querySelectorAll('.form-field-cuestionario').forEach(input => input.required = true);
                 }
             });
         });
 
+        // ===================================================
+        // 4. ESTADO INICIAL
+        // ===================================================
+        setFormMode(currentMode); // Muestra el formulario de 'topic' al cargar
     });
 </script>
 @endpush

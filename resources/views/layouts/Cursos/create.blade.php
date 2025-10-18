@@ -117,39 +117,39 @@
         // 1. Obtenemos los datos que pasamos desde el controlador
         const departmentWorkstations = @json($departmentWorkstationsMap);
 
-        // 2. Obtenemos referencias a nuestros dos menús desplegables
-        const departmentSelect = document.getElementById('department_id');
-        const workstationSelect = document.getElementById('workstation_id');
-
-        // 3. Añadimos un "oyente" que se activa cuando el usuario cambia el departamento
-        departmentSelect.addEventListener('change', function () {
-            // Limpiamos las opciones anteriores de puestos (dejando las 2 primeras)
-            while (workstationSelect.options.length > 2) {
-                workstationSelect.remove(2);
-            }
-
-            // Obtenemos el ID del departamento seleccionado
-            const selectedDepartmentId = this.value;
-
-            // Si el usuario seleccionó un departamento válido...
-            if (selectedDepartmentId && departmentWorkstations[selectedDepartmentId]) {
-                // Habilitamos el menú de puestos
-                workstationSelect.disabled = false;
-                workstationSelect.querySelector('option').textContent = 'Selecciona el Puesto (Opcional)';
+        // 2. Añadimos un "oyente" al DOCUMENTO entero.
+        // Este es el "supervisor" que nunca desaparece.
+        document.addEventListener('change', function (e) {
+            
+            // 3. Verificamos si el elemento que cambió fue nuestro filtro de departamento
+            if (e.target && e.target.id === 'department_id') {
                 
-                // Obtenemos la lista de puestos para ese departamento
-                const workstations = departmentWorkstations[selectedDepartmentId];
-                
-                // Añadimos cada puesto como una nueva opción en el menú
-                workstations.forEach(function (workstation) {
-                    const option = new Option(workstation.name, workstation.id);
-                    workstationSelect.add(option);
-                });
+                // Si la condición es cierta, ¡ejecutamos la misma lógica de antes!
+                const departmentSelect = e.target; // El elemento que cambió
+                const workstationSelect = document.getElementById('workstation_id');
 
-            } else {
-                // Si no se seleccionó un departamento, deshabilitamos el menú de puestos
-                workstationSelect.disabled = true;
-                workstationSelect.querySelector('option').textContent = 'Primero selecciona un departamento';
+                // Limpiamos las opciones anteriores de puestos (dejando las 2 primeras)
+                while (workstationSelect.options.length > 2) {
+                    workstationSelect.remove(2);
+                }
+
+                const selectedDepartmentId = departmentSelect.value;
+
+                if (selectedDepartmentId && departmentWorkstations[selectedDepartmentId]) {
+                    workstationSelect.disabled = false;
+                    workstationSelect.querySelector('option').textContent = 'Selecciona el Puesto (Opcional)';
+                    
+                    const workstations = departmentWorkstations[selectedDepartmentId];
+                    
+                    workstations.forEach(function (workstation) {
+                        const option = new Option(workstation.name, workstation.id);
+                        workstationSelect.add(option);
+                    });
+
+                } else {
+                    workstationSelect.disabled = true;
+                    workstationSelect.querySelector('option').textContent = 'Primero selecciona un departamento';
+                }
             }
         });
     });

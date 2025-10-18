@@ -52,6 +52,8 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/cursos/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
         Route::get('/cursos/{course}/temas/crear', [TopicsController::class, 'create'])->name('course.topic.create');
         Route::post('/temas', [TopicsController::class, 'store'])->name('topics.store');
+        Route::get('/temas/{topic}/edit', [TopicsController::class, 'edit'])->name('topics.edit'); 
+        Route::put('/temas/{topic}', [TopicsController::class, 'update'])->name('topics.update');
         Route::delete('/temas/{topic}', [TopicsController::class, 'destroy'])->name('topics.destroy');
         Route::resource('topics.subtopics', SubtopicsController::class);
         Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
