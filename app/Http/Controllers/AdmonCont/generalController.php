@@ -4,8 +4,8 @@ namespace App\Http\Controllers\AdmonCont;
 
 use App\Http\Controllers\Controller;
 // use App\Models\Course; // Asumiendo que existe
-// use App\Models\Schedule; // Asumiendo que existe
-use App\Models\AdmonCont\Career; // Asumiendo que existe
+use App\Models\AdmonCont\Horario;
+use App\Models\AdmonCont\Career;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -23,7 +23,7 @@ class generalController extends Controller
         //Mapeo de rutas con relacion a modelos
         $modelMap = [
             //'Clases.index'   => Course::class,
-            //'Horarios.index' => Schedule::class,
+            'Horarios.index' => Horario::class,
             'Carreras.index' => Career::class,
         ];
 
