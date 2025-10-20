@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 // Modelos necesarios para la consulta y relaciones
 use App\Models\Users\User; // Ajusta este namespace si tu modelo User no está directamente en App\Models
 use App\Models\Users\AcademicProfile; // Necesario para la relación que vamos a cargar
+use App\Models\AdmonCont\Materia; 
+use App\Models\AdmonCont\Career; 
 // El modelo Role no es estrictamente necesario aquí si solo lo usamos en whereHas, pero no estorba. 
 // Para mayor limpieza, lo omitimos si ya está importado en el modelo User.
 
@@ -44,29 +46,58 @@ class UserController extends Controller
             
         // 1. Columnas a seleccionar de la tabla 'users'
         $userColumns = [
+            'id',
             'nombre', 
             'apellido_paterno', 
-            'apellido_materno',
+            'apellido_materno'
         ];
         // 2. Columnas a seleccionar de la tabla 'datos_academicos' (¡incluye user_id!)
         // Nota: Aquí se seleccionan todos los campos relevantes, Laravel los manejará.
         $academicColumns = [
-            'user_id', 
-            'carrera', 
-            'departamento',
+            'user_id',
+            'status', 
+            'carrera'
         ];
         $dataList = User::query()
-                // Filtrar usuarios que tienen el rol específico
-                ->whereHas('roles', function (Builder $query) use ($roleName) {
-                    $query->where('name', $roleName);
-                })
-                // Seleccionar solo las columnas necesarias de la tabla 'users'
-                ->select($userColumns)
-                // Cargar la relación 'datosAdicionales' con columnas específicas
-                ->with(['academicProfile' => function (Relation $query) use ($academicColumns) {
-                    $query->select($academicColumns);
-                }])
-                ->get();
+            ->whereHas('roles', function (Builder $query) use ($roleName) {
+                $query->where('name', $roleName); 
+            })
+            ->select($userColumns)
+            ->with(['academicProfile' => function (Relation $query) use ($academicColumns) {
+                $query->select($academicColumns);
+            }])
+            ->get();
+    }elseif ($listType === 'materias') {
+    
+        // NOTA: $roleName no se usa aquí. Puedes omitir o eliminar la línea: $roleName = ($listType === 'materias');
+
+        // 1. Columnas a seleccionar del modelo Materia
+        $materiaColums = [
+            'id',
+            'nombre',
+            'creditos',
+            'type',
+            'semestre',
+            'career_id', // <-- ¡IMPORTANTE! Incluye la clave foránea para la relación
+        ];
+
+        // 2. Columnas a seleccionar del modelo Career (asumo que se relaciona con Materia)
+        $careerColums = [
+            'id', // <-- ¡IMPORTANTE! Incluye la clave primaria para la relación
+            'name'
+        ];
+        
+        // 3. Ejecución de la consulta
+        $dataList = Materia::query()
+            ->select($materiaColums)
+            
+            // Cargar la relación 'career' con columnas específicas
+            // ¡Usamos $careerColums para la clausura, NO $materiaColums!
+            ->with(['career' => function (Relation $query) use ($careerColums) {
+                $query->select($careerColums);
+            }])
+            
+            ->get(); // <-- ¡CRUCIAL! Ejecutar la consulta para obtener los datos
     }
 
     $viewPath = 'layouts.ControlAdmin.Listas.' . $listType . '.index';

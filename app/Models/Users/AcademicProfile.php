@@ -16,10 +16,13 @@ class AcademicProfile extends Model
     protected $fillable = [
         'user_id',
         'campus',
+        'semestre',
+        'status',
         'carrera',
         'departamento',
         'modulos',
         'documentos',
+        'rol',
     ];
 
     protected $casts = [

@@ -11,7 +11,7 @@
             <h1>Lista de alumnos</h1>
         </div>
         <div class="option-carrer">
-             <button id="openCreateCarrer">Agregar Carrera</button>
+            <button id="openCreateCarrer">Agregar Carrera</button>
         </div>
     </div>
     <div class="Table-view">
@@ -28,11 +28,11 @@
             </thead>
             <tbody class="tbody">
                 @foreach ($dataList as $user)
-                    <td>{{ $user->academicColumns?->carrera }}</td>
+                    <td>{{ $user->academicProfile?->carrera ?? 'Sin datos' }}</td>
                     <td>{{ $user->nombre }}</td>
                     <td>{{ $user->apellido_paterno }}</td>
                     <td>{{ $user->apellido_materno }}</td>
-                    <td>{{ $user->academicColumns?->departamento }}</td>
+                    <td>{{ $user->academicProfile?->status ?? 'Sin datos' }}</td>
                     <td>
                         <a href="{{-- {{ route('ruta.ver', $registro->id) }} --}}" class="btn btn-sm btn-info">Ver</a>
                         <a href="{{-- {{ route('ruta.editar', $registro->id) }} --}}" class="btn btn-sm btn-warning">Editar</a>

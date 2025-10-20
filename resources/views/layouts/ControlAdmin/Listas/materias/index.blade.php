@@ -27,6 +27,10 @@
                 </tr>
             </thead>
             <tbody class="tbody">
+                @foreach ($dataList as $registro)
+                    <td>{{ $registro->career?->name ?? 'Sin datos'}}</td>
+                    <td>{{ $registro->nombre ?? 'Sin datos'}}</td>
+                @endforeach
                 {{-- INICIO DEL BUCLE: Aquí es donde Laravel iteraría sobre los datos de tu base de datos --}}
                 {{-- Por ejemplo, si pasaste una variable '$registros' desde el controlador: --}}
                 {{-- @foreach ($registros as $registro) --}}
