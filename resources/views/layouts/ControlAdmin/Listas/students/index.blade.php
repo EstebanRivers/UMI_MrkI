@@ -27,6 +27,23 @@
                 </tr>
             </thead>
             <tbody class="tbody">
+                @foreach ($dataList as $user)
+                    <td>{{ $user->academicColumns?->carrera }}</td>
+                    <td>{{ $user->nombre }}</td>
+                    <td>{{ $user->apellido_paterno }}</td>
+                    <td>{{ $user->apellido_materno }}</td>
+                    <td>{{ $user->academicColumns?->departamento }}</td>
+                    <td>
+                        <a href="{{-- {{ route('ruta.ver', $registro->id) }} --}}" class="btn btn-sm btn-info">Ver</a>
+                        <a href="{{-- {{ route('ruta.editar', $registro->id) }} --}}" class="btn btn-sm btn-warning">Editar</a>
+                        <form action="{{-- {{ route('ruta.eliminar', $registro->id) }} --}}" method="POST" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</button>
+                        </form>
+                    </td>
+
+                @endforeach
                 {{-- INICIO DEL BUCLE: Aquí es donde Laravel iteraría sobre los datos de tu base de datos --}}
                 {{-- Por ejemplo, si pasaste una variable '$registros' desde el controlador: --}}
                 {{-- @foreach ($registros as $registro) --}}
@@ -40,25 +57,18 @@
                         
                         {{-- COLUMNA DE ACCIONES: Contiene los 3 botones --}}
                         <td>
-                            <a href="{{-- {{ route('ruta.ver', $registro->id) }} --}}" class="btn btn-sm btn-info">Ver</a>
-                            <a href="{{-- {{ route('ruta.editar', $registro->id) }} --}}" class="btn btn-sm btn-warning">Editar</a>
-                            <form action="{{-- {{ route('ruta.eliminar', $registro->id) }} --}}" method="POST" style="display: inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</button>
-                            </form>
+                            
                         </td>
                     </tr>
                 {{--  @endforeach --}}
                 {{-- FIN DEL BUCLE --}}
 
                 {{-- COMENTARIO IMPORTANTE: Si no tienes datos, puedes poner una fila con un mensaje --}}
-                @empty($registros)
+                {{--@empty($registros)
                     <tr>
                         <td colspan="7" class="text-center">No hay registros disponibles.</td>
                     </tr>
-                @endempty
-
+                @endempty--}}
             </tbody>
         </table>
     </div>

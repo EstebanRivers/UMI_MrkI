@@ -165,5 +165,5 @@ class User extends Authenticatable
         return $this->hasOne(CorporativeProfile::class);
     }
 
-    
+
 }
