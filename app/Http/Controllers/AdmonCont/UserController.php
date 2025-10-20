@@ -49,7 +49,8 @@ class UserController extends Controller
             'id',
             'nombre', 
             'apellido_paterno', 
-            'apellido_materno'
+            'apellido_materno',
+            'created_at',
         ];
         // 2. Columnas a seleccionar de la tabla 'datos_academicos' (¡incluye user_id!)
         // Nota: Aquí se seleccionan todos los campos relevantes, Laravel los manejará.

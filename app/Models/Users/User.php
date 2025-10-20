@@ -14,6 +14,7 @@ use App\Models\Users\Institution;
 use App\Models\Users\Address;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporativeProfile;
+use App\Models\AdmonCont\Horario;
 use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
@@ -108,6 +109,8 @@ class User extends Authenticatable
         'fecha_nacimiento',
         'edad',
         'address_id',
+        'created_at',
+        'updated_at'
     ];
 
     /**
@@ -130,6 +133,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'created_at' => 'datetime', 
+            'updated_at' => 'datetime',
         ];
     }
 
@@ -163,6 +168,13 @@ class User extends Authenticatable
     public function corporativeProfile(): HasOne
     {
         return $this->hasOne(CorporativeProfile::class);
+    }
+
+
+    // El perfil corporativo asociado al usuario.
+    public function horarioProfile(): HasOne
+    {
+        return $this->belongsTo(Horario::class);
     }
 
 

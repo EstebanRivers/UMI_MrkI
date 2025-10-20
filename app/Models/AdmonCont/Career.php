@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo; // Importar
 
 // Modelos necesarios para la consulta y relaciones
 use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
 
 class Career extends Model
 {
@@ -30,5 +31,9 @@ class Career extends Model
     public function materiaProfile(): BelongsTo
     {
         return $this->belongsTo(Materia::class);
+    }
+    public function horarioProfile(): BelongsTo
+    {
+        return $this->belongsTo(Horario::class);
     }
 }

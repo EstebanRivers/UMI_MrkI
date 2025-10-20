@@ -46,7 +46,7 @@ class careerController extends Controller
     //1. Modulo a usar
     //2. Clase(debe ser igual al nombre de la tabla pero en singular)
     //                      1.     2.
-    public function destroy(Career $carrera) 
+    public function destroy(career $carrera) 
     {
         // Laravel automáticamente encuentra la carrera por la ID pasada en la ruta
         // y la elimina.
