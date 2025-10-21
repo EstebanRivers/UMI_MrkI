@@ -34,4 +34,9 @@ class AcademicProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function career()
+    {
+        return $this->belongsTo(Career::class);
+    }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CorporativeProfile extends Model
+class CorporateProfile extends Model
 {
     use HasFactory;
 
@@ -27,5 +27,10 @@ class CorporativeProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+    
+    public function workstation()
+    {
+        return $this->belongsTo(Workstation::class);
     }
 }

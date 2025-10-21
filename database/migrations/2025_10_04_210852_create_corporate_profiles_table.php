@@ -17,8 +17,8 @@ return new class extends Migration
 
             $table->string('unidad_negocio')->nullable();
             $table->string('rol')->nullable();
-            $table->string('departamento')->nullable();
-            $table->string('puesto')->nullable();
+            $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('set null');
+            $table->foreignId('workstation_id')->nullable()->constrained('workstations')->onDelete('set null');
 
             $table->timestamps();
         });
