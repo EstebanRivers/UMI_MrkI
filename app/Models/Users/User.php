@@ -13,7 +13,7 @@ use App\Models\Users\Role;
 use App\Models\Users\Institution;
 use App\Models\Users\Address;
 use App\Models\Users\AcademicProfile;
-use App\Models\Users\CorporativeProfile;
+use App\Models\Users\CorporateProfile;
 use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
@@ -160,9 +160,9 @@ class User extends Authenticatable
 
     
     // El perfil corporativo asociado al usuario.
-    public function corporativeProfile(): HasOne
+    public function corporateProfile(): HasOne
     {
-        return $this->hasOne(CorporativeProfile::class);
+        return $this->hasOne(CorporateProfile::class);
     }
 
     

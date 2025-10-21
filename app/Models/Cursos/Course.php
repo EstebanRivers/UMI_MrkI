@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Users\User;
 use App\Models\Users\Institution;
+use App\Models\Users\Workstation;
+use App\Models\Users\Department;
+use App\Models\Users\Career;
+
 
 class Course extends Model
 {
@@ -23,11 +27,7 @@ class Course extends Model
         'instructor_id',
         'institution_id',
         'image',
-        //'category_id',
 
-    ];
-    protected $casts = [
-        'prerequisites' => 'array', 
     ];
 
     public function instructor()
@@ -43,6 +43,24 @@ class Course extends Model
     public function topics(): HasMany
     {
         return $this->hasMany(Topics::class, 'course_id');
+    }
+
+    // Relación polimórfica para las carreras
+    public function careers()
+    {
+        return $this->morphedByMany(Career::class, 'targetable');
+    }
+
+    // Relación polimórfica para los departamentos
+    public function departments()
+    {
+        return $this->morphedByMany(Department::class, 'targetable');
+    }
+
+    // Relación polimórfica para los puestos de trabajo
+    public function workstations()
+    {
+        return $this->morphedByMany(Workstation::class, 'targetable');
     }
 
 }

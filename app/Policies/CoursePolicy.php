@@ -4,10 +4,12 @@ namespace App\Policies;
 
 use App\Models\Cursos\Course;
 use App\Models\Users\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Auth\Access\Response;
 
 class CoursePolicy
 {
+    use HandlesAuthorization;
     /**
      * El método 'before' se ejecuta antes que cualquier otra regla.
      * Es perfecto para darle acceso total a un super-administrador.
@@ -27,7 +29,7 @@ class CoursePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -35,7 +37,45 @@ class CoursePolicy
      */
     public function view(User $user, Course $course): bool
     {
+        $activeInstitutionId = session('active_institution_id');
+
+        if ($course->institution_id != $activeInstitutionId) {
+            return false;
+        }
+
+        // Un docente puede ver cualquier curso de su institución.
+        if ($user->hasActiveRole('docente')) {
+            return true;
+        }
+
+        // Un estudiante solo puede ver el curso si está dirigido a su carrera.
+        if ($user->hasActiveRole('estudiante')) {
+            $academicProfile = $user->academicProfile;
+            return $academicProfile && $course->career_id === $academicProfile->career_id;
+        }
+
+        // Un anfitrión solo puede ver el curso si está dirigido a su departamento o puesto.
+        if ($user->hasActiveRole('anfitrion')) {
+            $corporateProfile = $user->corporateProfile;
+            // Si el usuario no tiene perfil corporativo, no puede ver ningún curso.
+            if (!$corporateProfile) {
+                return false;
+            }
+
+            // El usuario SÍ puede ver el curso si:
+            // 1. El curso pertenece a su departamento Y...
+            return $course->department_id === $corporateProfile->department_id &&
+                   (
+                       // 2a. ...el curso es para TODO el departamento (ningún puesto específico).
+                       is_null($course->workstation_id) ||
+
+                       // 2b. ...el curso es específicamente para su puesto de trabajo.
+                       $course->workstation_id === $corporateProfile->workstation_id
+                   );
+        }
+
         return false;
+
     }
 
     /**
@@ -43,7 +83,7 @@ class CoursePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasAnyActiveRole(['master', 'docente']);
     }
 
     /**
@@ -51,7 +91,15 @@ class CoursePolicy
      */
     public function update(User $user, Course $course): bool
     {
-        return false;
+        $activeInstitutionId = session('active_institution_id');
+
+        if ($course->institution_id != $activeInstitutionId) {
+            return false;
+        }
+
+        return $user->hasActiveRole('docente')
+            ? $course->instructor_id == $user->id
+            : false;
     }
 
     /**
@@ -59,7 +107,15 @@ class CoursePolicy
      */
     public function delete(User $user, Course $course): bool
     {
-        return false;
+        $activeInstitutionId = session('active_institution_id');
+
+        if ($course->institution_id != $activeInstitutionId) {
+            return false;
+        }
+
+        return $user->hasActiveRole('docente')
+            ? $course->instructor_id == $user->id
+            : false;
     }
 
     /**
@@ -67,7 +123,7 @@ class CoursePolicy
      */
     public function restore(User $user, Course $course): bool
     {
-        return false;
+        return $user->hasActiveRole('master');
     }
 
     /**
@@ -75,6 +131,6 @@ class CoursePolicy
      */
     public function forceDelete(User $user, Course $course): bool
     {
-        return false;
+        return $user->hasActiveRole('master');
     }
 }

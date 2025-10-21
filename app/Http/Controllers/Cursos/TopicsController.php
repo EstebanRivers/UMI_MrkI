@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+
 
 class TopicsController extends Controller
 {
@@ -46,6 +48,49 @@ class TopicsController extends Controller
         Topics::create($validatedData);
 
         return back()->with('success', 'Tema creado exitosamente.');
+    }
+
+    /**
+     * Muestra el formulario para editar un tema existente.
+     */
+    public function edit(Topics $topic)
+    {
+        return response()->json([
+            'id' => $topic->id,
+            'title' => $topic->title,
+            'description' => $topic->description,
+            'file_path' => $topic->file_path,
+            'course_id' => $topic->course_id
+        ]);
+    }
+
+    /**
+     * Actualiza el tema en la base de datos.
+     */
+    public function update(Request $request, Topics $topic)
+    {
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255', 
+            'description' => 'nullable|string',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,mp4,mov,avi|max:20480', // max 20MB
+        ]);
+
+        // Actualizar tema
+        $topic->title = $request->title;
+        $topic->description = $request->description;
+
+        // Manejar archivo si se subió uno nuevo
+        if ($request->hasFile('file')) {
+            // Eliminar archivo anterior si existe
+            if ($topic->file_path) {
+                Storage::delete($topic->file_path);
+            }
+            $topic->file_path = $request->file('file')->store('topics', 'public');
+        }
+
+        $topic->save();
+
+        return redirect()->back()->with('success', 'Tema actualizado correctamente.');
     }
 
     public function destroy(Topics $topic)

@@ -209,6 +209,7 @@ class SimpleSPANavigation {
                 // Ejecutar scripts si los hay
                 this.executeScripts(content.scripts);
                 
+                
                 // Scroll suave al top
                 this.scrollToTop();
             }, 100);

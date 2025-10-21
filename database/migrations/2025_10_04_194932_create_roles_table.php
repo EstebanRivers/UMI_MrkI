@@ -25,6 +25,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'role_id', 'institution_id']);
+            $table->index('user_id');
+            $table->index('role_id');
+            $table->index('institution_id');
         });
     }
 

@@ -1,7 +1,7 @@
 .topics-container {
     max-width: 1200px;
     margin: 1% auto;
-    padding: 20px;
+    padding: 10px 20px;
     font-family: 'Poppins', Tahoma, sans-serif;
 }
 
@@ -30,7 +30,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 .topics-list-header {
     display: flex;
@@ -105,6 +105,10 @@
     border: 1px solid #ccc;
 }
 
+.topic-actions{
+    display: flex;
+}
+
 /* Botones */
 .content-btn {
     display: flex;
@@ -156,7 +160,8 @@
     }
 }
 
-.btn-danger {
+.btn-danger,
+.btn-edit-topic {
     background: none;
     border: none;
     cursor: pointer;
