@@ -16,6 +16,49 @@ use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @property int $id
+ * @property string $nombre
+ * @property string $apellido_paterno
+ * @property string $apellido_materno
+ * @property string $email
+ * @property string $password
+ * @property string $RFC
+ * @property string|null $telefono
+ * @property string|null $fecha_nacimiento
+ * @property int|null $edad
+ * @property int|null $address_id
+ * @property string|null $remember_token
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read AcademicProfile|null $academicProfile
+ * @property-read Address|null $address
+ * @property-read CorporateProfile|null $corporateProfile
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Institution> $institutions
+ * @property-read int|null $institutions_count
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Role> $roles
+ * @property-read int|null $roles_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereAddressId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereApellidoMaterno($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereApellidoPaterno($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEdad($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereFechaNacimiento($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereNombre($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRFC($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTelefono($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -108,6 +151,9 @@ class User extends Authenticatable
         'fecha_nacimiento',
         'edad',
         'address_id',
+        'institution_id',
+        'department_id',
+        'workstation_id',
     ];
 
     /**
