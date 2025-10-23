@@ -147,13 +147,15 @@ class AjustesController extends Controller
                 break;
 
             case 'users':
-                // !! VALIDACIÓN CORREGIDA !!
+                // --- INICIO DE LA SECCIÓN CORREGIDA ---
+
+                // 1. VALIDAR (Quitamos 'unique' de email y RFC)
                 $validatedData = $request->validate([
                     'nombre' => 'required|string|max:255',
                     'apellido_paterno' => 'required|string|max:255',
                     'apellido_materno' => 'nullable|string|max:255',
-                    'RFC' => ['required', 'string', 'max:13', Rule::unique('users', 'RFC')],
-                    'email' => ['required', 'email', Rule::unique('users', 'email')],
+                    'RFC' => ['required', 'string', 'max:13'], // Se quitó Rule::unique
+                    'email' => ['required', 'email'],           // Se quitó Rule::unique
                     'password' => 'required|string|min:8|confirmed',
                     'role_id' => 'required|exists:roles,id',
                     'institution_id' => 'required|exists:institutions,id',
@@ -161,26 +163,58 @@ class AjustesController extends Controller
                     'workstation_id' => 'nullable|exists:workstations,id',
                 ]);
                 
-                $validatedData['password'] = Hash::make($validatedData['password']);
-                
-                // !! CREACIÓN SEGURA !!
-                // Esto asume que tu modelo User tiene estos campos en $fillable
-                $user = User::create([
+                // 2. BUSCAR O CREAR AL USUARIO
+                $user = User::where('email', $validatedData['email'])->first();
+
+                // Preparamos los datos del usuario para la tabla 'users'
+                // (NOTA: quitamos 'institution_id' de esta lista)
+                $userData = [
                     'nombre' => $validatedData['nombre'],
                     'apellido_paterno' => $validatedData['apellido_paterno'],
                     'apellido_materno' => $validatedData['apellido_materno'],
                     'RFC' => $validatedData['RFC'],
                     'email' => $validatedData['email'],
-                    'password' => $validatedData['password'],
-                    'institution_id' => $validatedData['institution_id'],
+                    'password' => Hash::make($validatedData['password']),
+                    'role_id' => $validatedData['role_id'], // Se asigna el rol global aquí
                     'department_id' => $validatedData['department_id'],
                     'workstation_id' => $validatedData['workstation_id'],
-                ]);
+                ];
                 
-                // Asignar rol e institución en tabla pivote
-                $user->roles()->attach($validatedData['role_id'], ['institution_id' => $validatedData['institution_id']]);
+                $institution_id_to_add = $validatedData['institution_id'];
+                $message = '';
+
+                if (!$user) {
+                    // --- Caso 1: Usuario NO existe ---
+                    $user = User::create($userData);
+                    $message = 'Nuevo usuario creado';
+                } else {
+                    // --- Caso 2: Usuario SÍ existe ---
+                    // Actualizamos sus datos por si cambiaron
+                    // (Omitimos 'password' para no sobrescribirla)
+                    unset($userData['password']); 
+                    $user->update($userData);
+                    $message = 'Usuario existente actualizado';
+                }
+
+                // 3. ASIGNAR A LA INSTITUCIÓN (USANDO LA TABLA PIVOTE M-M)
+                // (Asumimos que la relación se llama 'institutions' en tu modelo User)
+                if ($user->institutions()->where('institution_id', $institution_id_to_add)->exists()) {
+                    $message .= ', pero ya pertenecía a esta institución.';
+                } else {
+                    $user->institutions()->attach($institution_id_to_add);
+                    $message .= ' y asignado a la nueva institución.';
+                }
+
+                // 4. LIMPIEZA DE LÓGICA DE ROLES
+                // Eliminamos la línea conflictiva '$user->roles()->attach(...)'
+                // El rol ya se asignó en el 'create' o 'update' de arriba.
                 
-                break;
+                // Redirigir con el mensaje personalizado
+                return redirect()->route('ajustes.show', ['seccion' => $seccion])
+                                 ->with('success', $message);
+                
+                // break; // El 'return' de arriba hace innecesario el 'break'
+                // --- FIN DE LA SECCIÓN CORREGIDA ---
             
             default:
                 return back()->with('error', 'Sección no válida.');
@@ -259,11 +293,18 @@ class AjustesController extends Controller
                     $validatedData['password'] = Hash::make($request->password);
                 }
                 
-                // !! ACTUALIZACIÓN SEGURA !!
+                // Remueve institution_id de validatedData antes de update()
+                unset($validatedData['institution_id']);
                 $item->update($validatedData);
 
-                // Actualizar rol (sync)
-                $item->roles()->sync([$validatedData['role_id'] => ['institution_id' => $validatedData['institution_id']]]);
+                // Actualizar o sincronizar instituciones en la tabla pivote
+                if (!empty($request->institution_id)) {
+                    $item->institutions()->syncWithoutDetaching([$request->institution_id]);
+                }
+
+                // Actualizar rol si aplica
+                $item->role_id = $validatedData['role_id'];
+                $item->save();
                 break;
 
             default:
@@ -335,7 +376,7 @@ class AjustesController extends Controller
                 $query->orderBy('is_active', 'desc')->orderBy('start_date', 'desc');
                 break;
             case 'users':
-                $query = User::with('roles'); // Carga la relación
+                $query = User::with('roles', 'institutions'); // Carga la relación
                 if ($search) {
                     // !! BÚSQUEDA CORREGIDA !!
                     $query->where(function($q) use ($search) {
@@ -376,12 +417,14 @@ class AjustesController extends Controller
 
         // El Master de UMI ve UMI, el de MI ve MI.
         // Se asume que el Master solo debe ver datos de su institución activa.
-        if ($seccion !== 'institutions') { // 'institutions' no tiene 'institution_id'
-             // !! CORRECCIÓN !!: 'users' y 'departments' pueden tener IDs de otra institución
-             // si el usuario es Master, pero el filtro debe aplicarse según el rol.
-             // Por ahora, filtramos todo a la institución activa.
-             $query->where('institution_id', $activeInstitutionId);
+        if ($seccion === 'users') {
+            $query->whereHas('institutions', function($q) use ($activeInstitutionId) {
+                $q->where('institutions.id', $activeInstitutionId);
+            });
+        } elseif ($seccion !== 'institutions') {
+            $query->where('institution_id', $activeInstitutionId);
         }
+
         
         // Lógica para 'Control Académico' (asumiendo 'control_administrativo' como nombre de rol)
         if ($user->hasActiveRole('control_administrativo')) {
