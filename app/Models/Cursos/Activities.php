@@ -7,6 +7,32 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 
+/**
+ * @property int $id
+ * @property int|null $topic_id
+ * @property int|null $subtopic_id
+ * @property string $title
+ * @property string|null $description
+ * @property string $type
+ * @property array<array-key, mixed> $content
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Cursos\Subtopic|null $subtopic
+ * @property-read \App\Models\Cursos\Topics|null $topic
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereSubtopicId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereTopicId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Activities whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Activities extends Model
 {
     use HasFactory;

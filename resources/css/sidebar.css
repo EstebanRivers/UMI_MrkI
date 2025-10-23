@@ -171,3 +171,63 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
   filter: brightness(1.1) drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
+/* --- ESTILOS PARA SUBMENÚS --- */
+
+/* Estilo básico para el contenedor del submenú */
+.menu ul li .submenu {
+   list-style: none;
+    padding-left: 30px; 
+    margin-top: 5px;
+    display: none; 
+    max-height: 0; 
+    overflow: hidden; 
+    transition: max-height 0.3s ease-out;
+}
+
+/* Estilo para los elementos dentro del submenú */
+.menu ul li .submenu li a {
+    padding: 8px 15px; /* Un poco menos de padding que los principales */
+    font-size: 0.9em; 
+    display: block;
+    text-decoration: none;
+    border-radius: var(--border-radius-sm); /* Radio de borde más pequeño */
+    margin-right: 15px; /* Espacio a la derecha para que no pegue al borde */
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    /* Colores similares a los pills principales */
+    background-color: var(--pill-bg, #ffffff); /* Fondo blanco (o variable) */
+    color: var(--text, #333); /* Texto oscuro (o variable) */
+    box-shadow: var(--pill-shadow); /* Sombra suave */
+}
+
+.menu ul li .submenu li a:hover {
+    background-color: rgba(0, 0, 0, 0.05); /* Un gris muy suave al pasar el ratón */
+    color: var(--accent, #e69a37); /* Color de acento al pasar el ratón */
+    transform: none; /* Quitamos el efecto de levantamiento */
+}
+
+/* Estilo para el sub-elemento activo */
+.menu ul li .submenu li.active-submenu a {
+    color: var(--accent, #e69a37); /* Usar el color de acento principal */
+    font-weight: bold;
+}
+
+/* ¡Importante! Muestra el submenú cuando el LI padre tiene la clase 'open' */
+.menu ul li.has-submenu.open > .submenu {
+    display: block;
+    max-height: 500px; /* Un valor grande para permitir que se expanda */
+}
+
+/* Indicador visual para elementos con submenú */
+.menu ul li.has-submenu > a::after {
+    content: '▶';
+    font-size: 0.7em;
+    margin-left: auto; /* Empuja la flecha a la derecha */
+    padding-left: 10px;
+    display: inline-block;
+    transition: transform 0.3s ease-out;
+}
+
+.menu ul li.has-submenu.open > a::after {
+    transform: rotate(90deg); /* Flecha apunta hacia abajo cuando está abierto */
+}

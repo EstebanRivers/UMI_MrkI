@@ -7,6 +7,31 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $course_id
+ * @property string $title
+ * @property string|null $description
+ * @property string|null $file_path
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Cursos\Activities> $activities
+ * @property-read int|null $activities_count
+ * @property-read \App\Models\Cursos\Course $course
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Cursos\Subtopic> $subtopics
+ * @property-read int|null $subtopics_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereCourseId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereFilePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Topics whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Topics extends Model
 {
     use HasFactory;

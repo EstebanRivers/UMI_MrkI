@@ -14,16 +14,46 @@ class SimpleSPANavigation {
     }
 
     setupEventListeners() {
-        // Interceptar clics en enlaces del menú 
-        document.addEventListener('click', (e) => {
-            if (!(e.target instanceof Element)) return;
-            const link = e.target.closest('.menu a');
-            if (link && this.shouldIntercept(link)) {
-                e.preventDefault();
-                this.setImmediateActivate(link);
-                this.navigate(link.href);
-            }
-        });
+      // Interceptar clics en cualquier parte del documento
+    document.addEventListener('click', (e) => {
+        
+        if (!(e.target instanceof Element)) {
+            return; 
+        }
+
+        const link = e.target.closest('.menu a'); 
+        const parentLi = link ? link.closest('li') : null;
+
+        // --- Lógica para Abrir/Cerrar Submenús ---
+        if (parentLi && parentLi.classList.contains('has-submenu')) {
+            e.preventDefault(); // Prevenir navegación si es un submenú
+            parentLi.classList.toggle('open'); // Abrir/cerrar el submenú clickeado
+
+            // Cerrar OTROS submenús que pudieran estar abiertos
+            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
+                if (openSubmenu !== parentLi) {
+                    openSubmenu.classList.remove('open');
+                }
+            });
+            return; 
+        }
+        
+        // --- Lógica para CERRAR submenús al hacer clic FUERA ---
+        // Si el clic NO fue dentro de un submenú o su botón...
+        if (!e.target.closest('.has-submenu')) {
+            // Buscamos todos los submenús que estén abiertos y los cerramos
+            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
+                openSubmenu.classList.remove('open');
+            });
+        }
+
+        // --- Lógica Original de la SPA (si el clic NO fue en un submenú) ---
+        if (link && this.shouldIntercept(link)) {
+            e.preventDefault();
+            this.setImmediateActivate(link);
+            this.navigate(link.href);
+        }
+    });
 
         // Manejar botón atrás/adelante del navegador
         window.addEventListener('popstate', (e) => {
@@ -56,19 +86,19 @@ class SimpleSPANavigation {
     }
 
     setImmediateActivate(link) {
-        // Remover clase temporal de todos los elementos
+        
         document.querySelectorAll('.menu li').forEach(li => {
             li.classList.remove('spa-activating');
         });
 
         const li = link.closest('li');
         if (li) {
-            // Desactivar otros elementos
+            
             document.querySelectorAll('.menu li').forEach(other => {
                 if (other !== li) other.classList.remove('active');
             });
 
-            // Activar el elemento clickeado inmediatamente
+            
             li.classList.add('active', 'spa-activating');
         }
     }
