@@ -47,14 +47,31 @@
       @endif
       
       @if(Auth::user()->hasActiveRole('master'))
-      <li class="@if(request()->routeIs('Ajustes.*')) active @endif">
-        <a href="{{ route('Ajustes.index') }}">
-          <span class="icon" aria-hidden="true">
-            <img src="{{ asset('images/icons/user-gear-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-          </span>
-          <span class="text">Ajustes</span>
+      <li class="has-submenu {{ request()->routeIs('ajustes.*') ? 'active open' : '' }}">
+        <a href="#">
+            <span class="icon" aria-hidden="true">
+                <img src="{{ asset('images/icons/user-gear-solid-full.svg') }}" alt="Ajustes Icon" style="width:24px;height:24px" loading="lazy">
+            </span>
+            <span class="text">Ajustes</span>
         </a>
-      </li>
+        <ul class="submenu">
+            <li class="{{ request()->is('ajustes/institutions') ? 'active-submenu' : '' }}">
+                <a href="{{ route('ajustes.show', 'institutions') }}">Unidades de Negocio</a>
+            </li>
+            <li class="{{ request()->is('ajustes/departments') ? 'active-submenu' : '' }}">
+                <a href="{{ route('ajustes.show', 'departments') }}">Departamentos</a>
+            </li>
+            <li class="{{ request()->is('ajustes/workstations') ? 'active-submenu' : '' }}">
+                <a href="{{ route('ajustes.show', 'workstations') }}">Puestos</a>
+            </li>
+            <li class="{{ request()->is('ajustes/periods') ? 'active-submenu' : '' }}">
+                <a href="{{ route('ajustes.show', 'periods') }}">Periodos</a>
+            </li>
+            <li class="{{ request()->is('ajustes/users') ? 'active-submenu' : '' }}">
+                <a href="{{ route('ajustes.show', 'users') }}">Usuarios</a>
+            </li>
+        </ul>
+    </li>
       @endif
     </ul>
   </nav>
@@ -75,3 +92,4 @@
     </div>
   </div>
 </aside>
+

@@ -7,6 +7,7 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
+use App\Http\Controllers\Ajustes\AjustesController;
 
 
 
@@ -60,6 +61,21 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
     });
+
+    Route::middleware(['role:master,control_administrativo']) // 1. AÑADIMOS EL MIDDLEWARE DE ROL
+        ->prefix('ajustes')->name('ajustes.')->group(function () {
+        
+        // --- Tus rutas existentes ---
+        Route::get('/{seccion}', [AjustesController::class, 'show'])->name('show');
+        Route::post('/{seccion}', [AjustesController::class, 'store'])->name('store');
+        
+        // --- 2. AÑADIMOS LAS RUTAS FALTANTES PARA EL MODAL ---
+        Route::get('/{seccion}/create-form', [AjustesController::class, 'getCreateForm'])->name('getCreateForm');
+        Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
+        Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
+        Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
+    });
+
     //Vista del curso
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
 
@@ -75,9 +91,10 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         })->name('ControlAdmin.index');
     });
 
-    Route::middleware(['role:master'])->group(function () {
-        Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
+    // --- RUTA DUPLICADA DE '/ajustes' ---
+    /*Route::middleware(['role:master'])->group(function () {
+       Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
         })->name('Ajustes.index');
-    });
+    }); */
 
 });

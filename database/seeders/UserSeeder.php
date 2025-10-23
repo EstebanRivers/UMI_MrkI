@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Users\Institution;
 use Illuminate\Database\Seeder;
 use App\Models\Users\User;
 use App\Models\Users\Role;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
-use App\Models\Users\Institution;
 use App\Models\Users\Department;
 use App\Models\Users\Workstation;
 use App\Models\Users\Career;
@@ -32,6 +32,14 @@ class UserSeeder extends Seeder
             'Pierre Mundo Imperial',
         ])->get();
 
+        // 1. Busca la institución
+        $umi = Institution::where('name', 'Universidad Mundo Imperial')->first();
+
+        // Si $umi no existe, usa la primera institución que encuentre como plan B
+        if (!$umi) {
+            $umi = Institution::first();
+}
+
         // 3. Crea el usuario master
         $masterUser = User::firstOrCreate(
             ['email' => 'master@UMI.com'],
@@ -41,6 +49,7 @@ class UserSeeder extends Seeder
                 'apellido_materno' => 'Molina',
                 'password' => Hash::make('master1234'),
                 'RFC' => 'XAXX010101000',
+                'institution_id' => $umi->id
             ]
         );
 
@@ -113,6 +122,7 @@ class UserSeeder extends Seeder
                 'apellido_materno' => 'Loquendo',
                 'password' => Hash::make('contrasena'),
                 'RFC' => 'GAPX010101XYZ',
+                'institution_id' => $umi->id
             ]
         );
 

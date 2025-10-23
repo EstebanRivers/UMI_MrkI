@@ -1,0 +1,247 @@
+/* resources/css/Ajustes/table.css */
+
+/* --- Contenedor Principal --- */
+.main-content-area {
+  padding: 20px;
+  background-color: #f8f9fa; /* Un fondo gris claro para la página */
+  border-radius: 8px; /* Bordes redondeados */
+}
+
+/* --- Cabecera (Título, Buscador, Botón Agregar) --- */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.main-header h1 {
+  margin: 0;
+  font-size: 1.8em;
+  font-weight: 600;
+  color: #333; /* Color de texto oscuro */
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px; /* Espacio entre buscador y botón */
+  align-items: center;
+}
+
+/* --- Formulario de Búsqueda --- */
+.search-form {
+  display: flex;
+}
+
+.search-form input[type="text"] {
+  padding: 8px 15px; /* Más padding */
+  border: 1px solid #ced4da; /* Borde gris claro */
+  border-radius: 20px 0 0 20px; /* Bordes redondeados solo a la izquierda */
+  outline: none;
+  font-size: 0.9em;
+  min-width: 250px; /* Ancho mínimo */
+}
+
+.search-form button {
+  padding: 8px 15px;
+  border: none;
+  background-color: #223F70; /* Azul oscuro */
+  color: white;
+  border-radius: 0 20px 20px 0; /* Bordes redondeados solo a la derecha */
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.2s ease;
+}
+
+.search-form button:hover {
+  background-color: #1a3258; /* Azul más oscuro */
+}
+
+/* --- Botón Principal (Agregar) --- */
+.btn-primary {
+  background-color: #223F70; /* Azul oscuro */
+  color: white;
+  padding: 10px 20px; /* Padding */
+  border: none;
+  border-radius: 20px; /* Bordes redondeados */
+  cursor: pointer;
+  font-weight: 500; /* Semi-negrita */
+  font-size: 0.9em;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.btn-primary:hover {
+  background-color: #1a3258; /* Azul más oscuro */
+  transform: translateY(-1px); /* Efecto levantar */
+}
+
+/* --- Contenedor de la Tabla --- */
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* Scroll horizontal si es necesario */
+  background-color: #ffffff; /* Fondo blanco */
+  border-radius: 12px; /* Bordes redondeados más grandes */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada */
+  border: 1px solid #dee2e6; /* Borde sutil */
+}
+
+/* --- Tabla Principal --- */
+.main-table {
+  width: 100%;
+  border-collapse: separate; /* Separar bordes */
+  border-spacing: 0; /* Sin espacio entre celdas */
+  color: #495057; /* Color de texto gris oscuro */
+}
+
+.main-table th,
+.main-table td {
+  padding: 12px 15px; /* Padding en celdas */
+  text-align: left;
+  border-bottom: 1px solid #dee2e6; /* Línea divisoria */
+  vertical-align: middle; /* Centrado vertical */
+}
+
+/* --- Cabecera de la Tabla (th) --- */
+.main-table thead th {
+  background-color: #223F70; /* Fondo azul oscuro */
+  color: white; /* Texto blanco */
+  font-weight: 600; /* Negrita */
+  font-size: 0.85em;
+  text-transform: uppercase; /* Mayúsculas */
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #1a3258; /* Borde inferior más grueso */
+  position: sticky; /* Cabecera fija al hacer scroll */
+  top: 0;
+  z-index: 10;
+}
+
+/* Redondear esquinas de la cabecera */
+.main-table thead th:first-child {
+  border-top-left-radius: 11px;
+}
+.main-table thead th:last-child {
+  border-top-right-radius: 11px;
+}
+
+/* --- Cuerpo de la Tabla (tbody) --- */
+.main-table tbody tr:hover {
+  background-color: #f1f3f5; /* Color gris muy claro al pasar el ratón */
+}
+
+.main-table tbody td {
+  font-size: 0.9em;
+}
+
+/* --- Celdas Específicas --- */
+.main-table .table-logo {
+  width: 50px; /* Tamaño del logo */
+  height: auto;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.main-table .status-active {
+  color: #198754; /* Verde */
+  font-weight: 500;
+  background-color: #d1e7dd; /* Fondo verde claro */
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.8em;
+}
+
+.main-table .status-inactive {
+  color: #dc3545; /* Rojo */
+  font-weight: 500;
+  background-color: #f8d7da; /* Fondo rojo claro */
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.8em;
+}
+
+/* --- Columna de Acciones --- */
+.main-table .actions {
+  display: flex;
+  gap: 8px; /* Espacio entre botones */
+  align-items: center;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 5px; /* Un poco de espacio alrededor del icono */
+  cursor: pointer;
+  border-radius: 50%; /* Hacerlos circulares */
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon img {
+  width: 16px; /* Tamaño iconos */
+  height: 16px;
+}
+
+/* Hover de botones de acción */
+.btn-icon[title="Editar"]:hover {
+  background-color: #fff3cd; /* Amarillo claro */
+}
+.btn-icon[title="Eliminar"]:hover {
+  background-color: #f8d7da; /* Rojo claro */
+}
+
+.inline-form {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Mensaje "Sin datos" --- */
+.text-center {
+  text-align: center;
+  color: #6c757d; /* Gris */
+  font-style: italic;
+}
+
+/* --- Paginación --- */
+.pagination-container {
+  padding: 20px 15px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #dee2e6;
+  background-color: #f8f9fa; /* Fondo gris claro */
+  border-bottom-left-radius: 11px; /* Redondear esquinas inferiores */
+  border-bottom-right-radius: 11px;
+}
+
+/* Estilos básicos para los enlaces de paginación (ajusta según tu framework) */
+.pagination-container nav span,
+.pagination-container nav a {
+  padding: 8px 12px;
+  margin: 0 2px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #0d6efd; /* Azul */
+  background-color: white;
+}
+
+.pagination-container nav span[aria-disabled="true"] {
+  color: #6c757d; /* Gris */
+  background-color: #e9ecef; /* Gris claro */
+  cursor: default;
+}
+
+.pagination-container nav span[aria-current="page"] span {
+  font-weight: bold;
+  color: white;
+  background-color: #0d6efd; /* Azul */
+  border-color: #0d6efd;
+}
+
+.pagination-container nav a:hover {
+  background-color: #e9ecef;
+}
