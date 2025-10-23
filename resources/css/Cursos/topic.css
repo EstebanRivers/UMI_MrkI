@@ -1,8 +1,9 @@
 .topics-container {
-    max-width: 1200px;
-    margin: 1% auto;
+    max-width: 1300px;
+    margin: 0 10px 0 10px;
     padding: 10px 20px;
     font-family: 'Poppins', Tahoma, sans-serif;
+    
 }
 
 /* Alertas */
@@ -73,7 +74,8 @@
 /* Formularios */
 .topics-form,
 .topics-list {
-    padding: 20px;
+    display: 1;
+    padding: 15px;
     border-radius: 12px;
 }
 .topics-form {
@@ -85,7 +87,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 .topics-list-content{
-    max-height: 500px;
+    max-height: 430px;
     overflow-y: auto;
 }
 .form-group {

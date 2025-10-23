@@ -10,11 +10,6 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
   <title>@yield('title','Dashboard')</title>
-
-  {{-- Preload critical resources --}}
-  <link rel="preload" href="{{ asset('images/LOGO2.png') }}" as="image">
-  <link rel="preload" href="{{ asset('images/LOGO3.png') }}" as="image">
-  <link rel="preload" href="{{ asset('images/uhta-logo.png') }}" as="image">
   
   {{-- Vite inyecta los enlaces a CSS/JS de resources --}}
   @vite(['resources/css/app.css', 'resources/js/app.js'])

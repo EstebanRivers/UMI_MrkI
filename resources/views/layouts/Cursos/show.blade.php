@@ -113,9 +113,32 @@
                                     <img src="{{ asset('storage/' . $topic->file_path) }}" alt="Material del tema" style="max-width: 100%; border-radius: 8px; border: 1px solid #eee;">
                                 </div>
                             @else
-                                <a href="{{ asset('storage/' . $topic->file_path) }}" target="_blank" class="download-link">
-                                    📎 Descargar Material ({{ strtoupper($extension) }})
-                                </a>
+                                @php
+                                    $fileUrl = asset('storage/' . $topic->file_path);
+                                @endphp
+
+                                @if (in_array($extension, ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt']))
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        {{-- Intentar mostrar usando el visor de Google Docs --}}
+                                        <iframe 
+                                            src="https://docs.google.com/gview?url={{ $fileUrl }}&embedded=true" 
+                                            width="100%" 
+                                            height="500px" 
+                                            style="border: 1px solid #ccc; border-radius: 5px;">
+                                        </iframe>
+                                    </div>
+                                @elseif (in_array($extension, ['zip', 'rar']))
+                                    <div class="file-viewer" style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                        <p>📦 Este es un archivo comprimido (<strong>{{ strtoupper($extension) }}</strong>).</p>
+                                        <a href="{{ $fileUrl }}" target="_blank" class="btn-secondary">Descargar archivo</a>
+                                    </div>
+                                @else
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        <iframe src="{{ $fileUrl }}" width="100%" height="600px" style="border: 1px solid #ccc; border-radius: 5px;">
+                                        </iframe>
+                                    </div>
+                                @endif
+
                             @endif
                         @endif
                     </div>

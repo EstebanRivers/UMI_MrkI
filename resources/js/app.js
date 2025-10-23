@@ -16,6 +16,7 @@ class SimpleSPANavigation {
     setupEventListeners() {
         // Interceptar clics en enlaces del menú 
         document.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;
             const link = e.target.closest('.menu a');
             if (link && this.shouldIntercept(link)) {
                 e.preventDefault();
@@ -26,6 +27,7 @@ class SimpleSPANavigation {
 
         // Manejar botón atrás/adelante del navegador
         window.addEventListener('popstate', (e) => {
+            if (!(e.target instanceof Element)) return;
             if (e.state && e.state.page) {
                 this.loadPage(e.state.page, false);
             }
@@ -34,6 +36,7 @@ class SimpleSPANavigation {
         // Precargar al hacer hover (optimizado)
         let hoverTimeout;
         document.addEventListener('mouseenter', (e) => {
+            if (!(e.target instanceof Element)) return;
             const link = e.target.closest('.menu a');
             if (link && this.shouldIntercept(link)) {
                 clearTimeout(hoverTimeout);
@@ -44,6 +47,7 @@ class SimpleSPANavigation {
         }, true);
 
         document.addEventListener('mouseleave', (e) => {
+            if (!(e.target instanceof Element)) return;
             const link = e.target.closest('.menu a');
             if (link) {
                 clearTimeout(hoverTimeout);
@@ -272,7 +276,7 @@ class SimpleSPANavigation {
     }
 
     preloadCriticalPages() {
-        const criticalPages = ['/dashboard', '/mi-informacion', '/ajustes'];
+        const criticalPages = ['/cursos', '/mi-informacion', '/ajustes'];
         
         setTimeout(() => {
             criticalPages.forEach(page => {
