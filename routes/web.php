@@ -8,7 +8,9 @@ use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\Ajustes\AjustesController;
-
+use App\Http\Controllers\AdmonCont\store\careerController;
+use App\Http\Controllers\AdmonCont\UserController;
+use App\Http\Controllers\AdmonCont\generalController;
 
 
 // Rutas de autenticación
@@ -85,7 +87,28 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     })->name('Facturacion.index');
     
     
-    // Control Administrativo - roles especificos
+    // Control Administrativo
+    
+    Route::middleware(['role:master'])->group(function () {
+    //Listas
+    Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
+    Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
+    Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
+    Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
+    //Horarios
+    Route::get('/horarios', [generalController::class, 'index'])->name('Horarios.index');
+    Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
+    //Carreras
+    Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');
+    Route::post('/carreras', [careerController::class, 'store'])->name('career.store');
+    Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
+    
+    
+
+
+    });
+
+    //V1-DEPRECATED
     Route::middleware(['role:master'])->group(function () {
         Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
         })->name('ControlAdmin.index');
