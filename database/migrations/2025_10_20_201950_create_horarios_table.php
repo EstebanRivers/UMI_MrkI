@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('materia_id')->constrained('materias')->onDelete('cascade'); 
             
             // Llave foránea a id de carrera (Career)
-            $table->foreignId('carrera_id')->constrained('carrers')->onDelete('cascade');
+            $table->foreignId('career_id')->constrained('careers')->onDelete('cascade');
             
             // Llave foránea a id de usuario (User)
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('clave', 10)->unique()->nullable();
             $table->integer('creditos');
             $table->foreignId('career_id') // Laravel asume que la columna es UNSIGNED BIGINT
-                  ->constrained('carrers') // Asume que la tabla de destino es 'carreras'
+                  ->constrained('careers') 
                   ->onDelete('cascade'); // Opcional: si se borra la carrera, se borran las materias
             $table->string('descripcion');
             $table->string('type');
