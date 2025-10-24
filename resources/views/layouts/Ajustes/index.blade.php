@@ -12,21 +12,6 @@
     <header class="main-header">
         <h1>{{ $page_title }}</h1>
         <div class="header-actions">
-            @if($seccion === 'users')
-<div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; margin: 10px 0; border-radius: 5px;">
-    <strong>🔍 Debug Info:</strong><br>
-    Total usuarios: {{ $data->total() ?? 0 }}<br>
-    Usuarios en página: {{ $data->count() ?? 0 }}<br>
-    Institución activa: {{ session('active_institution_id') }} - {{ session('active_institution_name') }}<br>
-    @if($data->count() > 0)
-        <strong>Primer usuario:</strong><br>
-        - ID: {{ $data->first()->id }}<br>
-        - Nombre: {{ $data->first()->nombre }}<br>
-        - Roles: {{ $data->first()->roles->pluck('name')->implode(', ') }}<br>
-        - Instituciones: {{ $data->first()->institutions->pluck('name')->implode(', ') }}
-    @endif
-</div>
-@endif
             <form method="GET" action="{{ route('ajustes.show', ['seccion' => $seccion]) }}" class="search-form">
                 <input type="text" name="search" placeholder="Buscar..." value="{{ request('search') }}">
                 <button type="submit">Buscar</button>
@@ -65,7 +50,6 @@
                         <th>Nombre</th>
                         <th>Email</th>
                         <th>Rol Activo</th>
-                        <th>Institución(es)</th> {{-- <-- AÑADIR ESTA LÍNEA --}}
                     @endif
                     <th>Acciones</th>
                 </tr>
@@ -108,18 +92,7 @@
                             <td>{{ $item->nombre }} {{ $item->apellido_paterno }}</td>
                             <td>{{ $item->email }}</td>
                             <td>{{ $item->roles->first()->display_name ?? 'Sin Rol' }}</td>
-                            <td>
-                                @if ($item->institutions->isNotEmpty())
-                                    @foreach ($item->institutions as $institution)
-                                        {{-- Mostramos solo la institución activa --}}
-                                        @if($institution->id == session('active_institution_id'))
-                                            <span class="badge">{{ $institution->name }}</span>
-                                        @endif
-                                    @endforeach
-                                @else
-                                    N/A
-                                @endif
-                            </td>
+                            
                         @endif
                         
                         <td class="actions"> 

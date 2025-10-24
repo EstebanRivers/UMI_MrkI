@@ -182,7 +182,7 @@ class User extends Authenticatable
     //El rol que pertenece al usuario.
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles_institution')->withPivot('intitution_id');
+        return $this->belongsToMany(Role::class, 'user_roles_institution')->withPivot('institution_id');
     }
 
     //Las instituciones a las que pertenece el usuario.

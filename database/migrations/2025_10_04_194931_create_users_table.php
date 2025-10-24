@@ -24,6 +24,9 @@ return new class extends Migration
             $table->date('fecha_nacimiento')->nullable();
             $table->integer('edad')->nullable();
 
+            $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('set null');;
+            $table->foreignId('workstation_id')->nullable()->constrained('workstations')->onDelete('set null');;
+
             $table->foreignId('address_id')->nullable()->constrained('addresses')->onDelete('set null');
 
             $table->rememberToken();
