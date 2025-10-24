@@ -50,8 +50,50 @@ class UserSeeder extends Seeder
 
         // --- 3. Create Supporting Data (Careers, Departments, Workstations) ---
         // Careers for UMI
-        $ingenieriaCareer = Career::firstOrCreate(['name' => 'Ingenieria en Sistemas', 'institution_id' => $umi->id]);
-        Career::firstOrCreate(['name' => 'Administracion de Empresas', 'institution_id' => $umi->id]);
+        // --- Create Careers with new fields ---
+        $ingenieriaCareer = null; // Initialize
+        $adminCareer = null; // Initialize
+
+        if ($umi) {
+            // Use firstOrCreate:
+            // 1st array: attributes to find the record (unique identifiers)
+            // 2nd array: attributes to set if the record needs to be created
+            $ingenieriaCareer = Career::firstOrCreate(
+                [
+                    // Use 'official_id' as the primary unique identifier if it's stable
+                    'official_id' => 'RVOE-IS-12345', // <-- USA UN RVOE REAL O ÚNICO AQUÍ
+                    'institution_id' => $umi->id,
+                ],
+                [
+                    'name' => 'Ingenieria en Sistemas',
+                    'description1' => 'Formar profesionales en sistemas computacionales...', // Placeholder
+                    'description2' => 'Con habilidades en desarrollo de software...', // Placeholder
+                    'description3' => 'Y gestión de tecnologías de la información.', // Placeholder
+                    'type' => 'Escolar', // Example: 'Escolar' or 'Sabatino'
+                    'semesters' => 8, // Example
+                    'credits' => 300, // Example (migration default is 0)
+                ]
+            );
+
+            $adminCareer = Career::firstOrCreate(
+                 [
+                    'official_id' => 'RVOE-AE-67890', // <-- USA UN RVOE REAL O ÚNICO AQUÍ
+                    'institution_id' => $umi->id,
+                 ],
+                 [
+                    'name' => 'Administracion de Empresas',
+                    'description1' => 'Formar líderes en gestión empresarial...', // Placeholder
+                    'description2' => 'Con enfoque en finanzas, marketing...', // Placeholder
+                    'description3' => 'Y recursos humanos.', // Placeholder
+                    'type' => 'Sabatino', // Example
+                    'semesters' => 9, // Example
+                    'credits' => 320, // Example
+                ]
+            );
+             $this->command->info('Careers created/found for UMI.');
+        } else {
+             $this->command->warn('Universidad Mundo Imperial not found, skipping career creation.');
+        }
 
         // Departments for Palacio MI
         $talentoHumanoDep = Department::firstOrCreate(['name' => 'Talento Humano', 'institution_id' => $palacioMI->id]);

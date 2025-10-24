@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\Users\User; // Ajusta este namespace si tu modelo User no está directamente en App\Models
 use App\Models\Users\AcademicProfile; // Necesario para la relación que vamos a cargar
 use App\Models\AdmonCont\Materia; 
-use App\Models\AdmonCont\Career; 
+use App\Models\Users\Career; 
 // El modelo Role no es estrictamente necesario aquí si solo lo usamos en whereHas, pero no estorba. 
 // Para mayor limpieza, lo omitimos si ya está importado en el modelo User.
 
@@ -56,8 +56,8 @@ class UserController extends Controller
         // Nota: Aquí se seleccionan todos los campos relevantes, Laravel los manejará.
         $academicColumns = [
             'user_id',
-            'status', 
-            'carrera'
+            //'status', 
+            'career_id'
         ];
         $dataList = User::query()
             ->whereHas('roles', function (Builder $query) use ($roleName) {

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\AdmonCont\store;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 //Modelos
-use App\Models\AdmonCont\Career;
+use App\Models\Users\Career;
 
 class careerController extends Controller
 {
