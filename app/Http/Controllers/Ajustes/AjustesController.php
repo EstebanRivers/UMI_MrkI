@@ -356,6 +356,7 @@ class AjustesController extends Controller
      */
     private function getQueryForSeccion($seccion, $search = null)
     {
+        $activeInstitutionId = session('active_institution_id');
         $query = null;
         switch ($seccion) {
             case 'institutions':
@@ -376,7 +377,12 @@ class AjustesController extends Controller
                 $query->orderBy('is_active', 'desc')->orderBy('start_date', 'desc');
                 break;
             case 'users':
-                $query = User::with('roles', 'institutions'); // Carga la relación
+                $query = User::with([
+                    'institutions',
+                    'roles'=> function($query) use ($activeInstitutionId){
+                        $query->where('user_roles_institution.institution_id', $activeInstitutionId);
+                    }
+                ]); 
                 if ($search) {
                     // !! BÚSQUEDA CORREGIDA !!
                     $query->where(function($q) use ($search) {

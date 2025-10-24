@@ -89,17 +89,23 @@
                             </td>
                         @elseif ($seccion === 'users')
                             <td>{{ $item->id }}</td>
-                            <td>{{ $item->nombre }} </td>
-                            <td>{{ $item->apellido_paterno }}</td>
+                            <td>{{ $item->nombre }} {{ $item->apellido_paterno }}</td>
                             <td>{{ $item->email }}</td>
                             <td>{{ $item->roles->first()->display_name ?? 'Sin Rol' }}</td>
+                            
                         @endif
                         
                         <td class="actions"> 
-                            <a href="#" title="Editar" class="btn-icon btn-edit"> 
+                            <a href="#" 
+                            title="Editar" 
+                            class="btn-icon btn-edit"
+                            data-id="{{ $item->id }}"> {{-- ✅ Agregamos data-id --}}
                                 <img src="{{ asset('images/icons/pen-to-square-solid-full.svg') }}" alt="Editar">
                             </a>
-                            <form action="#" method="POST" class="inline-form">
+                            <form action="{{ route('ajustes.destroy', ['seccion' => $seccion, 'id' => $item->id]) }}" 
+                                method="POST" 
+                                class="inline-form"
+                                onsubmit="return confirm('¿Estás seguro de eliminar este registro?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" title="Eliminar" class="btn-icon">
@@ -199,11 +205,11 @@
                 e.preventDefault();
                 
                 // 1. Obtener el ID del item desde la fila de la tabla
-                const row = e.target.closest('tr');
-                if (!row) return;
-
-                const itemId = row.querySelector('td:first-child').textContent.trim();
-                if (!itemId) return;
+                const itemId = e.currentTarget.dataset.id; // ✅ Usar data-id
+                if (!itemId) {
+                    console.error('No se encontró el ID del item');
+                    return;
+                }
 
                 modalTitle.textContent = `Editar ${singularName} #${itemId}`;
 
