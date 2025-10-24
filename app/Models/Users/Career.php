@@ -4,6 +4,11 @@ namespace App\Models\Users;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Users\Institution;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Importar
+
+// Modelos necesarios para la consulta y relaciones
+use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
 
 
 /**
@@ -25,6 +30,26 @@ use App\Models\Users\Institution;
  */
 class Career extends Model
 {
+
+    protected $fillable = [
+        'official_id',
+        'name',
+        'description1',
+        'description2',
+        'description3',
+        'type',
+        'semestre'
+    ];
+
+    public function materiaProfile(): BelongsTo
+    {
+        return $this->belongsTo(Materia::class);
+    }
+    public function horarioProfile(): BelongsTo
+    {
+        return $this->belongsTo(Horario::class);
+    }
+
     public function institution() 
     { 
         return $this->belongsTo(Institution::class); 

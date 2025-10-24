@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 // Modelos necesarios para la consulta y relaciones
-use App\Models\AdmonCont\Career;
+use App\Models\Users\Career;
 
 class Horario extends Model
 {
