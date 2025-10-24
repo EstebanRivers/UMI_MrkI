@@ -12,6 +12,21 @@
     <header class="main-header">
         <h1>{{ $page_title }}</h1>
         <div class="header-actions">
+            @if($seccion === 'users')
+<div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; margin: 10px 0; border-radius: 5px;">
+    <strong>🔍 Debug Info:</strong><br>
+    Total usuarios: {{ $data->total() ?? 0 }}<br>
+    Usuarios en página: {{ $data->count() ?? 0 }}<br>
+    Institución activa: {{ session('active_institution_id') }} - {{ session('active_institution_name') }}<br>
+    @if($data->count() > 0)
+        <strong>Primer usuario:</strong><br>
+        - ID: {{ $data->first()->id }}<br>
+        - Nombre: {{ $data->first()->nombre }}<br>
+        - Roles: {{ $data->first()->roles->pluck('name')->implode(', ') }}<br>
+        - Instituciones: {{ $data->first()->institutions->pluck('name')->implode(', ') }}
+    @endif
+</div>
+@endif
             <form method="GET" action="{{ route('ajustes.show', ['seccion' => $seccion]) }}" class="search-form">
                 <input type="text" name="search" placeholder="Buscar..." value="{{ request('search') }}">
                 <button type="submit">Buscar</button>
@@ -50,6 +65,7 @@
                         <th>Nombre</th>
                         <th>Email</th>
                         <th>Rol Activo</th>
+                        <th>Institución(es)</th> {{-- <-- AÑADIR ESTA LÍNEA --}}
                     @endif
                     <th>Acciones</th>
                 </tr>
@@ -89,17 +105,34 @@
                             </td>
                         @elseif ($seccion === 'users')
                             <td>{{ $item->id }}</td>
-                            <td>{{ $item->nombre }} </td>
-                            <td>{{ $item->apellido_paterno }}</td>
+                            <td>{{ $item->nombre }} {{ $item->apellido_paterno }}</td>
                             <td>{{ $item->email }}</td>
                             <td>{{ $item->roles->first()->display_name ?? 'Sin Rol' }}</td>
+                            <td>
+                                @if ($item->institutions->isNotEmpty())
+                                    @foreach ($item->institutions as $institution)
+                                        {{-- Mostramos solo la institución activa --}}
+                                        @if($institution->id == session('active_institution_id'))
+                                            <span class="badge">{{ $institution->name }}</span>
+                                        @endif
+                                    @endforeach
+                                @else
+                                    N/A
+                                @endif
+                            </td>
                         @endif
                         
                         <td class="actions"> 
-                            <a href="#" title="Editar" class="btn-icon btn-edit"> 
+                            <a href="#" 
+                            title="Editar" 
+                            class="btn-icon btn-edit"
+                            data-id="{{ $item->id }}"> {{-- ✅ Agregamos data-id --}}
                                 <img src="{{ asset('images/icons/pen-to-square-solid-full.svg') }}" alt="Editar">
                             </a>
-                            <form action="#" method="POST" class="inline-form">
+                            <form action="{{ route('ajustes.destroy', ['seccion' => $seccion, 'id' => $item->id]) }}" 
+                                method="POST" 
+                                class="inline-form"
+                                onsubmit="return confirm('¿Estás seguro de eliminar este registro?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" title="Eliminar" class="btn-icon">
@@ -199,11 +232,11 @@
                 e.preventDefault();
                 
                 // 1. Obtener el ID del item desde la fila de la tabla
-                const row = e.target.closest('tr');
-                if (!row) return;
-
-                const itemId = row.querySelector('td:first-child').textContent.trim();
-                if (!itemId) return;
+                const itemId = e.currentTarget.dataset.id; // ✅ Usar data-id
+                if (!itemId) {
+                    console.error('No se encontró el ID del item');
+                    return;
+                }
 
                 modalTitle.textContent = `Editar ${singularName} #${itemId}`;
 
