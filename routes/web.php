@@ -36,7 +36,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         ->name('context.switch');
 
     // Dashboard - accesible para todos los usuarios autenticados
-    Route::get('/bienvenido', function () {return view('dashboard.index');
+    Route::get('/bienvenido', function () {return view('Dashboard.index');
     })->name('dashboard');
 
     // Mi Informacion
@@ -78,9 +78,17 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
     //Horarios
     Route::get('/horarios', [HorarioController::class, 'index'])->name('Horarios.index');
+    //Guardar
     Route::post('/horarios', [HorarioController::class, 'store'])->name('Horarios.store');
+    //Eliminar
+    Route::delete('/horarios/{horario}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
+    //Editar
+    Route::get('/horarios/{horario}/edit', [HorarioController::class, 'edit'])->name('horarios.edit');
+    Route::put('/horarios/{horario}', [HorarioController::class, 'update'])->name('horarios.update');
+    
     //Clases
     Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
+    
     //Carreras
     Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');
     Route::post('/carreras', [careerController::class, 'store'])->name('career.store');

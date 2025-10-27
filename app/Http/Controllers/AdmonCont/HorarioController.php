@@ -113,4 +113,43 @@ class HorarioController extends Controller
             
         }
     }
+    public function destroy(HorarioClase $horario){
+        // 💡 El Route Model Binding pasa directamente el objeto HorarioClase
+        
+        try {
+            $horario->delete(); // Elimina el registro maestro
+            
+            // La configuración 'onDelete('cascade')' en tu migración se encarga 
+            // de borrar automáticamente todas las filas de horario_franjas relacionadas.
+
+            return redirect()->route('Horarios.index')->with('success', 'Horario eliminado correctamente.');
+            
+        } catch (\Exception $e) {
+            // Maneja cualquier error de base de datos
+            return redirect()->route('Horarios.index')->withErrors(['error' => 'No se pudo eliminar el horario.']);
+        }
+    }
+    public function edit(HorarioClase $horario){
+        // Cargar listas
+        $carreras = Carrer::all();
+        $aulas = Facility::all(); 
+        // ... (cargar docentes, materias) ...
+
+        // Cargar las franjas horarias y el contador
+        $franjas_json = json_encode($horario->franjas->toArray());
+        
+        // NOTA: Para simplificar, asumiremos que tu tabla de horarios también se carga aquí
+        $horarios = HorarioClase::with(['carrera', 'materia', 'user', 'aula', 'franjas'])->get();
+
+        // 💡 PASAMOS EL OBJETO $horario A LA VISTA INDEX.
+        return view('layouts.ControlAdmin.Horarios.index', compact(
+            'horario', // ESTE OBJETO INDICA EL MODO EDICIÓN
+            'horarios', // Para que la tabla de lista siga apareciendo
+            'carreras', 
+            'aulas', 
+            'docentes', 
+            'materias',
+            'franjas_json' // JSON de las franjas
+        ));
+    }
 }

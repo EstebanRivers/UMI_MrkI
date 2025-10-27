@@ -140,8 +140,20 @@
                             <td>{{ $horario->materia->nombre }}</td>
                             <td>{{ $horario->user->nombre }}</td>
                             <td>
-                                <button class="btn btn-sm btn-info">Editar</button>
-                                <button class="btn btn-sm btn-danger">Eliminar</button>
+                                <form action="{{ route('horarios.edit', $horario->id) }}" method="GET" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-info">
+                                        Editar
+                                    </button>
+                                </form>
+                                <form action="{{ route('horarios.destroy', $horario->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    {{-- Laravel necesita el método @method('DELETE') para simular la petición DELETE --}}
+                                    @method('DELETE') 
+                                    
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar este horario? Esta acción es irreversible.');">
+                                        Eliminar
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach
