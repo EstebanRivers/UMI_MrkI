@@ -1,0 +1,708 @@
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .main-content {
+            width: calc(100% - 250px);
+            display: flex;
+            flex-direction: column;
+            padding: 15px 15px 15px 10px;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 5px; 
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-end;
+            gap: 10px; 
+        }
+
+        .page-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8em;
+            color: #1E1E1E;
+            font-weight: 600;
+        }
+
+        .welcome-message {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1em;
+            color: #000000;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 10px 0 15px 0;
+        }
+
+        .logo-section img {
+            width: 100px;
+            height: auto;
+        }
+
+        .menu-container {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .menu-item, 
+        .logout-section .menu-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            text-decoration: none;
+            color: #333;
+            border-radius: 20px;
+            margin: 8px 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            width: 220px;
+            height: 57px;
+        }
+
+        .menu-item:hover span,
+        .logout-section .menu-item:hover span {
+            color: #ff6600;
+        }
+
+        .menu-item:hover,
+        .logout-section .menu-item:hover {
+            background-color: white;
+            border-color: #ddd;
+        }
+
+        .menu-item .checkbox {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .menu-icon-custom {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        .completed .checkbox::before {
+            content: "✓";
+            color: #27ae60;
+        }
+
+        .uncompleted .checkbox::before {
+            content: "◻";
+            color: #999;
+        }
+
+        .logout-section {
+            padding: 10px 10px 15px 10px;
+            width: 100%;
+        }
+
+        .copyright {
+            background-color: #092340;
+            padding: 15px 0 10px 0;
+            text-align: center;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            margin-top: auto;
+        }
+
+        .copyright img {
+            width: 120px;
+            height: auto;
+        }
+
+        .copyright-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 0;
+        }
+        
+        .task-group {
+            display: flex;
+            gap: 15px;
+            margin-left: 10px;
+        }
+
+        .task-group-button {
+            width: 101px;
+            height: 43px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Transición para el borde */
+            border-radius: 36px;
+            font-family: Poppins, sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            
+            /* Estilo por defecto (Inactivo) */
+            color: #ACACAC; 
+            background: white;
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+            border: 1px solid #ACACAC; /* Borde gris */
+        }
+        
+        /* Estilo Activo */
+        .task-group-button.active {
+            background-color: #BC8A55;
+            color: white;
+            border-color: #BC8A55; /* Borde del color principal */
+        }
+        
+        /* Estilos para el botón "Crear tarea" (Excluido de la lógica de filtros) */
+        .create-task-button {
+            width: 175px; 
+            height: 43px;
+            background: #223F70; 
+            border-radius: 36px;
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-family: Poppins, sans-serif;
+            font-weight: 400;
+            font-size: 18px; 
+            color: #FFFFFF;
+            border: none; /* Asegura que no tenga el borde de filtro */
+        }
+
+        .create-task-button:hover {
+            background-color: #1a3154; 
+        }
+
+        .content-area {
+            position: relative;
+            margin-top: 15px;
+            margin-left: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .content-rectangle {
+            width: 100%; 
+            flex-grow: 1;
+            background: #ECF0F1;
+            border-radius: 20px;
+            border: 1px solid #217DCC40;
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+            margin-bottom: 20px;
+            padding: 0 5px 5px 5px;
+        }
+
+        .content-header-bar {
+            width: 100%; 
+            height: 60px;
+            background: #223F70;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px; 
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .header-bar-text-container {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            padding-left: 0; 
+        }
+
+        .header-bar-text {
+            color: white;
+            font-family: Poppins, sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0 10px;
+        }
+        
+        /* Ajuste de flex y padding-left para las columnas del encabezado */
+        .header-bar-text:nth-child(1) { 
+            flex: 3;
+            text-align: left; 
+            padding-left: 120px; 
+        }
+        .header-bar-text:nth-child(2) { flex: 2; } 
+        .header-bar-text:nth-child(3) { flex: 1.5; } 
+        .header-bar-text:nth-child(4) { flex: 1.5; } 
+        .header-bar-text:nth-child(5) { flex: 1; } 
+        .header-bar-text:nth-child(6) { flex: 1; } 
+        .header-bar-text:nth-child(7) { flex: 1; } 
+
+        .header-bar-text br {
+            line-height: 10px;
+        }
+
+        .task-item {
+            width: calc(100% - 10px); 
+            height: 49px;
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 1px solid #217DCC40;
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+            margin: 10px 5px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .task-data {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: #000000;
+            text-align: left;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+        }
+        
+        .task-item .task-data:nth-child(1) { 
+            justify-content: flex-start; 
+        }
+
+        .task-item .task-data:nth-child(1) { 
+            flex: 3; 
+            text-align: left; 
+            padding-left: 120px; 
+        } 
+        .task-item .task-data:nth-child(2) { flex: 2; text-align: center; } 
+        .task-item .task-data:nth-child(3) { flex: 1.5; text-align: center; } 
+        .task-item .task-data:nth-child(4) { flex: 1.5; text-align: center; } 
+        .task-item .task-data:nth-child(5) { flex: 1; text-align: center; } 
+        .task-item .task-data:nth-child(6) { flex: 1; text-align: center; } 
+        .task-item .task-data:nth-child(7) { 
+            flex: 1; 
+            text-align: center; 
+            cursor: pointer; 
+            padding: 0; 
+            justify-content: center; 
+        } 
+
+
+        .task-icon-custom {
+            width: 23px;
+            height: 26px;
+            margin-right: 15px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        /* Contenedor de iconos de acción (para alinearlos) */
+        .action-icons-container {
+            display: flex;
+            gap: 10px; 
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        
+        .task-action-icon {
+            width: 23px;
+            height: 26px;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+        
+        /* Estilo para el ICONO 1 (Eliminar) - Color #D30303 (Rojo) */
+        .task-action-icon.icon1 {
+            filter: invert(15%) sepia(85%) saturate(5412%) hue-rotate(357deg) brightness(85%) contrast(100%);
+        }
+
+        /* Estilo para el ICONO 2 (Acción/Ver) - Color #BC8A55 (Dorado/Marrón) */
+        .task-action-icon.icon2 {
+            filter: invert(65%) sepia(30%) saturate(600%) hue-rotate(350deg) brightness(75%) contrast(85%); 
+        }
+        
+        /* Estilo para el ICONO 3 (Nueva Acción/Editar) - Color #000000 (Negro) */
+        .task-action-icon.icon3 {
+            filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+
+        .task-action-icon:hover {
+            opacity: 0.8;
+        }
+        
+        /* ========================================================= */
+        /* === ESTILOS PARA LAS MODALES GENERALES === */
+        /* ========================================================= */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 50px;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            padding: 0;
+            border: 1px solid #888;
+            border-radius: 15px;
+            overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #ddd;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* Estilos de los campos de formulario (Comunes a Crear/Editar) */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.95em;
+        }
+        /* Estilos de input file */
+        .file-control-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-control-container input[type="file"] {
+             flex-grow: 1;
+        }
+        .remove-file-btn {
+            background-color: #D30303; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+        .remove-file-btn:hover {
+            background-color: #a30202;
+        }
+
+
+        .form-group input:not([type="file"]), 
+        .form-group select, 
+        .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus:not([type="file"]), 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            border-color: #223F70;
+            outline: none;
+            box-shadow: 0 0 5px rgba(34, 63, 112, 0.3);
+        }
+        
+        /* Contenedor de botones (Común) */
+        .modal-footer {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Botones generales de acción (Redondeados) */
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 36px; 
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+
+        /* ========================================================= */
+        /* === ESTILOS MODAL CREAR/EDITAR (CORREGIDO) === */
+        /* ========================================================= */
+        #crearTareaModal .modal-content {
+            width: 450px;
+            margin: 5% auto;
+        }
+        #crearTareaModal .modal-header {
+            background-color: #223F70;
+        }
+        
+        /* Botón Guardar/Actualizar */
+        .btn-save {
+            background-color: #223F70;
+            color: white;
+            font-weight: 600; 
+        }
+        .btn-save:hover {
+            background-color: #1a3154;
+        }
+
+        /* Botón Cancelar */
+        .btn-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .btn-cancel:hover {
+            background-color: #ccc;
+        }
+        
+        /* ========================================================= */
+        /* === ESTILOS MODAL DE CONFIRMACIÓN (Eliminar) === */
+        /* ========================================================= */
+        #confirmModal .modal-content {
+            width: 350px; 
+            margin: 15% auto; 
+        }
+
+        #confirmModal .modal-header {
+            background-color: #D30303; 
+        }
+        
+        #confirmModal .modal-header h2 {
+            font-size: 1.2em;
+        }
+
+        #confirmModal .modal-body {
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 1.1em;
+            font-weight: 400;
+        }
+
+        #confirmModal .modal-footer {
+            justify-content: space-around; 
+        }
+
+        .btn-confirm-delete {
+            background-color: #D30303; 
+            color: white;
+            font-weight: 600;
+            padding: 10px 15px;
+        }
+        
+        .btn-confirm-delete:hover {
+            background-color: #a30202;
+        }
+        
+        .btn-confirm-cancel {
+            background-color: #223F70; 
+            color: white;
+            padding: 10px 15px;
+        }
+        
+        .btn-confirm-cancel:hover {
+            background-color: #1a3154;
+        }
+        
+        /* ========================================================= */
+        /* === ESTILOS MODAL DE NOTIFICACIÓN (Éxito) === */
+        /* ========================================================= */
+        #notificationModal .modal-content {
+            width: 350px;
+            margin: 15% auto;
+        }
+        
+        #notificationModal .modal-header {
+            background-color: #223F70; 
+        }
+        
+        #notificationModal .modal-header h2 {
+            font-size: 1.2em;
+        }
+        
+        #notificationModal .modal-body {
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 1.05em;
+        }
+        
+        #notificationModal .modal-footer {
+            justify-content: center;
+        }
+        
+        .btn-notification-ok {
+            background-color: #223F70;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-notification-ok:hover {
+            background-color: #1a3154;
+        }
+        
+        /* ========================================================= */
+        /* === ESTILOS MODAL DE EVALUACIÓN DE TAREA (MODIFICADO EL COLOR) === */
+        /* ========================================================= */
+        #evaluationModal .modal-content {
+            width: 600px; /* Un poco más ancha para los detalles */
+            max-width: 90%;
+            margin: 5% auto;
+        }
+
+        #evaluationModal .modal-header {
+            background-color: #223F70; /* **COLOR MODIFICADO** */
+        }
+        
+        #evaluationModal .modal-header h2 {
+             color: white; /* Asegura contraste */
+        }
+        
+        #evaluationModal .close-btn {
+             color: white; /* Asegura contraste */
+        }
+        #evaluationModal .close-btn:hover {
+            color: #ddd;
+        }
+        
+        #evaluationModal .modal-body {
+            padding: 25px;
+            line-height: 1.6;
+        }
+
+        .evaluation-item {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .evaluation-item label {
+            font-weight: 600;
+            color: #223F70;
+            width: 150px; /* Ancho fijo para las etiquetas */
+            flex-shrink: 0;
+        }
+
+        .evaluation-item span {
+            font-weight: 400;
+            color: #333;
+            flex-grow: 1;
+            margin: 0;
+            word-break: break-word; 
+        }
+        
+        .evaluation-item input[type="number"] {
+            width: 150px; /* Ancho para el puntaje */
+            text-align: center;
+        }
+        
+        .evaluation-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #223F70; /* Borde al color solicitado */
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f0f3f8; /* Un fondo ligeramente más claro para el área de input */
+        }
+
+        .evaluation-fields textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn-save-evaluation {
+            background-color: #223F70; /* **COLOR MODIFICADO** */
+            color: white;
+            font-weight: 600; 
+        }
+        .btn-save-evaluation:hover {
+            background-color: #1a3154; /* Un tono más oscuro para el hover */
+        }
