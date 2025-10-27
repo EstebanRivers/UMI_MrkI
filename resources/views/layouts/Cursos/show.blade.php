@@ -24,46 +24,72 @@
             @foreach ($course->topics as $topic)
                 <div class="topic-group">
                     {{-- Tema --}}
-                    <strong class="syllabus-link" data-target="#content-topic-{{ $topic->id }}">
-                        {{ $topic->title }}
+                    <strong 
+                        @if($topic->activities->isEmpty() && $topic->subtopics->isEmpty())
+                            class="syllabus-link completable-text accordion-toggle"
+                        @else
+                            class="syllabus-link accordion-toggle"
+                        @endif
+                          data-target="#content-topic-{{ $topic->id }}"
+                          data-target-accordion="#accordion-topic-{{ $topic->id }}">
+                         {{ $topic->title }}
                     </strong>
+                    <div class="accordion-content" id="accordion-topic-{{ $topic->id }}">
+                        {{-- Subtemas --}}
+                        @if($topic->subtopics->count() > 0)
+                            <ul>
+                                @foreach ($topic->subtopics as $subtopic)
+                                    <li>
+                                        <span 
+                                            @if($subtopic->activities->isEmpty())
+                                            class="syllabus-link completable-text accordion-toggle"
+                                        @else
+                                            class="syllabus-link accordion-toggle"
+                                        @endif
+                                        data-target="#content-subtopic-{{ $subtopic->id }}"
+                                        data-target-accordion="#accordion-subtopic-{{ $subtopic->id }}">
+                                        {{ $subtopic->title }}
+                                        </span>
 
-                    {{-- Actividades del tema --}}
-                    @if($topic->activities->count() > 0)
-                        <ul>
-                            @foreach ($topic->activities as $activity)
-                                <li class="syllabus-link" data-target="#content-activity-{{ $activity->id }}">
-                                    - {{ $activity->title }}
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    {{-- Subtemas --}}
-                    @if($topic->subtopics->count() > 0)
-                        <ul>
-                            @foreach ($topic->subtopics as $subtopic)
-                                <li>
-                                    <span class="syllabus-link" data-target="#content-subtopic-{{ $subtopic->id }}">
-                                        ▸ {{ $subtopic->title }}
-                                    </span>
-
-                                    {{-- Actividades del subtema --}}
-                                    @if($subtopic->activities->count() > 0)
-                                        <ul>
-                                            @foreach ($subtopic->activities as $activity)
-                                                <li class="syllabus-link" data-target="#content-activity-{{ $activity->id }}">
-                                                    - {{ $activity->title }}
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
+                                        <div class="accordion-content" id="accordion-subtopic-{{ $subtopic->id }}">
+                                            {{-- Actividades del subtema --}}
+                                            @if($subtopic->activities->count() > 0)
+                                                <ul>
+                                                    @foreach ($subtopic->activities as $activity)
+                                                        <li class="syllabus-link auto-complete-link" data-target="#content-activity-{{ $activity->id }}"
+                                                            data-activity-id="{{ $activity->id }}">
+                                                            - {{ $activity->title }}
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        {{-- Actividades del tema --}}
+                        @if($topic->activities->count() > 0)
+                            <ul>
+                                @foreach ($topic->activities as $activity)
+                                    <li class="syllabus-link auto-complete-link" data-target="#content-activity-{{ $activity->id }}"
+                                        data-activity-id="{{ $activity->id }}">
+                                        - {{ $activity->title }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
                 </div>
             @endforeach
+            <div class="course-progress-container">
+                <h4>Tu Progreso</h4>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-inner" style="width: {{ $progress }}%;">
+                        <span>{{ $progress }}%</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- COLUMNA IZQUIERDA (VISOR DE CONTENIDO) --}}
@@ -279,6 +305,79 @@
                 // Resaltar link activo
                 syllabusListItems.forEach(item => item.classList.remove('active'));
                 this.classList.add('active');
+            });
+        });
+
+        /* --- NUEVO CÓDIGO (Auto-completar Actividad) --- */
+
+        // 1. Función para enviar el progreso al backend
+        const markActivityAsComplete = (activityId, element) => {
+            // Prevenir doble envío
+            if (element.classList.contains('completed')) {
+                return;
+            }
+
+            // Usar 'axios' (asegúrate que esté en bootstrap.js)
+            axios.post(`/activities/${activityId}/complete`)
+                .then(response => {
+                    if (response.data.success) {
+                        console.log('Actividad completada:', activityId);
+                        // Añadir feedback visual
+                        element.classList.add('completed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al completar la actividad:', error);
+                });
+        };
+
+        // 2. Escuchar clics en los enlaces de actividad
+        const activityLinks = document.querySelectorAll('.auto-complete-link');
+        
+        activityLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                const activityId = this.dataset.activityId;
+                if (activityId) {
+                    markActivityAsComplete(activityId, this);
+                }
+            });
+        });
+
+        // (Si tus actividades de Cuestionario tienen un botón "Enviar", 
+        //  deberás añadir la llamada a 'markActivityAsComplete' 
+        //  cuando el usuario responda correctamente.)
+
+        const textLinks = document.querySelectorAll('.completable-text');
+        
+        textLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                // Esto solo añade la clase para feedback visual.
+                // NO llama al backend y NO afecta la barra de progreso.
+                this.classList.add('completed');
+            });
+        });
+
+        /* --- CÓDIGO DEL ACORDEÓN (CORREGIDO) --- */
+        const accordions = document.querySelectorAll('.accordion-toggle');
+
+        accordions.forEach(acc => {
+            acc.addEventListener('click', function(event) {
+                
+                // 1. CAMBIO AQUÍ: Usamos la nueva clase
+                this.classList.toggle('accordion-open');
+                
+                // 2. Obtiene el ID del contenido a mostrar
+                const targetId = this.dataset.targetAccordion;
+                const content = document.querySelector(targetId);
+
+                // 3. Muestra u oculta el contenido
+                if (content) {
+                    content.classList.toggle('show');
+                }
+
+                // Dejamos que el clic continúe para que el
+                // OTRO script (el de los paneles) pueda
+                // resaltar el enlace con la clase '.active'
             });
         });
     });

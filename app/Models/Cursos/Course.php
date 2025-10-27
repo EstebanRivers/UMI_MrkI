@@ -103,4 +103,14 @@ class Course extends Model
         return $this->morphedByMany(Workstation::class, 'targetable');
     }
 
+    /**
+     * Los usuarios inscritos en este curso.
+     */
+    public function users()
+    {
+        // Asumiendo que tu modelo de usuario es 'User'
+        // Usa App\Models\Users\User::class
+        return $this->belongsToMany(User::class, 'course_user');
+    }
+
 }

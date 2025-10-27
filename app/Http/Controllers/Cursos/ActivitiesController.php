@@ -7,6 +7,7 @@ use App\Models\Cursos\Subtopic;
 use App\Models\Cursos\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
 class ActivitiesController extends Controller
@@ -73,5 +74,18 @@ class ActivitiesController extends Controller
 
         // 2. Redirige al usuario a la página anterior con un mensaje de éxito
         return back()->with('success', '¡Actividad eliminada exitosamente!');
+    }
+
+    public function complete(Request $request, Activities $activity)
+    {
+        $user = Auth::user();
+
+        // syncWithoutDetaching es perfecto:
+        // 1. Si no existe, lo añade.
+        // 2. Si ya existe, no hace nada.
+        $user->completedActivities()->syncWithoutDetaching([$activity->id]);
+
+        // Devolvemos JSON para que JavaScript lo entienda
+        return response()->json(['success' => true, 'activity_id' => $activity->id]);
     }
 }

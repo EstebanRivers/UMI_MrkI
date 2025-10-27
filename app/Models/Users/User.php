@@ -15,6 +15,8 @@ use App\Models\Users\Address;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
 use Illuminate\Support\Facades\DB;
+use App\Models\Cursos\Course;
+use App\Models\Cursos\Activities;
 
 /**
  * @property int $id
@@ -215,6 +217,20 @@ class User extends Authenticatable
     public function corporateProfile(): HasOne
     {
         return $this->hasOne(CorporateProfile::class);
+    }
+
+    /**
+     * Los cursos a los que el usuario está inscrito.
+     */
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'course_user');
+    }
+
+    public function completedActivities()
+    {
+        return $this->belongsToMany(Activities::class, 'activity_user', 'user_id', 'activity_id')
+                    ->withTimestamps('completed_at');
     }
 
     

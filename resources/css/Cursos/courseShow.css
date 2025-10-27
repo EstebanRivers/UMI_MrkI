@@ -155,3 +155,96 @@
 .btn-success:hover {
     background: #1e7e34;
 }
+
+/* ESTILOS PARA LA BARRA DE PROGRESO */
+.course-progress-container {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.course-progress-container h4 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    height: 24px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-bar-inner {
+    height: 100%;
+    background-color: #4CAF50; /* Verde */
+    border-radius: 8px 0 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+    transition: width 0.4s ease;
+    min-width: 20px; /* Para que el texto se vea incluso en 0% */
+}
+
+.progress-bar-inner span {
+    padding: 0 5px;
+}
+
+.syllabus-link.completed {
+    color: #4CAF50; /* Verde */
+    font-weight: bold;
+}
+.syllabus-link.completed::before {
+    content: '✓ '; /* Añade un checkmark */
+    color: #4CAF50;
+}
+
+/* ... (tu CSS existente) ... */
+
+/* ESTILOS PARA EL ACORDEÓN */
+.accordion-toggle {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none; /* Evita que el texto se seleccione al hacer clic */
+    display: block; /* Asegura que ocupe toda la línea */
+    padding: 5px 0;
+}
+
+.accordion-toggle::before {
+    content: '►'; /* Ícono "cerrado" */
+    font-weight: bold;
+    display: inline-block;
+    width: 15px;
+    transition: transform 0.2s ease;
+}
+
+.accordion-toggle.accordion-open::before {
+    content: '▼'; /* Ícono "abierto" (signo menos) */
+}
+
+.accordion-content {
+    max-height: 0; /* Oculto por defecto */
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    
+    /* Estilos de anidación */
+    margin-left: 10px;
+    padding-left: 15px;
+    border-left: 1px solid #e0e0e0;
+}
+
+.accordion-content.show {
+    max-height: 1000px; /* Un valor alto para permitir que se expanda */
+}
+
+/* Ajuste para que las listas de subtemas no tengan doble padding */
+.subtopic-list {
+    list-style: none;
+    padding-left: 0;
+}

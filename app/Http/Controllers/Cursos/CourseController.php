@@ -114,9 +114,39 @@ class CourseController extends Controller
     public function show(Course $course): View
     {
         // Cargar relaciones necesarias
-        $course->load(['topics.subtopics.activities', 'instructor', 'institution']);
+        $course->load(['topics.activities', 'topics.subtopics.activities', 'instructor', 'institution']);
+        $progress = 0; // Progreso por defecto
+        $user = Auth::user(); // Obtener el usuario autenticado
 
-        return view('layouts.Cursos.show', compact('course'));
+        // Solo calcular si el usuario está logueado
+        if ($user) {
+            
+            // 1. Obtener TODOS los IDs de actividades de este curso
+            $allActivityIds = collect();
+            foreach ($course->topics as $topic) {
+                // Sumar actividades directas del tema
+                $allActivityIds = $allActivityIds->merge($topic->activities->pluck('id'));
+                
+                // Sumar actividades de los subtemas
+                foreach ($topic->subtopics as $subtopic) {
+                    $allActivityIds = $allActivityIds->merge($subtopic->activities->pluck('id'));
+                }
+            }
+            
+            $totalActivities = $allActivityIds->count();
+
+            if ($totalActivities > 0) {
+                // 2. Contar cuántas de esas el usuario ha completado
+                $completedCount = $user->completedActivities() // (Usando la relación que definimos)
+                                    ->whereIn('activity_id', $allActivityIds)
+                                    ->count();
+                                    
+                // 3. Calcular el porcentaje
+                $progress = round(($completedCount / $totalActivities) * 100);
+            }
+        }
+
+        return view('layouts.Cursos.show', compact('course', 'progress'));
     }
 
     /**
@@ -239,5 +269,22 @@ class CourseController extends Controller
 
         return redirect()->route('Cursos.index')
             ->with('success', 'Curso "' . $courseTitle . '" eliminado exitosamente.');
+    }
+
+    public function enroll(Request $request, Course $course)
+    {
+        $user = Auth::user();
+
+        // Verificar si el usuario ya está inscrito
+        $isEnrolled = $user->courses()->where('course_id', $course->id)->exists();
+
+        if ($isEnrolled) {
+            return back()->with('warning', 'Ya estás inscrito en este curso.');
+        }
+
+        // Inscribir al usuario (adjuntar en la tabla pivote)
+        $user->courses()->attach($course->id);
+
+        return redirect()->route('courses.show', $course)->with('success', '¡Inscripción exitosa!');
     }
 }
