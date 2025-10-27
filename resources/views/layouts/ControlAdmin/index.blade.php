@@ -12,6 +12,6 @@
     <a href="{{ route('Listas.members.index') }}">Lista de Docentes</a>
     <a href="{{ route('Listas.users.index') }}">Listas de usarios</a>
     <a href="{{ route('Listas.materias.index') }}">Lista de materias</a>
-    <a href="#">Usarios</a>
+    <a href="{{ route("Horarios.index") }}">Horarios</a>
 </div>
 @endsection

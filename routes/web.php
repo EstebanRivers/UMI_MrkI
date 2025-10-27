@@ -10,6 +10,7 @@ use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\AdmonCont\store\careerController;
 use App\Http\Controllers\AdmonCont\UserController;
 use App\Http\Controllers\AdmonCont\generalController;
+use App\Http\Controllers\AdmonCont\HorarioController;
 
 
 // Rutas de autenticación
@@ -76,16 +77,15 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
     Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
     //Horarios
-    Route::get('/horarios', [generalController::class, 'index'])->name('Horarios.index');
+    Route::get('/horarios', [HorarioController::class, 'index'])->name('Horarios.index');
+    Route::post('/horarios', [HorarioController::class, 'store'])->name('Horarios.store');
+    //Clases
     Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
     //Carreras
     Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');
     Route::post('/carreras', [careerController::class, 'store'])->name('career.store');
     Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
     
-    
-
-
     });
 
     //V1-DEPRECATED

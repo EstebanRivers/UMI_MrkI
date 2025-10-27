@@ -11,23 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('horarios', function (Blueprint $table) {
+        Schema::create('horario_clases', function (Blueprint $table) {
             $table->id();
             // Llave foránea a id de materia (Materia)
             $table->foreignId('materia_id')->constrained('materias')->onDelete('cascade'); 
-            
             // Llave foránea a id de carrera (Career)
+            // Nota: Aunque la carrera se puede obtener desde la materia,
+            // mantenerla aquí puede acelerar ciertos filtros.
             $table->foreignId('carrera_id')->constrained('carrers')->onDelete('cascade');
             
-            // Llave foránea a id de usuario (User)
+            // Llave foránea a id de usuario (Docente)
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             
-            // Días disponibles: Se puede usar un string para guardar múltiples días (ej. "Lunes,Miércoles,Viernes") o un campo para un solo día.
-            $table->string('dias_disponibles', 100); 
+            // LLAVE FORÁNEA PARA EL AULA
+            $table->foreignId('aula_id')->constrained('facilities')->onDelete('cascade'); 
             
-            // Hora disponible: Se puede usar un string para guardar la hora de inicio (ej. "08:00") o un rango de horas.
-            $table->time('hora_inicio'); 
-            $table->time('hora_fin')->nullable(); // Hora de fin opcional
+            // Los campos dias_disponibles, hora_inicio, y hora_fin se eliminan de aquí.
+            
             $table->timestamps();
         });
     }
@@ -37,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('horarios');
+        Schema::dropIfExists('horario_clases');
     }
 };
