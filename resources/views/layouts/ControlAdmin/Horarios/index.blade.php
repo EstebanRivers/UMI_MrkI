@@ -5,6 +5,12 @@
 @vite(['resources/css/courses.css', 'resources/js/app.js'])
 
 @section('content')
+@php
+    // Define la variable de control para toda la plantilla
+    // Si la variable $horario existe (porque estamos en la ruta de edición), es TRUE.
+    $modoEdicion = isset($horario); 
+@endphp
+
 <div class ="container">
     <div class ="content-header">
         <div class="content-title">
@@ -13,8 +19,11 @@
     </div>
     <div class = "creator-container">
         <div class = "schedule-lists">
-            <form id="schedule_form" method="POST" action="{{ route('Horarios.store') }}">
+            <form id="schedule_form" method="POST" action="{{ $modoEdicion ? route('horarios.update', $horario->id) : route('Horarios.store') }}">
                 @csrf
+                @if ($modoEdicion)
+                    @method('PUT') 
+                @endif
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <h4>🚨 Se encontraron errores:</h4>
@@ -29,62 +38,68 @@
                 @error('franjas_json')
                     <div class="alert alert-warning">{{ $message }}</div>
                 @enderror
-                <div class = "career-list">
-                    <label for = "career_select">Carrera</label>
+                <div class = "schedule-list-select">
+                    <label for = "career_select">Carrera:</label>
                     <select id="carrera_select" name="carrera_id">
+                        @if ($modoEdicion) disabled @endif
                         <option value="">Seleccione una Carrera</option>
                         {{-- Aquí va el loop para cargar las carreras desde la BD --}}
                         @foreach ($carreras as $carrera)
-                            <option value = "{{$carrera->id}}">{{$carrera->name}}</option>
+                            <option value = "{{$carrera->id}}" @if ($modoEdicion && $carrera->id == $horario->carrera_id) selected @endif>{{$carrera->name}}</option>
                         @endforeach
                     </select>
+                    @if ($modoEdicion)
+                        <input type="hidden" name="carrera_id" value="{{ $horario->carrera_id }}">
+                    @endif
                 </div>
-                <div class = "materia-list">
+                <div class = "schedule-list-select">
                     <label for = "materia_select">Materia</label>
                     <select id="materia_select" name="materia_id">
+                        @if ($modoEdicion) disabled @endif
                         <option value="">Seleccione una Materia</option>
                         {{-- Aquí va el loop para cargar las carreras desde la BD --}}
+                        @if ($modoEdicion) disabled @endif
                         @foreach ($materias as $materia)
-                            <option value = "{{$materia->id}}">{{$materia->nombre}}</option>
+                            <option value = "{{$materia->id}}" @if ($modoEdicion && $materia->id == $horario->materia_id) selected @endif>{{$materia->nombre}}</option>
                         @endforeach
                     </select>
+                    @if ($modoEdicion)
+                        <input type="hidden" name="materia_id" value="{{ $horario->materia_id }}">
+                    @endif
                 </div>
-                <div class = "docente-list">
+                <div class = "schedule-list-select">
                     <label for = "docente_select">Docente</label>
                     <select id="docente_select" name="docente_id">
                         <option value="">Seleccione una Docente</option>
                         {{-- Aquí va el loop para cargar las carreras desde la BD --}}
                         @foreach ($docentes as $docente)
-                            <option value = "{{$docente->id}}">{{$docente->nombre}}</option>
+                            <option value = "{{$docente->id}}" @if ($modoEdicion && $docente->id == $horario->user_id) selected @endif>{{$docente->nombre}}</option>
                         @endforeach
                     </select>
                 </div>
+                <h3>Seleccione los Horarios</h3>
                 <div class="schedule-settings">
-                    <h3>Definir Franja Horaria</h3>
-                    
                     {{-- Div para Botones para seleccionar los dias (Lunes a Domingo) --}}
                     <div class="day-selection-buttons">
-                        <button type="button" data-day="1">Lunes</button>
-                        <button type="button" data-day="2">Martes</button>
-                        <button type="button" data-day="3">Miércoles</button>
-                        <button type="button" data-day="4">Jueves</button>
-                        <button type="button" data-day="5">Viernes</button>
-                        <button type="button" data-day="6">Sábado</button>
-                        <button type="button" data-day="7">Domingo</button>
+                        <button type="button" data-day="1">Lun</button>
+                        <button type="button" data-day="2">Mar</button>
+                        <button type="button" data-day="3">Mié</button>
+                        <button type="button" data-day="4">Jue</button>
+                        <button type="button" data-day="5">Vie</button>
+                        <button type="button" data-day="6">Sáb</button>
+                        <button type="button" data-day="7">Dom</button>
                     </div>
                     
                     {{-- Div para 2 input (Hora Inicio y Hora Fin) --}}
                     <div class="time-inputs">
-                        <label for="hora_inicio">Hora Inicio:</label>
                         <input type="time" id="hora_inicio" name="hora_inicio" required>
-                        
-                        <label for="hora_fin">Hora Fin:</label>
+
                         <input type="time" id="hora_fin" name="hora_fin" required>
                     </div>
                     
                     {{-- Boton redondo para confirmar la seleccion de horas/días y añadirla al resumen --}}
                     <button type="button" class="add-time-slot-btn">
-                        <i class="fas fa-plus"></i> Añadir Franja
+                        <i class="fas fa-plus"></i>svg
                     </button>
                     
                 </div>
@@ -105,13 +120,13 @@
                         </tbody>
                     </table>
                 </div>
-                <div class = "building-list">
+                <div class = "schedule-list-select">
                     <label for = "aula_select">Aula</label>
                     <select id="aula_select" name="aula_id">
                         <option value="">Seleccione una Carrera</option>
                     {{-- Aquí va el loop para cargar las carreras desde la BD --}}
                     @foreach ($aulas as $aula)
-                        <option value = "{{$aula->id}}">{{$aula->numero_aula}}</option>
+                        <option value = "{{$aula->id}}" @if ($modoEdicion && $aula->id == $horario->aula_id) selected @endif>{{$aula->numero_aula}}</option>
                     @endforeach
                     
                     </select>
@@ -122,9 +137,19 @@
             </form>
         </div>
         <div class = "schedule-table">
-            <input>
-            <table>
-                <theader>
+            <div class="search-bar">
+                <form action="{{ route('Horarios.index') }}" method="GET" id="search-form" class="d-flex mb-4">
+                    <input type="text" 
+                        name="search_query" 
+                        id="search-input" 
+                        class="form-control me-2" 
+                        placeholder="Buscar por..."
+                        value="{{ request('search_query') }}"
+                        autocomplete="off" {{-- Recomendado para búsquedas en tiempo real --}}>
+                </form>
+            </div>
+            <table class="table">
+                <theader class="thead">
                     <tr>
                             <th>Carrera</th>
                             <th>Materia</th>
@@ -132,8 +157,8 @@
                             <th>Acciones</th>
                     </tr>
                 </theader>
-                <tbody>
-                    @foreach ($horarios as $horario)
+                <tbody class = "tbody">
+                    @forelse ($horarios as $horario)
                         <tr>
                             {{-- Acceder a las relaciones cargadas con with() --}}
                             <td>{{ $horario->carrera->name }}</td>
@@ -156,7 +181,14 @@
                                 </form>
                             </td>
                         </tr>
-                    @endforeach
+                        @empty
+                        {{-- 💡 Este bloque se ejecuta cuando $horarios está vacío --}}
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                No se encontraron horarios que coincidan con la búsqueda.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -165,10 +197,56 @@
 @push('scripts')
 <script>
     // 1. INICIALIZACIÓN DE LA DATA TEMPORAL
-    // Este array guardará todas las franjas horarias añadidas por el usuario.
+    // 💡 Cargar el JSON solo si estamos en modo edición
+    const modoEdicion = {{ $modoEdicion ? 'true' : 'false' }};
+    const franjasDataPHP = {!! $modoEdicion ? json_encode($horario->franjas->toArray()) : '[]' !!}; // Cargar el JSON si estamos editando// Este array guardará todas las franjas horarias añadidas por el usuario.
+    
     let franjasTemporales = [];
     let tempIdCounter = 1; // Contador para dar un ID único temporal a cada franja
 
+    // 2. Llenar el array temporal con los datos existentes
+    if (modoEdicion && franjasDataPHP.length > 0) {
+        
+        // 1. Objeto temporal para agrupar por hora
+        const gruposPorHora = {};
+
+        // 2. Iterar sobre la data de la BD y agrupar por clave única (hora inicio + hora fin)
+        franjasDataPHP.forEach(franja => {
+            
+            // 🚨 La clave de la agrupación es la combinación de las horas 🚨
+            const claveAgrupacion = franja.hora_inicio + '|' + franja.hora_fin;
+            
+            if (!gruposPorHora[claveAgrupacion]) {
+                // Si el grupo no existe, lo inicializamos
+                gruposPorHora[claveAgrupacion] = {
+                    dias_semana: [], // Array de días que comparten este horario
+                    hora_inicio: franja.hora_inicio,
+                    hora_fin: franja.hora_fin
+                };
+            }
+            
+            // Agregamos el día al grupo existente
+            gruposPorHora[claveAgrupacion].dias_semana.push(franja.dias_semana);
+        });
+
+        // 3. Convertir el objeto agrupado de nuevo al array final (franjasTemporales)
+        for (const clave in gruposPorHora) {
+            const grupo = gruposPorHora[clave];
+            franjasTemporales.push({
+                temp_id: tempIdCounter++, 
+                dias_semana: grupo.dias_semana, // Esto es ahora un array de números de día (ej: [1, 2, 3])
+                hora_inicio: grupo.hora_inicio.substring(0, 5), 
+                hora_fin: grupo.hora_fin.substring(0, 5), 
+            });
+        }
+
+        tempIdCounter = franjasTemporales.length + 1;
+
+        // 4. Dibujar la tabla
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarTablaResumen(); 
+        });
+    }
     // ---------------------------------------------------------------------
     // FUNCIONES DE UTILIDAD
     // ---------------------------------------------------------------------
@@ -315,6 +393,47 @@
             scheduleForm.submit();
         });
         
+    });
+    // =========================================================
+    // 2. LÓGICA DE BÚSQUEDA EN TIEMPO REAL
+    // =========================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const searchForm = document.getElementById('search-form');
+        let searchTimeout; // Variable para controlar el tiempo de espera
+        
+        if (searchInput && searchForm) {
+            
+            searchInput.addEventListener('blur', function() {
+                if (searchInput.value.trim().length === 0) {
+                    searchForm.submit();
+                }
+            });
+            // 💡 1. Escuchar el evento 'input' (se dispara en cada tecla)
+            searchInput.addEventListener('input', function() {
+                
+                // Limpiar el temporizador anterior para evitar envíos múltiples
+                clearTimeout(searchTimeout);
+
+                const query = searchInput.value.trim();
+
+                // 2. Lógica de Limpieza Instantánea (Si el campo se vacía)
+                // Enviamos el formulario inmediatamente si el campo está vacío.
+                if (query.length === 0) {
+                    searchForm.submit();
+                    return; 
+                }
+
+                // 3. Lógica de Debouncing (Si hay texto)
+                // Solo enviamos el formulario si la consulta tiene al menos 2 caracteres
+                // Y si el usuario deja de escribir por 300ms.
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(function() {
+                        searchForm.submit();
+                    }, 300); // Espera de 300 milisegundos
+                }
+            });
+        }
     });
 </script>
 @endpush

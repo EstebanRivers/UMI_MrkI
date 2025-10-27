@@ -15,12 +15,14 @@ use App\Models\AdmonCont\Facility;
 
 class HorarioController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // 1. Obtener los datos necesarios para los desplegables
         $carreras = Career::all();
         $aulas = Facility::all();
         $horarios = HorarioClase::with(['carrera', 'materia', 'user', 'aula'])->get();
+        $query = HorarioClase::with(['carrera', 'materia', 'user', 'aula', 'franjas']);
+        $search = $request->search_query;
 
         // 💡 Importante: Filtramos los usuarios para que solo sean docentes.
         // Asumiendo que tienes un campo 'role' o una tabla de roles
@@ -32,6 +34,31 @@ class HorarioController extends Controller
         // Nota: Si dependes de la carrera seleccionada, esta lista se cargará inicialmente vacía o con AJAX.
         $materias = Materia::all(); 
         
+        // 💡 CONDICIÓN CORREGIDA: Solo aplicamos el filtro si hay contenido útil.
+        if ($search !== null && $search !== '') { 
+            
+            // Usamos una Cláusula WHERE principal para agrupar todas las condiciones OR
+            $query->where(function ($q) use ($search) {
+                
+                // 1. Buscar por Materia
+                $q->whereHas('materia', function ($sq) use ($search) {
+                    // Usamos el método where(columna, operador, valor) para mayor claridad
+                    $sq->where('nombre', 'LIKE', '%' . $search . '%');
+                })
+                
+                // 2. Buscar por Carrera
+                ->orWhereHas('carrera', function ($sq) use ($search) {
+                    $sq->where('name', 'LIKE', '%' . $search . '%');
+                })
+                
+                // 3. Buscar por Docente
+                ->orWhereHas('user', function ($sq) use ($search) {
+                    $sq->where('nombre', 'LIKE', '%' . $search . '%');
+                });
+            });
+        }
+
+        $horarios = $query->get();
         // 2. ¿Qué necesitamos hacer ahora con estos datos ($carreras, $aulas, $docentes, $materias)?
         return view('layouts.ControlAdmin.Horarios.index', [
             // Aquí van tus variables
@@ -131,10 +158,19 @@ class HorarioController extends Controller
     }
     public function edit(HorarioClase $horario){
         // Cargar listas
-        $carreras = Carrer::all();
-        $aulas = Facility::all(); 
-        // ... (cargar docentes, materias) ...
+        $carreras = Career::all();
+        $aulas = Facility::all();
+        $horario->load('franjas');
 
+        // 💡 Importante: Filtramos los usuarios para que solo sean docentes.
+        // Asumiendo que tienes un campo 'role' o una tabla de roles
+        $docentes = User::whereHas('roles', function ($query) {
+            $query->where('name', 'docente'); // Asumiendo que el campo 'name' del Role es 'docente'
+        })->get(); 
+        
+        // Las materias se cargan normalmente. 
+        // Nota: Si dependes de la carrera seleccionada, esta lista se cargará inicialmente vacía o con AJAX.
+        $materias = Materia::all(); 
         // Cargar las franjas horarias y el contador
         $franjas_json = json_encode($horario->franjas->toArray());
         
@@ -143,13 +179,79 @@ class HorarioController extends Controller
 
         // 💡 PASAMOS EL OBJETO $horario A LA VISTA INDEX.
         return view('layouts.ControlAdmin.Horarios.index', compact(
-            'horario', // ESTE OBJETO INDICA EL MODO EDICIÓN
-            'horarios', // Para que la tabla de lista siga apareciendo
-            'carreras', 
-            'aulas', 
-            'docentes', 
+            // 1. carreras
+            'carreras',
+            // 2. materias
             'materias',
-            'franjas_json' // JSON de las franjas
+            // 3. docentes
+            'docentes',
+            // 4. aulas
+            'aulas',
+            // 5. Horarios
+            'horarios',
+            // 6. Franjas JSON
+            'franjas_json',
+            // 7. Horario
+            'horario'
         ));
     }
+    public function update(Request $request, HorarioClase $horario){
+    // 1. VALIDACIÓN
+    $request->validate([
+        // Los campos bloqueados (carrera_id, materia_id) se reciben del input hidden
+        'materia_id' => 'required|exists:materias,id', 
+        'carrera_id' => 'required|exists:carrers,id',   
+        
+        // Campos editables
+        'docente_id' => 'required|exists:users,id',
+        'aula_id'    => 'required|exists:facilities,id',
+        'franjas_json' => 'required|json', 
+    ]);
+    
+    // Decodificar las franjas (el array temporal de JS)
+    $franjasData = json_decode($request->franjas_json, true);
+    
+    if (empty($franjasData)) {
+        return redirect()->back()->withInput()->withErrors(['franjas_json' => 'Debe añadir al menos una franja horaria.']);
+    }
+
+    DB::beginTransaction();
+    try {
+        // 2. ACTUALIZAR REGISTRO MAESTRO (HorarioClase)
+        $horario->update([
+            'materia_id' => $request->materia_id,
+            'carrera_id' => $request->carrera_id,
+            'user_id'    => $request->docente_id,
+            'aula_id'    => $request->aula_id,
+        ]);
+        
+        // 3. PREPARAR Y SINCRONIZAR FRANJAS HORARIAS
+        $franjasAGuardar = [];
+
+        foreach ($franjasData as $franja) {
+            // Generamos un registro individual por cada día en el array del frontend
+            foreach ($franja['dias_semana'] as $dia) {
+                $franjasAGuardar[] = [
+                    'dias_semana' => $dia,
+                    'hora_inicio' => $franja['hora_inicio'],
+                    'hora_fin'    => $franja['hora_fin'],
+                ];
+            }
+        }
+
+        // 🚨 Sincronización: Eliminar las franjas antiguas y crear las nuevas. 🚨
+        $horario->franjas()->delete(); // Borra todas las franjas_horarias relacionadas (CASCADE)
+        $horario->franjas()->createMany($franjasAGuardar); // Crea las nuevas
+
+        DB::commit();
+
+        return redirect()->route('Horarios.index')->with('success', 'Horario actualizado exitosamente!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        // Para depuración, puedes usar dd($e->getMessage()) aquí.
+        return redirect()->back()->withInput()->withErrors(['error' => 'Error al actualizar el horario.']);
+    }
+}
 }

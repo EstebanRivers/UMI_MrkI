@@ -121,3 +121,145 @@
 .tbody td{
     background-color: #fafafa;
 }
+
+.creator-container {
+    /* 1. ABARCAR TODA LA PANTALLA */
+    width: 100%;
+    min-height: 100vh; /* Asegura que abarque al menos la altura visible de la pantalla */
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box; /* Incluye el padding en el ancho/alto */
+
+    /* 2. DISTRIBUCIÓN EN DOS COLUMNAS (Flexbox) */
+    display: flex;
+    gap: 30px; /* Espacio entre las dos columnas */
+    
+    /* Nota: Si ya estás usando .schedule-container, podrías renombrarlo a .creator-container */
+}
+
+.schedule-list-select{
+    /* Mantiene el apilamiento vertical (label sobre select) */
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px; 
+}
+
+.schedule-list-select label {
+    /* 1. Color de letra azul para el Label */
+    color: #e69a37; /* Azul vibrante */
+    font-weight: bold;
+    display: block; 
+    margin-bottom: 5px;
+}
+
+.schedule-list-select select {
+    /* 1. Bordes Redondeados */
+    border-radius: 20px; 
+    /* 2. Padding para dar espacio y forma redondeada */
+    padding: 8px 15px; 
+    /* 3. Centrar el texto seleccionado (funciona en muchos navegadores) */
+    text-align: center; 
+    
+    /* Borde azul para destacar el select */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.schedule-settings {
+    display: flex;
+    flex-direction: column; /* Apila los elementos internos (botones, time-inputs) verticalmente */
+    align-items: center; /* 💡 Alinea los elementos hijos al centro horizontal */
+    /* Fondo de color gris claro */
+    background-color: #f5f5f5; 
+    
+    /* Relleno interno para dar espacio entre el contenido y el borde */
+    padding: 15px; 
+    
+    /* Bordes suaves */
+    border-radius: 8px; 
+    
+    /* Pequeña sombra para destacar el cuadro del fondo */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
+    
+    margin-bottom: 20px; /* Mantiene la separación con la sección siguiente */
+}
+
+.day-selection-buttons {
+    /* 1. ALINEACIÓN EN UNA LÍNEA (Flexbox) */
+    display: flex;
+    justify-content: space-between; /* Distribuye el espacio uniformemente */
+    flex-wrap: nowrap; /* Fuerza a que se mantengan en una sola línea (idealmente) */
+    gap: 5px; /* Pequeño espacio entre los botones */
+    margin: 10px 0;
+    overflow-x: auto; /* Permite scroll horizontal si no caben en móviles */
+    padding-bottom: 5px; /* Añade un pequeño espacio si el scroll aparece */
+}
+
+.day-selection-buttons button {
+    /* 2. DISEÑO REDONDEADO Y BASE GRIS */
+    flex-grow: 1; /* Permite que los botones se expandan para llenar el espacio */
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    background-color: #e0e0e0; /* Fondo gris claro (estado normal) */
+    color: #333;
+    border-radius: 25px; /* Forma redondeada (alto valor para simular pastilla) */
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Transición suave */
+    font-size: 0.9em;
+    min-width: 40px; /* Ancho mínimo para letras cortas (Ej: 'L') */
+    white-space: nowrap;
+}
+
+/* 3. ESTADO SELECCIONADO (CLASE '.selected') */
+.day-selection-buttons button.selected {
+    background-color: #0b2b3b; /* Azul fuerte para el estado seleccionado */
+    color: white;
+    border-color: #0b2b3b; /* Borde del mismo color */
+}
+
+/* Estilo al pasar el mouse (hover) para dar feedback */
+.day-selection-buttons button:hover:not(.selected) {
+    background-color: #d0d0d0; /* Gris ligeramente más oscuro al pasar el mouse */
+}
+
+.time-inputs {
+    /* Mantenemos la alineación horizontal */
+    width: fit-content;
+    display: flex;
+    align-items: center; 
+    gap: 15px; 
+    margin: 15px 0;
+    padding: 10px 0;
+}
+
+.time-inputs label {
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap; 
+}
+
+.time-inputs input[type="time"] {
+    /* 1. CONTROL DE ANCHO */
+    flex-grow: 0; /* Desactiva el crecimiento para que no llenen el espacio */
+    width: 120px; /* Asignamos un ancho fijo o máximo reducido (puedes ajustar este valor) */
+    
+    /* 2. DISEÑO BASE (Mantenemos la reducción de tamaño) */
+    padding: 6px 12px; 
+    font-size: 0.9em; 
+    background-color: #ffffff; 
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 25px; 
+    box-sizing: border-box; 
+    
+    /* Mantenemos la eliminación de la apariencia nativa */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.time-inputs input[type="time"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
