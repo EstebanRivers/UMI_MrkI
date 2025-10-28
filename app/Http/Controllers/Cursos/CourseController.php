@@ -111,42 +111,77 @@ class CourseController extends Controller
     /**
      * Mostrar detalles de un curso
      */
-    public function show(Course $course): View
+    public function show(Course $course)
     {
-        // Cargar relaciones necesarias
-        $course->load(['topics.activities', 'topics.subtopics.activities', 'instructor', 'institution']);
-        $progress = 0; // Progreso por defecto
-        $user = Auth::user(); // Obtener el usuario autenticado
+        // Cargar toda la data del curso
+        $course->load('topics.subtopics.activities');
+        
+        $user = Auth::user();
+        
+        // --- Lógica de Auto-Inscripción (se mantiene igual) ---
+        if ($user && !$user->courses->contains($course->id)) {
+            $user->courses()->attach($course->id);
+        }
 
-        // Solo calcular si el usuario está logueado
+        $totalItems = 0;
+        $completedItems = 0;
+        $userCompletionsMap = collect(); // Un mapa para búsqueda rápida
+
         if ($user) {
-            
-            // 1. Obtener TODOS los IDs de actividades de este curso
-            $allActivityIds = collect();
-            foreach ($course->topics as $topic) {
-                // Sumar actividades directas del tema
-                $allActivityIds = $allActivityIds->merge($topic->activities->pluck('id'));
+            // Cargar TODAS las finalizaciones del usuario UNA SOLA VEZ
+            $userCompletionsMap = $user->completions->mapWithKeys(function ($item) {
+                // Crea una clave única, ej: "App\Models\Cursos\Topics-1"
+                return [$item->completable_type . '-' . $item->completable_id => true];
+            });
+        }
+
+        // Calcular el total y los completados
+        foreach ($course->topics as $topic) {
+            // 1. Contar el Tema si tiene archivo
+            if ($topic->file_path) {
+                $totalItems++;
+                if ($userCompletionsMap->has('App\Models\Cursos\Topics-' . $topic->id)) {
+                    $completedItems++;
+                }
+            }
+
+            foreach ($topic->subtopics as $subtopic) {
+                // 2. Contar el Subtema si tiene archivo
+                if ($subtopic->file_path) {
+                    $totalItems++;
+                    if ($userCompletionsMap->has('App\Models\Cursos\Subtopic-' . $subtopic->id)) {
+                        $completedItems++;
+                    }
+                }
                 
-                // Sumar actividades de los subtemas
-                foreach ($topic->subtopics as $subtopic) {
-                    $allActivityIds = $allActivityIds->merge($subtopic->activities->pluck('id'));
+                // 3. Contar todas las Actividades (quizzes)
+                foreach ($subtopic->activities as $activity) {
+                    $totalItems++;
+                    if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
+                        $completedItems++;
+                    }
                 }
             }
             
-            $totalActivities = $allActivityIds->count();
-
-            if ($totalActivities > 0) {
-                // 2. Contar cuántas de esas el usuario ha completado
-                $completedCount = $user->completedActivities() // (Usando la relación que definimos)
-                                    ->whereIn('activity_id', $allActivityIds)
-                                    ->count();
-                                    
-                // 3. Calcular el porcentaje
-                $progress = round(($completedCount / $totalActivities) * 100);
+            // 4. Contar Actividades directas del Tema
+            foreach ($topic->activities as $activity) {
+                $totalItems++;
+                if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
+                    $completedItems++;
+                }
             }
         }
 
-        return view('layouts.Cursos.show', compact('course', 'progress'));
+        $progress = ($totalItems > 0) ? round(($completedItems / $totalItems) * 100) : 0;
+        
+        // Pasamos los nuevos totales a la vista
+        return view('layouts.Cursos.show', compact(
+            'course', 
+            'progress', 
+            'totalItems', // Reemplaza a totalActivities
+            'completedItems', // Reemplaza a completedCount
+            'userCompletionsMap' // Lo pasamos al JS
+        ));
     }
 
     /**

@@ -16,6 +16,7 @@ use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
 use Illuminate\Support\Facades\DB;
 use App\Models\Cursos\Course;
+use App\Models\Cursos\Completion;
 use App\Models\Cursos\Activities;
 
 /**
@@ -227,10 +228,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Course::class, 'course_user');
     }
 
-    public function completedActivities()
+    /**
+     * Todas las cosas que el usuario ha completado (temas, subtemas, actividades).
+     */
+    public function completions()
     {
-        return $this->belongsToMany(Activities::class, 'activity_user', 'user_id', 'activity_id')
-                    ->withTimestamps('completed_at');
+        return $this->hasMany(Completion::class);
     }
 
     

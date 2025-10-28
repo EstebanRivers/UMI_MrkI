@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('activity_user', function (Blueprint $table) {
+        Schema::create('completions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('activity_id')->constrained('activities')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->timestamp('completed_at')->useCurrent();
-            $table->unique(['activity_id', 'user_id']);
+            $table->morphs('completable');
             $table->timestamps();
+            $table->unique(['user_id', 'completable_id', 'completable_type'], 'user_completion_unique');
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('activity_user');
+        Schema::dropIfExists('completions');
     }
 };

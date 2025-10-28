@@ -36,8 +36,13 @@
                         <h3 class="course-title">{{ $courses->title }}</h3>
                         <p class="course-description">{{ $courses->description }}</p>
                         <div class="course-meta">
-                            <span>Créditos: {{ $courses->credits }}</span>
-                            <span>Horas: {{ $courses->hours }}</span>
+                            @if (session('active_institution_name') == 'Universidad Mundo Imperial')
+                                <span>Créditos: {{ $courses->credits }}</span>
+                                <span>Horas: {{ $courses->hours }}</span>
+                            @else
+                                <span>Horas: {{ $courses->hours }}</span>
+                            @endif
+                            
                         </div>
                 </a>
 

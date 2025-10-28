@@ -3,6 +3,8 @@
 namespace App\Models\Cursos;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Cursos\Completion;
+
 
 /**
  * @property int $id
@@ -47,6 +49,11 @@ class Subtopic extends Model
     public function activities()
     {
         return $this->hasMany(Activities::class, 'subtopic_id');
+    }
+
+    public function completions()
+    {
+        return $this->morphMany(Completion::class, 'completable');
     }
 
 }

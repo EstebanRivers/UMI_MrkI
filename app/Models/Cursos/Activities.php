@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Users\User;
+use App\Models\Cursos\Completion;
+
 
 
 /**
@@ -70,5 +72,10 @@ class Activities extends Model
     {
         return $this->belongsToMany(User::class, 'activity_user', 'user_id', 'activity_id')
                     ->withTimestamps('completed_at');
+    }
+
+    public function completions()
+    {
+        return $this->morphMany(Completion::class, 'completable');
     }
 }

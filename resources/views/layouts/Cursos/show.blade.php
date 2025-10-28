@@ -25,14 +25,18 @@
                 <div class="topic-group">
                     {{-- Tema --}}
                     <strong 
-                        @if($topic->activities->isEmpty() && $topic->subtopics->isEmpty())
-                            class="syllabus-link completable-text accordion-toggle"
-                        @else
+                        @if($topic->file_path) {{-- Si tiene archivo, es "complet-able" --}}
+                            class="syllabus-link auto-complete-link accordion-toggle"
+                            data-completable-type="Topics"
+                            data-completable-id="{{ $topic->id }}"
+                        @elseif(!$topic->subtopics->isEmpty() || !$topic->activities->isEmpty()) {{-- Si solo es contenedor --}}
                             class="syllabus-link accordion-toggle"
+                        @else {{-- Si está vacío y sin hijos (solo texto) --}}
+                            class="syllabus-link completable-text accordion-toggle"
                         @endif
-                          data-target="#content-topic-{{ $topic->id }}"
-                          data-target-accordion="#accordion-topic-{{ $topic->id }}">
-                         {{ $topic->title }}
+                        data-target="#content-topic-{{ $topic->id }}" 
+                        data-target-accordion="#accordion-topic-{{ $topic->id }}">
+                        {{ $topic->title }}
                     </strong>
                     <div class="accordion-content" id="accordion-topic-{{ $topic->id }}">
                         {{-- Subtemas --}}
@@ -41,14 +45,18 @@
                                 @foreach ($topic->subtopics as $subtopic)
                                     <li>
                                         <span 
-                                            @if($subtopic->activities->isEmpty())
-                                            class="syllabus-link completable-text accordion-toggle"
-                                        @else
-                                            class="syllabus-link accordion-toggle"
-                                        @endif
-                                        data-target="#content-subtopic-{{ $subtopic->id }}"
-                                        data-target-accordion="#accordion-subtopic-{{ $subtopic->id }}">
-                                        {{ $subtopic->title }}
+                                            @if($subtopic->file_path) {{-- Si tiene archivo, es "complet-able" --}}
+                                                class="syllabus-link auto-complete-link accordion-toggle"
+                                                data-completable-type="Subtopic"
+                                                data-completable-id="{{ $subtopic->id }}"
+                                            @elseif(!$subtopic->activities->isEmpty()) {{-- Si solo es contenedor --}}
+                                                class="syllabus-link accordion-toggle"
+                                            @else {{-- Si está vacío (solo texto) --}}
+                                                class="syllabus-link completable-text accordion-toggle"
+                                            @endif
+                                            data-target="#content-subtopic-{{ $subtopic->id }}"
+                                            data-target-accordion="#accordion-subtopic-{{ $subtopic->id }}">
+                                            {{ $subtopic->title }}
                                         </span>
 
                                         <div class="accordion-content" id="accordion-subtopic-{{ $subtopic->id }}">
@@ -57,7 +65,8 @@
                                                 <ul>
                                                     @foreach ($subtopic->activities as $activity)
                                                         <li class="syllabus-link auto-complete-link" data-target="#content-activity-{{ $activity->id }}"
-                                                            data-activity-id="{{ $activity->id }}">
+                                                            data-completable-type="Activities"
+                                                            data-completable-id="{{ $activity->id }}">
                                                             - {{ $activity->title }}
                                                         </li>
                                                     @endforeach
@@ -73,7 +82,8 @@
                             <ul>
                                 @foreach ($topic->activities as $activity)
                                     <li class="syllabus-link auto-complete-link" data-target="#content-activity-{{ $activity->id }}"
-                                        data-activity-id="{{ $activity->id }}">
+                                        data-completable-type="Activities"
+                                        data-completable-id="{{ $activity->id }}">
                                         - {{ $activity->title }}
                                     </li>
                                 @endforeach
@@ -82,11 +92,21 @@
                     </div>
                 </div>
             @endforeach
-            <div class="course-progress-container">
+            {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
+            <div class="course-progress-container" 
+                id="course-progress-tracker"
+                data-total-activities="{{ $totalItems }}"
+                data-completed-activities="{{ $completedItems }}">
+
                 <h4>Tu Progreso</h4>
                 <div class="progress-bar-wrapper">
-                    <div class="progress-bar-inner" style="width: {{ $progress }}%;">
-                        <span>{{ $progress }}%</span>
+                    {{-- Añadimos ID al relleno y al texto --}}
+                    <div class="progress-bar-inner" 
+                        id="progress-bar-fill" 
+                        style="width: {{ $progress }}%;">
+                        
+                        <span id="progress-bar-text">{{ $progress }}%</span>
+
                     </div>
                 </div>
             </div>
@@ -287,6 +307,10 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        
+        /* ==================================================================
+           1. LÓGICA DE PANELES (Mostrar/Ocultar Contenido)
+           ================================================================== */
         const links = document.querySelectorAll('.syllabus-link');
         const contentPanels = document.querySelectorAll('.content-panel');
         const syllabusListItems = document.querySelectorAll('.course-syllabus .syllabus-link');
@@ -294,93 +318,119 @@
         links.forEach(link => {
             link.addEventListener('click', function () {
                 const targetId = this.dataset.target;
+                if (!targetId) return; // Si es solo un acordeón, no hacer nada aquí
 
-                // Ocultar todos los paneles
                 contentPanels.forEach(panel => panel.style.display = 'none');
-
-                // Mostrar panel elegido
                 const targetPanel = document.querySelector(targetId);
                 if (targetPanel) targetPanel.style.display = 'block';
                 
-                // Resaltar link activo
                 syllabusListItems.forEach(item => item.classList.remove('active'));
                 this.classList.add('active');
             });
         });
 
-        /* --- NUEVO CÓDIGO (Auto-completar Actividad) --- */
-
-        // 1. Función para enviar el progreso al backend
-        const markActivityAsComplete = (activityId, element) => {
-            // Prevenir doble envío
-            if (element.classList.contains('completed')) {
-                return;
-            }
-
-            // Usar 'axios' (asegúrate que esté en bootstrap.js)
-            axios.post(`/activities/${activityId}/complete`)
-                .then(response => {
-                    if (response.data.success) {
-                        console.log('Actividad completada:', activityId);
-                        // Añadir feedback visual
-                        element.classList.add('completed');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al completar la actividad:', error);
-                });
-        };
-
-        // 2. Escuchar clics en los enlaces de actividad
-        const activityLinks = document.querySelectorAll('.auto-complete-link');
-        
-        activityLinks.forEach(link => {
-            link.addEventListener('click', function(event) {
-                const activityId = this.dataset.activityId;
-                if (activityId) {
-                    markActivityAsComplete(activityId, this);
+        /* ==================================================================
+           2. LÓGICA DEL ACORDEÓN (Abrir/Cerrar Temario)
+           ================================================================== */
+        const accordions = document.querySelectorAll('.accordion-toggle');
+        accordions.forEach(acc => {
+            acc.addEventListener('click', function(event) {
+                this.classList.toggle('accordion-open');
+                const targetId = this.dataset.targetAccordion;
+                const content = document.querySelector(targetId);
+                if (content) {
+                    content.classList.toggle('show');
                 }
             });
         });
 
-        // (Si tus actividades de Cuestionario tienen un botón "Enviar", 
-        //  deberás añadir la llamada a 'markActivityAsComplete' 
-        //  cuando el usuario responda correctamente.)
+        /* ==================================================================
+           3. LÓGICA DE PROGRESO (Marcar y Actualizar Barra)
+           ================================================================== */
 
+        // --- Función para enviar progreso al backend ---
+        const markItemAsComplete = (type, id, element) => {
+            if (element.classList.contains('completed')) {
+                return;
+            }
+            element.classList.add('completed'); 
+
+            axios.post('{{ route("completions.mark") }}', { // Ruta actualizada
+                type: type, // 'Topics', 'Subtopic', o 'Activities'
+                id: id
+            })
+            .then(response => {
+                if (response.data.success) {
+                    console.log('Item completado:', type, id);
+                    if (response.data.created) { // Solo actualiza si era nuevo
+                        updateProgressBar();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al completar item:', error);
+                element.classList.remove('completed'); 
+            });
+        };
+
+        // --- Función para recalcular y redibujar la barra ---
+        const updateProgressBar = () => {
+            const tracker = document.getElementById('course-progress-tracker');
+            if (!tracker) return;
+
+            const barFill = document.getElementById('progress-bar-fill');
+            const barText = document.getElementById('progress-bar-text');
+
+            // Contamos cuántos items tienen la clase 'completed' en el DOM
+            const completedNow = document.querySelectorAll('.auto-complete-link.completed').length;
+            const totalItems = parseInt(tracker.dataset.totalItems, 10); // data-total-items
+
+            if (totalItems === 0) return;
+
+            let newProgress = (completedNow / totalItems) * 100;
+            newProgress = Math.round(newProgress);
+            
+            barFill.style.width = newProgress + '%';
+            barText.innerText = newProgress + '%';
+        };
+
+        // --- Escuchar clics en los enlaces "completables" ---
+        const completableLinks = document.querySelectorAll('.auto-complete-link');
+        completableLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                const type = this.dataset.completableType;
+                const id = this.dataset.completableId;
+                if (type && id) {
+                    markItemAsComplete(type, id, this);
+                }
+            });
+        });
+
+        // --- Marcar Temas/Subtemas de solo texto (feedback visual) ---
         const textLinks = document.querySelectorAll('.completable-text');
-        
         textLinks.forEach(link => {
             link.addEventListener('click', function() {
-                // Esto solo añade la clase para feedback visual.
-                // NO llama al backend y NO afecta la barra de progreso.
                 this.classList.add('completed');
             });
         });
 
-        /* --- CÓDIGO DEL ACORDEÓN (CORREGIDO) --- */
-        const accordions = document.querySelectorAll('.accordion-toggle');
+        // --- Marcar items que YA estaban completas al cargar la página ---
+        const userCompletions = @json($userCompletionsMap ?? collect());
+        
+        // Iteramos sobre el mapa que pasamos desde el controlador
+        for (const [key, value] of Object.entries(userCompletions)) {
+            // key es algo como "App\Models\Cursos\Topics-1"
+            const parts = key.split('-');
+            const type = parts[0].split('\\').pop(); // Obtiene 'Topics', 'Subtopic', 'Activities'
+            const id = parts[1];
 
-        accordions.forEach(acc => {
-            acc.addEventListener('click', function(event) {
-                
-                // 1. CAMBIO AQUÍ: Usamos la nueva clase
-                this.classList.toggle('accordion-open');
-                
-                // 2. Obtiene el ID del contenido a mostrar
-                const targetId = this.dataset.targetAccordion;
-                const content = document.querySelector(targetId);
+            const link = document.querySelector(`.auto-complete-link[data-completable-type="${type}"][data-completable-id="${id}"]`);
+            if (link) {
+                link.classList.add('completed');
+            }
+        }
 
-                // 3. Muestra u oculta el contenido
-                if (content) {
-                    content.classList.toggle('show');
-                }
-
-                // Dejamos que el clic continúe para que el
-                // OTRO script (el de los paneles) pueda
-                // resaltar el enlace con la clase '.active'
-            });
-        });
-    });
+    }); // Cierre del DOMContentLoaded
 </script>
 @endpush
 @endsection

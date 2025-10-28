@@ -7,8 +7,8 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
+use App\Http\Controllers\Cursos\CompletionController;
 use App\Http\Controllers\Ajustes\AjustesController;
-
 
 
 // Rutas de autenticación
@@ -60,8 +60,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
-        Route::post('/activities/{activity}/complete', [ActivitiesController::class, 'complete'])->name('activities.complete');
-            
+        Route::post('/completions/mark', [CompletionController::class, 'mark'])->name('completions.mark');            
     });
 
     //Vista del curso
