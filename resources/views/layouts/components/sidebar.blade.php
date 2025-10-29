@@ -8,13 +8,27 @@
 
   <nav class="menu" aria-label="Menú principal">
     <ul>
-      <li class="@if(request()->routeIs('MiInformacion.*')) active @endif">
-        <a href="{{ route('MiInformacion.index') }}">
+    <li class="has-submenu dropdown-right {{ request()->routeIs('MiInformacion.*') ? 'active open' : '' }}">
+        <a href="#">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
           </span>
           <span class="text">Mi Información</span>
         </a>
+        <ul class="submenu">
+            <li class="{{ request()->routeIs('MiInformacion.perfil') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.perfil') }}">Perfil</a>
+            </li>
+            <li class="{{ request()->routeIs('MiInformacion.clases') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.clases') }}">Clases</a>
+            </li>
+            <li class="{{ request()->routeIs('MiInformacion.horarios') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.horarios') }}">Horarios</a>
+            </li>
+            <li class="{{ request()->routeIs('MiInformacion.historial-academico') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.historial-academico') }}">Historial Académico</a>
+            </li>
+        </ul>
       </li>
 
       <li class="@if(request()->routeIs('Cursos.*')) active @endif">

@@ -22,7 +22,7 @@
   flex: auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* CRÍTICO: overflow: hidden fue eliminado aquí para el despliegue */
   gap: var(--spacing-lg);
 }
 
@@ -32,7 +32,7 @@
   flex-direction: column;
   gap: var(--spacing-sm);
   flex: 1;
-  overflow: hidden;
+  /* CRÍTICO: overflow: hidden fue eliminado aquí para el despliegue */
   padding: 1px;
 }
 
@@ -67,12 +67,12 @@
 }
 
 .menu li a:hover .icon {
-filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-rotate(355deg) brightness(89%) contrast(91%);
+  filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-rotate(355deg) brightness(89%) contrast(91%);
   transform: scale(1.05);
 }
 
 .menu li.active a .icon {
-filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-rotate(355deg) brightness(89%) contrast(91%);
+  filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-rotate(355deg) brightness(89%) contrast(91%);
   box-shadow: var(--pill-shadow);
 }
 
@@ -171,3 +171,63 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
   filter: brightness(1.1) drop-shadow(0 1px 2px rgba(0,0,0,0.3));
 }
 
+/* --- ESTILOS PARA SUBMENÚS (Despliegue Vertical ORIGINAL) --- */
+
+/* Estilo básico para el contenedor del submenú */
+.menu ul li.has-submenu > .submenu {
+    list-style: none;
+    padding-left: 30px; 
+    margin-top: 5px;
+    /* CRÍTICO: display: block y max-height: 0 para que la animación funcione */
+    display: block; 
+    max-height: 0; /* Cerrado por defecto */
+    overflow: hidden; 
+    transition: max-height 0.3s ease-out;
+}
+
+/* Estilo para los elementos dentro del submenú */
+.menu ul li .submenu li a {
+    padding: 8px 15px; 
+    font-size: 0.9em; 
+    display: block;
+    text-decoration: none;
+    border-radius: var(--border-radius-sm); 
+    margin-right: 15px; 
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    /* Colores similares a los pills principales */
+    background-color: var(--pill-bg, #ffffff); 
+    color: var(--text, #333); 
+    box-shadow: var(--pill-shadow); 
+}
+
+.menu ul li .submenu li a:hover {
+    background-color: rgba(0, 0, 0, 0.05); 
+    color: var(--accent, #e69a37); 
+    transform: none; 
+}
+
+/* Estilo para el sub-elemento activo */
+.menu ul li .submenu li.active-submenu a {
+    color: var(--accent, #e69a37); 
+    font-weight: bold;
+}
+
+/* ¡Importante! Muestra el submenú cuando el LI padre tiene la clase 'open' */
+.menu ul li.has-submenu.open > .submenu {
+    max-height: 500px; /* Abierto */
+}
+
+/* Indicador visual para elementos con submenú */
+.menu ul li.has-submenu > a::after {
+    content: '▶';
+    font-size: 0.7em;
+    margin-left: auto; 
+    padding-left: 10px;
+    display: inline-block;
+    transition: transform 0.3s ease-out;
+}
+
+.menu ul li.has-submenu.open > a::after {
+    transform: rotate(90deg); /* Flecha apunta hacia abajo cuando está abierto */
+}

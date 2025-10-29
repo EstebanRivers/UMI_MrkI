@@ -71,10 +71,12 @@ class SimpleSPANavigation {
 
     shouldIntercept(link) {
         return link.hostname === window.location.hostname && 
-               !link.hasAttribute('data-no-intercept') &&
-               !link.href.includes('logout') &&
-               !link.href.includes('#') &&
-               !link.closest('.brand'); 
+                !link.hasAttribute('data-no-intercept') &&
+                !link.href.includes('logout') &&
+                // CRÍTICO: Mantenemos el !link.href.includes('#') para que la lógica SPA NO intente navegar 
+                // cuando se hace clic en el enlace padre del submenú (ej: Mi Información)
+                !link.href.includes('#') && 
+                !link.closest('.brand'); 
     }
 
     async navigate(url) {
@@ -241,11 +243,21 @@ class SimpleSPANavigation {
 
     updateActiveMenuItem() {
         const currentPath = new URL(window.location.href).pathname.replace(/\/+$/, '') || '/';
+        
+        // 1. Limpiar el estado 'active', 'active-submenu' y 'open' de TODOS los elementos
+        document.querySelectorAll('.menu li').forEach(li => {
+            li.classList.remove('active', 'active-submenu', 'spa-activating');
+            // Quitamos la clase 'open' para que al recargar la página no se abra solo.
+            if (li.classList.contains('has-submenu')) {
+                li.classList.remove('open');
+            }
+        });
 
         document.querySelectorAll('.menu a').forEach(link => {
-            const li = link.closest('li');
-            if (!li) return;
-
+            const li = link.closest('li'); // Aseguramos que tenemos el LI
+            
+            // ... (Tu código original tenía un error aquí, se usa 'li' en lugar de 'activeLink.closest') ...
+            
             const href = link.getAttribute('href') || '#';
             let linkPath = '/';
             try {
@@ -254,18 +266,32 @@ class SimpleSPANavigation {
                 linkPath = href.replace(/\/+$/, '') || '/';
             }
 
+            // Lógica de coincidencia de ruta
             const isMatch = (linkPath === currentPath) || 
-                           (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) || 
-                           (linkPath !== '/' && currentPath === linkPath);
+                            (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) || 
+                            (linkPath !== '/' && currentPath === linkPath);
 
             if (isMatch) {
-                if (!li.classList.contains('active')) {
+                // Es un enlace activo
+                const parentHasSubmenu = li.closest('.has-submenu');
+                
+                if (parentHasSubmenu) {
+                    // Es un sub-enlace (e.g., Perfil)
+                    li.classList.add('active-submenu');
+                    
+                    // Asegurar que el padre esté marcado como activo y abierto.
+                    parentHasSubmenu.classList.add('active', 'open');
+                } else {
+                    // Es un enlace principal (e.g., Dashboard o Cursos)
                     li.classList.add('active');
                 }
+                
                 li.classList.remove('spa-activating');
+
             } else {
+                // Si no coincide, asegurar que no tenga el estado de activación temporal
                 if (!li.classList.contains('spa-activating')) {
-                    li.classList.remove('active');
+                    li.classList.remove('active', 'active-submenu');
                 }
             }
         });
@@ -343,6 +369,34 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Exponer método de navegación globalmente
     window.navigateTo = (url) => window.spaNav.navigateTo(url);
+
+    // ==========================================================
+    // --- NUEVA LÓGICA: Manejo de clic para abrir/cerrar submenús (links con href="#") ---
+    // Esto es necesario porque la lógica SPA los ignora para la navegación.
+    // ==========================================================
+    document.querySelectorAll('.menu li.has-submenu > a[href="#"]').forEach(link => {
+        link.addEventListener('click', function(event) {
+            // 1. Prevenir el comportamiento por defecto (evita el salto al top de la página)
+            event.preventDefault(); 
+            
+            // 2. Encontrar el <li> padre
+            const parentLi = this.closest('li.has-submenu');
+            if (parentLi) {
+                
+                // 3. Opcional: Cerrar otros submenús abiertos para mantener la limpieza visual
+                document.querySelectorAll('.menu li.has-submenu.open').forEach(openLi => {
+                    // Cierra todos los otros submenús, excepto el que se acaba de clicar
+                    if (openLi !== parentLi) {
+                        openLi.classList.remove('open');
+                    }
+                });
+                
+                // 4. ¡Lo esencial! Alternar la clase 'open' en el LI, lo cual activa el CSS
+                parentLi.classList.toggle('open');
+            }
+        });
+    });
+    // --- FIN LÓGICA SUBMENÚS ---
 });
 
 // Limpiar al cerrar

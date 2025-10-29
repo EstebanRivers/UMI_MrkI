@@ -37,10 +37,19 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     })->name('dashboard');
 
     // Mi Informacion
-    Route::get('/mi-informacion', function () { 
-        return view('layouts.MiInformacion.index'); 
-    })->name('MiInformacion.index');
-
+ Route::prefix('mi-informacion')->name('MiInformacion.')->group(function () {
+        // Ruta principal (índice)
+        Route::get('/', function () { 
+            return view('layouts.MiInformacion.index'); 
+        })->name('index'); // Mantener la ruta 'MiInformacion.index'
+        
+        // Rutas del Submenú
+        // Nota: Todas apuntan al mismo index por simplicidad, pero con un parámetro diferente
+        Route::get('/perfil', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'perfil']); })->name('perfil');
+        Route::get('/clases', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'clases']); })->name('clases');
+        Route::get('/horarios', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'horarios']); })->name('horarios');
+        Route::get('/historial-academico', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'historial-academico']); })->name('historial-academico');
+    });
     // Cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
        // Gestión de cursos - solo para admins y docentes
