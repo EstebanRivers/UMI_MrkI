@@ -26,24 +26,24 @@
                 <div class="student-info">
                     <div class="info-item">
                         <span class="info-label">No. de matrícula:</span>
-                        <span class="info-value">2023-10572</span>
+                        <span class="info-value"></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Nombre:</span>
-                        <span class="info-value">Andrea Lisset Salmerón Cárdenas</span>
+                        <span class="info-value"></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Semestre actual:</span>
-                        <span class="info-value">Séptimo Semestre</span>
+                        <span class="info-value"></span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Carrera:</span>
-                        <span class="info-value">Ingeniería en Sistemas Computacionales</span>
+                        <span class="info-value"></span>
                     </div>
                 </div>
                 <div class="specialty-container">
                     <div class="specialty-label">Especialidad:</div>
-                    <div class="specialty-value">Desarrollo de Software</div>
+                    <div class="specialty-value"></div>
                 </div>
             </div>
 
