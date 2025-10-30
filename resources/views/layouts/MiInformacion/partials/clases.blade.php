@@ -1,4 +1,4 @@
-<@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Mi Información - ' . session('active_institution_name'))
 

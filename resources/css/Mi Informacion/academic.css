@@ -1,0 +1,306 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: white; height: 100vh; overflow: hidden; }
+        .container { display: flex; height: 100vh; width: 100%; }
+        .sidebar { width: 250px; background-color: #EAEAEA; color: #333; padding: 10px 0 0 0; border-right: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
+        .main-content { width: calc(100% - 250px); display: flex; flex-direction: column; padding: 0px 10px 15px 0; background-color: white; overflow: hidden; position: relative; }
+        .content-header { display: flex; flex-direction: column; width: 100%; margin-bottom: 3px; padding: 0 10px 0 5px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1px; }
+        .titles-container { flex: 1; margin-left: 10px; }
+        .page-title { font-family: 'Poppins', sans-serif; font-size: 1.1em; color: #1E1E1E; font-weight: 600; margin-bottom: 0px; }
+        .welcome-container { display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px; }
+        .welcome-message { font-family: 'Poppins', sans-serif; font-size: 0.75em; color: #000000; font-weight: 500; padding: 0; margin-bottom: 2px; }
+        .action-buttons { display: flex; justify-content: flex-end; gap: 5px; margin: 0 10px 4px 0; }
+        .action-button { width: 140px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 11px; color: white; background-color: #223F70; box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.2); cursor: pointer; transition: all 0.3s ease; border: none; outline: none; }
+        .action-button:hover { background-color: #1a3159; transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
+        .info-card { width: 1150px; height: 65px; border-radius: 12px; background: #FCFCFC; border: 1px solid rgba(33, 125, 204, 0.25); box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.15); margin: 4px auto; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .student-info { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 6px 20px; font-family: 'Poppins', sans-serif; width: 100%; }
+        .info-item { display: flex; align-items: center; }
+        .info-label { font-weight: 600; color: #223F70; margin-right: 4px; font-size: 11px; min-width: 85px; }
+        .info-value { color: #333; font-size: 11px; }
+        .specialty-container { display: flex; flex-direction: column; align-items: flex-start; margin-left: 15px; padding-left: 15px; height: 100%; justify-content: center; }
+        .specialty-label { font-weight: 600; color: #223F70; font-size: 11px; margin-bottom: 1px; }
+        .specialty-value { color: #333; font-size: 11px; }
+        .tabla-integrada { width: 1228px; margin: 4px auto 5px auto; border-radius: 18px; overflow: hidden; box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.2); height: 450px; }
+        .table-header { width: 100%; height: 40px; background: #223F70; border: 1px solid rgba(33, 125, 204, 0.25); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; position: sticky; top: 0; z-index: 10; }
+        .header-item { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 13px; color: white; text-align: center; flex: 1; }
+        .header-semestre { flex: 0.8; }
+        .header-materias { flex: 1.5; }
+        .header-creditos { flex: 0.8; }
+        .header-calificacion { flex: 0.8; }
+        .header-evaluacion { flex: 1; }
+        .header-observaciones { flex: 1.2; }
+        .materias-container { width: 100%; height: 410px; background: #ECF0F1; border: 1px solid rgba(33, 125, 204, 0.25); border-top: none; padding: 15px; overflow-y: scroll; display: flex; flex-direction: column; gap: 20px; position: relative; }
+        .materias-container::-webkit-scrollbar { width: 10px; background-color: #f1f1f1; }
+        .materias-container::-webkit-scrollbar-thumb { background-color: #c1c1c1; border-radius: 5px; }
+        .materias-container::-webkit-scrollbar-thumb:hover { background-color: #a8a8a8; }
+        .rectangle-container { display: flex; flex-direction: column; gap: 20px; width: 100%; padding: 10px 0; }
+        .rectangle-760 { 
+            width: 1194px; 
+            height: 206px; 
+            border-radius: 20px; 
+            background: #FFFFFF; 
+            box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); 
+            opacity: 1; 
+            margin: 0 auto; 
+            position: relative; 
+            display: flex; 
+            align-items: flex-start; 
+            overflow: hidden; 
+        }
+        .rectangle-760:nth-child(2) { background: #f8f8f8; }
+        .rectangle-760:nth-child(3) { background: #f0f0f0; }
+
+        /* ************************************** */
+        /* ZONA DE ESTILOS MODIFICADOS PARA CENTRAR DATOS DEL SEMESTRE Y AÑADIR LÍNEAS */
+        /* ************************************** */
+        
+        /* Contenedor de detalles del semestre (Ajustes para centrado) */
+        .rectangle-details {
+            margin-top: 20px;
+            margin-left: 15px; 
+            width: 185px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            text-align: center; 
+            padding-right: 0px; 
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        /* Contenedores interiores también se centran */
+        .period-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            margin-bottom: 8px;
+        }
+
+        .semester-grade-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            margin-top: 5px;
+        }
+
+        /* ---------------------------------------------------- */
+        /* AJUSTE CLAVE: Contenedor para las líneas verticales inferiores */
+        .rectangle-dividers {
+            position: absolute; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            /* MOVIDO A LA IZQUIERDA: Reducido de 185px a 165px */
+            padding-left: 165px; 
+            z-index: 1;
+        }
+
+        /* Estilo general para las líneas divisorias verticales */
+        .vertical-divider {
+            width: 3px;
+            height: 180px; 
+            background-color: #BC8A55; 
+            margin-top: 13px; 
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        /* LÍNEA DE SEMESTRE (Primera línea vertical) - Es parte del flujo original */
+        .semestre-divider {
+            width: 3px;
+            height: 180px;
+            background-color: #BC8A55;
+            margin-left: 5px; 
+            margin-right: 20px; 
+            margin-top: 13px;
+            flex-shrink: 0;
+            border-radius: 3px;
+        }
+
+        /* LÍNEAS ADICIONALES (Espaciadores para posicionar las líneas correctamente) */
+
+        .materia-divider-spacer { flex-grow: 1.5; }
+        .creditos-divider-spacer { flex-grow: 0.8; }
+        .calificacion-divider-spacer { flex-grow: 0.8; }
+        .evaluacion-divider-spacer { flex-grow: 1; }
+        .observaciones-divider-spacer { flex-grow: 1.2; }
+
+        /* Contenedor del contenido de las materias (a la derecha de la barra) */
+        .materias-content {
+            flex-grow: 1;
+            margin-top: 0px; 
+            padding-right: 20px;
+            display: flex; 
+            flex-direction: column;
+            z-index: 2; 
+        }
+
+        /* AJUSTES PARA LAS FILAS DE MATERIAS */
+        .materia-row {
+            display: flex;
+            width: 100%;
+            margin-bottom: 5px; 
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            align-items: center;
+            margin-left: -5px; 
+            /* AHORA: Borde horizontal para cada fila de datos - Aparece automáticamente con contenido */
+            border-bottom: 1px solid #ddd; 
+            padding-bottom: 5px; 
+        }
+
+        /* Remueve la línea de la última fila, o de una fila completamente vacía */
+        .materia-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        /* Para que no aparezca nada si la fila está vacía, aunque ya se maneja con la eliminación de contenido */
+        .materia-row:empty {
+             display: none;
+        }
+
+        /* Estilos de las celdas de datos */
+        .materia-item {
+            text-align: center;
+            padding: 0 5px;
+            color: #333;
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            line-height: 1.3;
+            min-height: 25px; 
+        }
+
+        .item-materia { flex: 1.5; text-align: left; justify-content: flex-start; padding-left: 25px; font-weight: 500;} 
+        .item-creditos { flex: 0.8; }
+        .item-calificacion { flex: 0.8; font-weight: 600; }
+        .item-evaluacion { flex: 1; }
+        .item-observaciones { flex: 1.2; text-align: left; justify-content: flex-start; padding-left: 10px; font-size: 11px; color: #555;} 
+        
+        /* ... (otros estilos y media queries) ... */
+
+        .rectangle-number { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 24px; color: #000000; margin-bottom: 4px; }
+        .number-line { width: 100px; height: 2px; background-color: #BC8A55; margin-bottom: 8px; }
+        
+        .rectangle-period { font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 14px; color: #000000; line-height: 1.3; }
+        .rectangle-line { width: 100px; height: 1px; background-color: #BC8A55; margin-top: 5px; }
+        
+        .rectangle-grade { font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 14px; color: #333; margin-right: 0; line-height: 1.3; }
+        .grade-value { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; color: #223F70; margin-top: 2px; }
+        
+        .calificacion-final { width: 207px; height: 49px; border-radius: 20px; background: #FFFFFF; border: 1px solid rgba(33, 125, 204, 0.25); box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 16px; color: #223F70; position: absolute; bottom: 10px; left: 150px; cursor: default; }
+        .creditos-buttons { position: absolute; right: 20px; bottom: 20px; display: flex; flex-direction: row; gap: 15px; }
+        .credito-button { width: 189px; height: 49px; border-radius: 20px; background: #FFFFFF; border: 1px solid rgba(33, 125, 204, 0.25); box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 14px; color: #223F70; cursor: default; }
+        .credito-valor { font-weight: 600; font-size: 16px; color: #092340; }
+        .logo-section { text-align: center; padding: 10px 0 15px 0; }
+        .logo-section img { width: 100px; height: auto; }
+        .menu-container { width: 100%; margin-top: 10px; }
+        .menu-item, .logout-section .menu-item { padding: 12px 15px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 400; text-decoration: none; color: #333; border-radius: 20px; margin: 8px 10px; background-color: white; border: 1px solid #ddd; width: 220px; height: 57px; }
+        .menu-item:hover span, .logout-section .menu-item:hover span { color: #ff6600; }
+        .menu-item:hover, .logout-section .menu-item:hover { background-color: white; border-color: #ddd; }
+        .menu-icon-custom { width: 24px; height: 24px; margin-right: 15px; vertical-align: middle; }
+        .completed .checkbox::before { content: "✓"; color: #27ae60; }
+        .uncompleted .checkbox::before { content: "◻"; color: #999; }
+        .logout-section { padding: 10px 10px 15px 10px; width: 100%; }
+        .copyright { background-color: #092340; padding: 15px 0 10px 0; text-align: center; color: white; font-family: 'Poppins', sans-serif; font-size: 14px; position: relative; margin-top: auto; }
+        .copyright img { width: 120px; height: auto; padding: 5px 0; }
+        .copyright-content { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px 0; }
+
+        /* Media Queries (Ajustados para el nuevo diseño básico) */
+        @media (max-width: 1300px) { 
+            .info-card { width: 95%; height: auto; padding: 6px; flex-direction: column; align-items: flex-start; } 
+            .tabla-integrada { width: 95%; margin: 3px auto 4px auto; height: 450px; } 
+            .materias-container { height: 410px; } 
+            .rectangle-760 { width: 95%; } 
+            .rectangle-details { margin-left: 10px; margin-top: 20px; width: 185px; } 
+            .rectangle-dividers { padding-left: 160px; } 
+            .semestre-divider { margin-left: 5px; margin-right: 15px; margin-top: 15px; } 
+            .materias-content { margin-top: 0px; padding-right: 15px; } 
+            .calificacion-final { left: 300px; bottom: 8px; } 
+            .creditos-buttons { right: 15px; bottom: 15px; gap: 10px; } 
+            .credito-button { width: 170px; height: 45px; font-size: 13px; padding: 0 12px; } 
+            .credito-valor { font-size: 15px; } 
+            .header-item { font-size: 11px; } 
+            .specialty-container { margin-left: 0; padding-left: 0; padding-top: 6px; margin-top: 6px; width: 100%; } 
+            .action-button { width: 120px; } 
+            .materia-row { font-size: 12px; }
+            .item-materia { padding-left: 20px; }
+            .item-observaciones { font-size: 10px; }
+        }
+        @media (max-width: 968px) { 
+            .header-top { flex-direction: column; } 
+            .welcome-container { align-items: flex-start; margin-top: 4px; margin-left: 8px; } 
+            .action-buttons { flex-direction: column; align-items: flex-start; gap: 3px; margin-left: 0; } 
+            .action-button { width: 130px; } 
+            .student-info { grid-template-columns: 1fr; gap: 4px; } 
+            .table-header { flex-direction: column; height: auto; padding: 4px; } 
+            .materias-container { height: 380px; border-top: 1px solid rgba(33, 125, 204, 0.25); } 
+            .rectangle-760 { height: 180px; } 
+            .rectangle-details { margin-top: 15px; margin-left: 10px; width: 150px; } 
+            .rectangle-dividers { padding-left: 130px; } 
+            .semestre-divider { margin-left: 5px; margin-right: 10px; margin-top: 10px; height: 160px; } 
+            .materias-content { margin-top: 0px; padding-right: 10px; } 
+            .rectangle-number { font-size: 18px; margin-bottom: 5px; } 
+            .rectangle-period, .rectangle-grade { font-size: 12px; } 
+            .calificacion-final { position: static; margin: 6px auto; width: 190px; } 
+            .creditos-buttons { position: static; justify-content: center; margin: 8px auto; gap: 15px; } 
+            .header-item { margin: 3px 0; flex: 1; width: 100%; text-align: left; padding-left: 4px; } 
+            .copyright { padding: 10px 0 8px 0; } 
+            .menu-item, .logout-section .menu-item { width: 90%; margin: 8px auto; font-size: 13px; height: 50px; } 
+            .materia-row { font-size: 11px; }
+            .item-materia { padding-left: 15px; }
+            .item-observaciones { font-size: 9px; }
+        }
+        @media (max-width: 768px) { 
+            .container { flex-direction: column; } 
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #ddd; } 
+            .main-content { width: 100%; padding: 0px 5px 8px 5px; } 
+            .info-card { text-align: left; } 
+            .titles-container { margin-left: 4px; } 
+            .welcome-container { margin-right: 4px; } 
+            .tabla-integrada { border-radius: 15px; height: 450px; } 
+            .materias-container { height: 410px; } 
+            .rectangle-760 { height: 160px; } 
+            .rectangle-details { margin-top: 10px; margin-left: 10px; width: 140px; } 
+            .rectangle-dividers { padding-left: 120px; } 
+            .semestre-divider { margin-left: 5px; margin-right: 8px; margin-top: 8px; height: 145px; } 
+            .materias-content { margin-top: 0px; padding-right: 8px; } 
+            .rectangle-number { font-size: 16px; margin-bottom: 5px; } 
+            .rectangle-period, .rectangle-grade { font-size: 11px; } 
+            .rectangle-line { width: 80px; } 
+            .calificacion-final { width: 180px; height: 45px; font-size: 15px; margin: 5px auto; } 
+            .creditos-buttons { flex-direction: column; gap: 8px; margin: 8px auto; align-items: center; } 
+            .credito-button { width: 189px; height: 49px; } 
+            .copyright { padding: 10px 0 8px 0; } 
+            .menu-item, .logout-section .menu-item { width: 90%; margin: 8px auto; font-size: 13px; height: 50px; } 
+            .materia-row { font-size: 10px; margin-bottom: 3px; }
+            .item-materia { padding-left: 10px; }
+            .item-observaciones { font-size: 8px; }
+        }
+        @media (max-width: 600px) { 
+            .action-button { width: 110px; font-size: 10px; } 
+            .page-title { font-size: 1em; } 
+            .welcome-message { font-size: 0.65em; } 
+            .info-label { min-width: 70px; font-size: 10px; } 
+            .info-value { font-size: 10px; } 
+            .specialty-label, .specialty-value { font-size: 10px; } 
+            .header-item { font-size: 10px; } 
+            .tabla-integrada { height: 420px; } 
+            .materias-container { height: 380px; } 
+            .rectangle-760 { height: 140px; border-radius: 15px; } 
+            .rectangle-details { margin-top: 8px; margin-left: 8px; width: 100px; } 
+            .rectangle-dividers { padding-left: 80px; } 
+            .semestre-divider { margin-left: 5px; margin-right: 6px; margin-top: 6px; height: 125px; } 
+            .materias-content { margin-top: 0px; padding-right: 6px; } 
+            .rectangle-number { font-size: 14px; margin-bottom: 3px; } 
+            .rectangle-period, .rectangle-grade { font-size: 10px; } 
+            .rectangle-line { width: 70px; } 
+            .calificacion-final { width: 160px; height: 40px; font-size: 14px; margin: 4px auto; } 
+            .credito-button { width: 170px; height: 45px; font-size: 12px; padding: 0 10px; } 
+            .credito-valor { font-size: 14px; } 
+            .copyright img { width: 100px; } 
+            .menu-item, .logout-section .menu-item { font-size: 12px; height: 45px; } 
+            .logo-section img { width: 80px; } 
+        }

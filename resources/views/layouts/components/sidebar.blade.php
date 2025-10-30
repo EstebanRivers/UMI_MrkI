@@ -8,7 +8,7 @@
 
   <nav class="menu" aria-label="Menú principal">
     <ul>
-    <li class="has-submenu dropdown-right {{ request()->routeIs('MiInformacion.*') ? 'active open' : '' }}">
+    <li class="has-submenu {{ request()->routeIs('MiInformacion.*') ? 'active open' : '' }}">
         <a href="#">
           <span class="icon" aria-hidden="true">
             <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
@@ -16,17 +16,18 @@
           <span class="text">Mi Información</span>
         </a>
         <ul class="submenu">
-            <li class="{{ request()->routeIs('MiInformacion.perfil') ? 'active-submenu' : '' }}">
-                <a href="{{ route('MiInformacion.perfil') }}">Perfil</a>
+         <li class="{{ request()->is('mi-informacion/perfil') || request()->is('mi-informacion') ? 'active-submenu' : '' }}">
+                {{-- La ruta base '/mi-informacion' redirige a 'perfil', por eso se activa con ambas --}}
+                <a href="{{ route('MiInformacion.show', 'perfil') }}">Perfil</a>
             </li>
-            <li class="{{ request()->routeIs('MiInformacion.clases') ? 'active-submenu' : '' }}">
-                <a href="{{ route('MiInformacion.clases') }}">Clases</a>
+            <li class="{{ request()->is('mi-informacion/clases') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.show', 'clases') }}">Clases</a>
             </li>
-            <li class="{{ request()->routeIs('MiInformacion.horarios') ? 'active-submenu' : '' }}">
-                <a href="{{ route('MiInformacion.horarios') }}">Horarios</a>
+            <li class="{{ request()->is('mi-informacion/horarios') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.show', 'horarios') }}">Horarios</a>
             </li>
-            <li class="{{ request()->routeIs('MiInformacion.historial-academico') ? 'active-submenu' : '' }}">
-                <a href="{{ route('MiInformacion.historial-academico') }}">Historial Académico</a>
+            <li class="{{ request()->is('mi-informacion/historial-academico') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.show', 'historial-academico') }}">Historial Académico</a>
             </li>
         </ul>
       </li>

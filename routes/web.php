@@ -7,6 +7,7 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
+use App\Http\Controllers\MiInformacion\MiInformacionController;//agreue esto xd
 
 
 
@@ -37,19 +38,17 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     })->name('dashboard');
 
     // Mi Informacion
- Route::prefix('mi-informacion')->name('MiInformacion.')->group(function () {
-        // Ruta principal (índice)
-        Route::get('/', function () { 
-            return view('layouts.MiInformacion.index'); 
-        })->name('index'); // Mantener la ruta 'MiInformacion.index'
-        
-        // Rutas del Submenú
-        // Nota: Todas apuntan al mismo index por simplicidad, pero con un parámetro diferente
-        Route::get('/perfil', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'perfil']); })->name('perfil');
-        Route::get('/clases', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'clases']); })->name('clases');
-        Route::get('/horarios', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'horarios']); })->name('horarios');
-        Route::get('/historial-academico', function () { return view('layouts.MiInformacion.index', ['view_mode' => 'historial-academico']); })->name('historial-academico');
-    });
+ // Mi Informacion
+    // 1. Ruta principal (/mi-informacion) - Redirige a la sección por defecto ('perfil')
+    Route::get('/mi-informacion', function () {
+        return redirect()->route('MiInformacion.show', ['seccion' => 'perfil']);
+    })->name('MiInformacion.index');
+
+    // 2. Ruta dinámica para las subsecciones (perfil, clases, horarios, etc.)
+    // Captura el segmento {seccion} y lo pasa al controlador.
+    Route::get('/mi-informacion/{seccion}', [MiInformacionController::class, 'show'])
+        ->name('MiInformacion.show');
+
     // Cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
        // Gestión de cursos - solo para admins y docentes
