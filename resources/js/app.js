@@ -1,4 +1,6 @@
+import './bootstrap';
 // Navegación SPA optimizada y simplificada
+
 class SimpleSPANavigation {
     constructor() {
         this.cache = new Map();
@@ -381,30 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Función reutilizable para marcar una actividad como completada (vía AJAX)
      */
-    const markActivityAsComplete = (activityId) => {
-        
-        // Comprobar si ya se marcó en esta sesión para no enviar peticiones duplicadas
-        const element = document.querySelector(`[data-activity-id="${activityId}"]`);
-        if (element && element.classList.contains('activity-completed')) {
-            console.log('Actividad ya marcada como completa.');
-            return; // No hacer nada si ya está marcada
-        }
-
-        axios.post(`/activities/${activityId}/complete`)
-            .then(response => {
-                if (response.data.success) {
-                    console.log('Actividad completada:', activityId);
-                    
-                    // --- Feedback Visual INMEDIATO ---
-                    if (element) {
-                        element.classList.add('activity-completed');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error al completar la actividad:', error);
-            });
-        };
         // --- 1. Para LINKS (PDF, Texto, Quiz) ---
         document.body.addEventListener('click', function(event) {
             // 'event.target.closest' es la forma moderna de delegar eventos

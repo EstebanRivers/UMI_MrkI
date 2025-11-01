@@ -94,8 +94,26 @@ class CourseController extends Controller
             $path = $request->file('image')->store('courses', 'public');
             $courseData['image'] = $path;
         }
+        // Material de apoyo
+        if ($request->hasFile('guide_material')) {
+            $path = $request->file('guide_material')->store('courses/guides', 'public');
+            $courseData['guide_material_path'] = $path;
+        }
 
         $course = Course::create($courseData);
+
+        if ($request->filled('career_id')) {
+            // sync() adjunta el ID y quita cualquier otro que no esté en el array
+            $course->careers()->sync([$request->career_id]);
+        } 
+        elseif ($request->filled('department_id')) {
+            $course->departments()->sync([$request->department_id]);
+            
+            // Si se especificó un puesto, guardarlo.
+            if ($request->filled('workstation_id')) {
+                $course->workstations()->sync([$request->workstation_id]);
+            }
+        }
 
         Log::info('Curso creado exitosamente', [
             'course_id' => $course->id,
@@ -205,8 +223,36 @@ class CourseController extends Controller
 
         // Autorización adicional: Verificar que el usuario es el instructor o master
         $this->authorize('update', $course);
+        $course->load('institution');
 
-        return view('layouts.Cursos.edit', compact('course'));
+        // 1. Cargar la institución actual y sus relaciones
+        $currentInstitution = Institution::with(['careers', 'departments.workstations'])
+                                ->find($activeInstitutionId);
+
+        // 2. Crear el mapa para el JS de departamentos/puestos
+        $departmentWorkstationsMap = [];
+        if ($currentInstitution->departments) {
+            $departmentWorkstationsMap = $currentInstitution->departments->mapWithKeys(function ($department) {
+                return [$department->id => $department->workstations->toArray()];
+            });
+        }
+
+        // 3. Cargar los filtros que el curso YA tiene seleccionados
+        //    Usamos pluck('id') para obtener un array simple de IDs [1, 3]
+        $course->load('careers', 'departments', 'workstations');
+        
+        $selectedFilters = [
+            'career_id' => $course->careers->pluck('id')->first(), // Asumimos que solo es una carrera
+            'department_id' => $course->departments->pluck('id')->first(), // Asumimos que solo es un depto
+            'workstation_id' => $course->workstations->pluck('id')->first(), // Asumimos que solo es un puesto
+        ];
+
+        return view('layouts.Cursos.edit', compact(
+            'course', 
+            'currentInstitution', // Necesario para los filtros
+            'departmentWorkstationsMap', // Necesario para el JS
+            'selectedFilters' // Necesario para pre-seleccionar
+        ));
     }
 
     /**
@@ -231,13 +277,24 @@ class CourseController extends Controller
         // Autorización: Policy
         $this->authorize('update', $course);
 
+        $institution = Institution::find($course->institution_id);
+        $creditsRule = 'nullable|integer|min:0';
+        if ($institution && $institution->name === 'Universidad Mundo Imperial') {
+            $creditsRule = 'required|integer|min:0';
+        }
+
         // Validación
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'credits' => 'required|integer|min:0|max:100',
+            'credits' => $creditsRule,
             'hours' => 'required|integer|min:0|max:1000',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'guide_material' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:40960', 
+            'institution_id' => 'required|exists:institutions,id', // Lo usamos pero no lo actualizamos
+            'career_id' => 'nullable|exists:careers,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'workstation_id' => 'nullable|exists:workstations,id',
         ]);
 
         // Manejo de imagen
@@ -248,12 +305,36 @@ class CourseController extends Controller
             $validatedData['image'] = $request->file('image')->store('courses', 'public');
         }
 
+        // Manejo de material de guía
+        if ($request->hasFile('guide_material')) {
+            // Eliminar archivo anterior si existe
+            if ($course->guide_material_path) {
+                Storage::disk('public')->delete($course->guide_material_path);
+            }
+            // Guardar el nuevo archivo
+            $validatedData['guide_material_path'] = $request->file('guide_material')->store('courses/guides', 'public');
+        }
+
         $course->update($validatedData);
 
-        Log::info('Curso actualizado', [
-            'course_id' => $course->id,
-            'user_id' => Auth::id()
-        ]);
+        if ($request->filled('career_id')) {
+            $course->careers()->sync([$request->career_id]);
+            $course->departments()->sync([]); // Limpiar el otro filtro
+            $course->workstations()->sync([]);
+        } 
+        elseif ($request->filled('department_id')) {
+            $course->departments()->sync([$request->department_id]);
+            $course->careers()->sync([]); // Limpiar el otro filtro
+            
+            // Si se especificó un puesto, guardarlo. Si no, limpiarlo.
+            if ($request->filled('workstation_id')) {
+                $course->workstations()->sync([$request->workstation_id]);
+            } else {
+                $course->workstations()->sync([]);
+            }
+        }
+
+        Log::info('Curso actualizado', ['course_id' => $course->id, 'user_id' => Auth::id()]);
 
         // Redirigir según la acción solicitada
         if ($request->input('action') == 'save_and_continue') {
@@ -292,6 +373,10 @@ class CourseController extends Controller
             Storage::disk('public')->delete($course->image);
         }
 
+        if ($course->guide_material_path) {
+            Storage::disk('public')->delete($course->guide_material_path);
+        }
+
         $courseTitle = $course->title;
         $course->delete();
 
@@ -306,20 +391,4 @@ class CourseController extends Controller
             ->with('success', 'Curso "' . $courseTitle . '" eliminado exitosamente.');
     }
 
-    public function enroll(Request $request, Course $course)
-    {
-        $user = Auth::user();
-
-        // Verificar si el usuario ya está inscrito
-        $isEnrolled = $user->courses()->where('course_id', $course->id)->exists();
-
-        if ($isEnrolled) {
-            return back()->with('warning', 'Ya estás inscrito en este curso.');
-        }
-
-        // Inscribir al usuario (adjuntar en la tabla pivote)
-        $user->courses()->attach($course->id);
-
-        return redirect()->route('courses.show', $course)->with('success', '¡Inscripción exitosa!');
-    }
 }

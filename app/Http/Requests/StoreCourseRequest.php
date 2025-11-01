@@ -41,7 +41,7 @@ class StoreCourseRequest extends FormRequest
             'credits' => $creditsRule,
             'hours' => 'required|integer|min:0',
             'workstation_id' => 'nullable|exists:workstations,id',
-          
+            'guide_material' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:40960', // max 20MB
         ];
     }
 }

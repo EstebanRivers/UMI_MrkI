@@ -2,7 +2,7 @@
 
 @section('title', $course->title)
 
-@vite(['resources/css/courseShow.css', 'resources/js/app.js'])
+@vite(['resources/css/courseShow.css', 'resources/js/app.js', 'resourses/js/bootstrap.js'])
 
 @section('content')
 <div class="course-viewer-container">
@@ -110,6 +110,17 @@
                     </div>
                 </div>
             </div>
+            @if ($course->guide_material_path)
+            <div class="course-guide-material" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+                <h4 style="margin-bottom: 10px;">Material de Guía</h4>
+                <a href="{{ asset('storage/' . $course->guide_material_path) }}" 
+                   target="_blank" 
+                   class="btn-secondary" 
+                   style="text-decoration: none; display: inline-block; width: 90%;">
+                     Descargar Guía del Curso
+                </a>
+            </div>
+            @endif
         </div>
 
         {{-- COLUMNA IZQUIERDA (VISOR DE CONTENIDO) --}}
@@ -355,7 +366,7 @@
             }
             element.classList.add('completed'); 
 
-            axios.post('{{ route("completions.mark") }}', { // Ruta actualizada
+            window.axios.post('{{ route("completions.mark") }}', { // Ruta actualizada
                 type: type, // 'Topics', 'Subtopic', o 'Activities'
                 id: id
             })
@@ -383,7 +394,7 @@
 
             // Contamos cuántos items tienen la clase 'completed' en el DOM
             const completedNow = document.querySelectorAll('.auto-complete-link.completed').length;
-            const totalItems = parseInt(tracker.dataset.totalItems, 10); // data-total-items
+            const totalItems = parseInt(tracker.dataset.totalActivities, 10); // data-total-items
 
             if (totalItems === 0) return;
 

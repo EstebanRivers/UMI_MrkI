@@ -67,6 +67,7 @@ class Course extends Model
         'instructor_id',
         'institution_id',
         'image',
+        'guide_material_path',
 
     ];
 

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('credits')->default(0);
             $table->integer('hours')->default(0);
             $table->string('image')->nullable();
+            $table->string('guide_material_path')->nullable();
 
             // --- RELACIONES BASE ---
             
