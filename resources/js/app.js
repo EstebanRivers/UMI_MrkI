@@ -1,3 +1,7 @@
+import axios from 'axios';
+
+window.axios = axios;
+
 // Navegación SPA optimizada y simplificada
 class SimpleSPANavigation {
     constructor() {

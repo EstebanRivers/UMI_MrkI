@@ -7,11 +7,13 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
+//Control Administrativo
 use App\Http\Controllers\AdmonCont\store\careerController;
 use App\Http\Controllers\AdmonCont\UserController;
 use App\Http\Controllers\AdmonCont\generalController;
 use App\Http\Controllers\AdmonCont\HorarioController;
-
+use App\Http\Controllers\AdmonCont\FacilityController;
+use App\Http\Controllers\AdmonCont\store\ListsControler;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -73,16 +75,31 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::middleware(['role:master'])->group(function () {
     //Listas
     Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
+    Route::get('/lista-estudiantes/crear',[ListsControler::class, 'studentForm'])->name('Listas.students.create.form');
+    Route::delete('/lista-estudiantes/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
+    
     Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
     Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
+    Route::get('/lista-usuarios/{user}', [ListsControler::class, 'getUserData'])->name('Academic.user.data');
     Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
+
+    //Aulas
+    Route::get('/aulas',[FacilityController::class, 'index'])->name('Facilities.index');
+        //Crear
+    Route::get('/aulas/crear',[FacilityController::class, 'createForm'])->name('Facilities.create.form');
+        //Guardar
+    Route::post('/aulas', [FacilityController::class, 'store'])->name('Facilities.store');
+
+    Route::delete('/aulas/{facility}', [FacilityController::class, 'destroy'])->name('Facilities.destroy');
+
+
     //Horarios
     Route::get('/horarios', [HorarioController::class, 'index'])->name('Horarios.index');
-    //Guardar
+        //Guardar
     Route::post('/horarios', [HorarioController::class, 'store'])->name('Horarios.store');
-    //Eliminar
+        //Eliminar
     Route::delete('/horarios/{horario}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
-    //Editar
+        //Editar
     Route::get('/horarios/{horario}/edit', [HorarioController::class, 'edit'])->name('horarios.edit');
     Route::put('/horarios/{horario}', [HorarioController::class, 'update'])->name('horarios.update');
     

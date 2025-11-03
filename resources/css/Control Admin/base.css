@@ -3,6 +3,22 @@
     padding: 20px;
 }
 
+/*Botones*/
+.header-option button{
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.header-option button:hover {
+    transform: translateY(-1px);
+    color: var(--accent);
+}
+
 .content-header{
     display: flex;
     justify-content: space-between;
@@ -25,8 +41,8 @@
 }
 
 .option-carrer button:hover {
-  transform: translateY(-1px);
-  color: var(--accent);
+    transform: translateY(-1px);
+    color: var(--accent);
 }
 
 .empty-carrers{
@@ -98,7 +114,7 @@
 
 .table{
     width: 100%;
-    border-collapse: separate; 
+    border-collapse: collapse; 
     border-spacing: 0;
     background-color: #efefef;
     border-radius: 8px;
@@ -120,6 +136,15 @@
 
 .tbody td{
     background-color: #fafafa;
+}
+
+.tbody td {
+    /* 1. Aplica un borde sólido de 1px a todas las celdas del cuerpo */
+    border-right: 1px solid #dc3545;
+}
+
+.tbody tr td:last-child {
+    border-right: none;
 }
 
 .creator-container {
@@ -162,7 +187,9 @@
     
     /* Borde azul para destacar el select */
     width: 100%;
+    border: none;
     box-sizing: border-box;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
 }
 
 .schedule-settings {
@@ -227,9 +254,9 @@
     width: fit-content;
     display: flex;
     align-items: center; 
-    gap: 15px; 
-    margin: 15px 0;
-    padding: 10px 0;
+    gap: 5px; 
+    margin: 0px;
+    padding: 5px;
 }
 
 .time-inputs label {
@@ -262,4 +289,54 @@
     border-color: #007bff;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
     outline: none;
+}
+
+.schedule-resume {
+    /* 1. DISEÑO DE TARJETA (FONDO BLANCO, REDONDEADO) */
+    background-color: #ffffff;
+    padding: 15px; /* Relleno interno */
+    margin: 20px 0; /* Separación de las otras secciones */
+    border-radius: 12px; /* Bordes redondeados */
+    
+    /* 2. SOMBRA INFERIOR SUTIL */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra enfocada en la parte inferior */
+}
+/* Estilos para la tabla dentro del contenedor */
+#time-slots-table {
+    width: 100%;
+    border-collapse: collapse; /* Bordes unidos */
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+#time-slots-table tbody tr:last-child td {
+    border-bottom: none; /* Quitamos el borde inferior de la última fila */
+}
+
+/* Estilo del Overlay/Fondo */
+.modal-overlay {
+    position: fixed; /* Fijo en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo negro semitransparente */
+    display: none; /* **IMPORTANTE: Oculto por defecto** */
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+/* Estilo del Contenido del Modal */
+.modal-content-container {
+    background-color: #fff;
+    margin: 10% auto; /* Centrarlo verticalmente y horizontalmente */
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%; /* Ancho deseado del modal */
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Clases para mostrar/ocultar con JavaScript */
+.modal-overlay.is-visible {
+    display: block; /* Muestra el modal */
 }
