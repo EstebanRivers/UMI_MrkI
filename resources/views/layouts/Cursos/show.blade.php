@@ -16,7 +16,7 @@
     </header>
 
     <div class="course-layout">
-
+        <div class="course-menu">
         {{-- COLUMNA DERECHA (TEMARIO / NAVEGACIÓN) --}}
         <div class="course-syllabus">
             <h3>Contenido del Curso</h3>
@@ -92,7 +92,8 @@
                     </div>
                 </div>
             @endforeach
-            {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
+        </div>
+        {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
             <div class="course-progress-container" 
                 id="course-progress-tracker"
                 data-total-activities="{{ $totalItems }}"
@@ -110,8 +111,9 @@
                     </div>
                 </div>
             </div>
-            @if ($course->guide_material_path)
-            <div class="course-guide-material" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+        {{-- Material de Guía --}}
+        @if ($course->guide_material_path)
+            <div class="course-guide-material">
                 <h4 style="margin-bottom: 10px;">Material de Guía</h4>
                 <a href="{{ asset('storage/' . $course->guide_material_path) }}" 
                    target="_blank" 
@@ -120,8 +122,8 @@
                      Descargar Guía del Curso
                 </a>
             </div>
-            @endif
-        </div>
+        @endif
+    </div>
 
         {{-- COLUMNA IZQUIERDA (VISOR DE CONTENIDO) --}}
         <div class="content-viewer">
@@ -144,7 +146,7 @@
                     <h2>{{ $topic->title }}</h2>
 
                     {{-- Descripción y Archivos del Tema --}}
-                    <div class="topic-content" style="margin-bottom: 20px;">
+                    <div class="topic-content" >
                         <p>{{ $topic->description }}</p>
 
                         @if ($topic->file_path)
@@ -206,7 +208,7 @@
                     <div class="content-panel" id="content-subtopic-{{ $subtopic->id }}">
                         <h2>{{ $subtopic->title }}</h2>
 
-                        <div class="subtopic-content" style="margin-bottom: 20px;">
+                        <div class="subtopic-content" >
                             <p>{{ $subtopic->description }}</p>
 
                             {{-- Archivos del Subtema --}}
