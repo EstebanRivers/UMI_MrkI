@@ -239,6 +239,12 @@
     color: #28a745; 
     font-weight: bold;
 }
+
+.syllabus-link.active.completed {
+    background-color: #ffffff;
+    color: #007bff;
+}
+
 .syllabus-link.active.completed::after {
     color: #28a745; /* Checkmark blanco en fondo verde/azul */
 }
