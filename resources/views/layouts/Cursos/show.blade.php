@@ -2,7 +2,7 @@
 
 @section('title', $course->title)
 
-@vite(['resources/css/courseShow.css', 'resources/js/app.js', 'resourses/js/bootstrap.js'])
+@vite(['resources/css/courseShow.css', 'resources/js/app.js', 'resources/js/bootstrap.js'])
 
 @section('content')
 <div class="course-viewer-container">
