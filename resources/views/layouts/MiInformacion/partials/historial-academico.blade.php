@@ -16,7 +16,8 @@
                         <div class="welcome-message">¡Bienvenido(a) Andrea Salmerón!</div>
                         <div class="action-buttons">
                             <button class="action-button" onclick="showReticula()">Reticula escolar</button>
-                            <button class="action-button" onclick="showBoleta()">Boleta de calificaciones</button>
+                          <a href="{{ route('MiInformacion.boleta') }}" class="action-button">
+        Boleta de calificaciones</a>
                         </div>
                     </div>
                 </div>
@@ -170,7 +171,7 @@
 
     <script>
         function showReticula() { alert('Mostrando retícula escolar. Esta función puede abrir a modal o redirigir a otra página.'); }
-        function showBoleta() { alert('Mostrando boleta de calificaciones. Esta función puede abrir a modal o redirigir a otra página.'); }
+       // function showBoleta() { alert('Mostrando boleta de calificaciones. Esta función puede abrir a modal o redirigir a otra página.'); }
         document.addEventListener('DOMContentLoaded', function() {
             const materiasContainer = document.querySelector('.materias-container');
             if (materiasContainer) { materiasContainer.style.overflowY = 'scroll'; }

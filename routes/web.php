@@ -43,11 +43,14 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/mi-informacion', function () {
         return redirect()->route('MiInformacion.show', ['seccion' => 'perfil']);
     })->name('MiInformacion.index');
-
+//tareas
     Route::get('/mi-informacion/tareas', function () { 
         return view('layouts.MiInformacion.partials.tareas'); 
     })->name('MiInformacion.tareas');
-
+//boleta
+Route::get('/mi-informacion/boleta', function () {
+    return view('layouts.MiInformacion.partials.boleta'); 
+})->name('MiInformacion.boleta');
 
 
     // 2. Ruta dinámica para las subsecciones (perfil, clases, horarios, etc.)
