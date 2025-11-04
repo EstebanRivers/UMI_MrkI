@@ -4,7 +4,8 @@
 
 @section('content')
  <div class="container">
- <div class="main-content">
+
+    <div class="main-content">
             <div class="content-header">
                 <div class="header-top">
                     <div class="titles-container">
@@ -13,12 +14,13 @@
                     </div>
                     <div class="welcome-container">
                         <div class="welcome-message">¡Bienvenido(a) Andrea Salmerón!</div>
-                        <a href="#" class="tasks-section" id="tareasBtn">
+                        <a href="{{ route('MiInformacion.tareas') }}">
+                        <div class="tasks-section">
                             <div class="tasks-icon">
                                 <img src="{{ asset('images/tasks-icon.svg') }}" alt="Icono Tareas">
                             </div>
                             <div class="tasks-text">Tareas</div>
-                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -97,33 +99,7 @@
                 </div>
             </div>
             
-            <a href="#" class="previous-classes" id="clasesAnterioresBtn">Clases anteriores</a>
+            <div class="previous-classes">Clases anteriores</div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const tareasBtn = document.getElementById('tareasBtn');
-            const clasesAnterioresBtn = document.getElementById('clasesAnterioresBtn');
-
-            // Hacer que los botones sean enlaces (comportamiento predeterminado del <a>)
-            // Si necesitas ejecutar lógica de JavaScript antes de la navegación, usa event listeners:
-            
-            tareasBtn.addEventListener('click', function(e) {
-                e.preventDefault(); // Previene la navegación inmediata si el href es '#'
-                console.log('Botón Tareas pulsado. Redirigiendo a /tareas...');
-                // Aquí deberías redirigir a la página de Tareas:
-                // window.location.href = '/tareas'; 
-                alert('Funcionalidad Tareas activada'); 
-            });
-
-            clasesAnterioresBtn.addEventListener('click', function(e) {
-                e.preventDefault(); // Previene la navegación inmediata si el href es '#'
-                console.log('Botón Clases anteriores pulsado. Redirigiendo a /clases-anteriores...');
-                // Aquí deberías redirigir a la página de Clases anteriores:
-                // window.location.href = '/clases-anteriores';
-                alert('Funcionalidad Clases anteriores activada');
-            });
-        });
-    </script>
 @endsection

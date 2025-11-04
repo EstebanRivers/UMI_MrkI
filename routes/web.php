@@ -44,6 +44,12 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         return redirect()->route('MiInformacion.show', ['seccion' => 'perfil']);
     })->name('MiInformacion.index');
 
+    Route::get('/mi-informacion/tareas', function () { 
+        return view('layouts.MiInformacion.partials.tareas'); 
+    })->name('MiInformacion.tareas');
+
+
+
     // 2. Ruta dinámica para las subsecciones (perfil, clases, horarios, etc.)
     // Captura el segmento {seccion} y lo pasa al controlador.
     Route::get('/mi-informacion/{seccion}', [MiInformacionController::class, 'show'])
