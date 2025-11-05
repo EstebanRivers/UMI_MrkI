@@ -7,8 +7,12 @@
     </div>
 
     <div class="form-group">
-        <label for="seccion">Sección</label>
-        <input type="text" id="seccion" name="seccion" class="form-control" required>
+        <label for="tipo">Tipo</label>
+        <select id="tipo" name="tipo" class="form-control" required>
+            <option value="Aula" selected>Aula</option>
+            <option value="Laboratorio">Laboratorio</option>
+            <option value="Otro">Otro</option>
+            </select>
     </div>
 
     <div class="form-group">
@@ -19,15 +23,6 @@
     <div class="form-group">
         <label for="ubicacion">Ubicación</label>
         <input type="text" id="ubicacion" name="ubicacion" class="form-control" maxlength="100">
-    </div>
-
-    <div class="form-group">
-        <label for="tipo">Tipo</label>
-        <select id="tipo" name="tipo" class="form-control" required>
-            <option value="Aula" selected>Aula</option>
-            <option value="Laboratorio">Laboratorio</option>
-            <option value="Otro">Otro</option>
-            </select>
     </div>
     
     <div class="modal-footer-custom" style="margin-top: 20px;">

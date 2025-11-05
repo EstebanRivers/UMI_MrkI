@@ -14,6 +14,7 @@ use App\Http\Controllers\AdmonCont\generalController;
 use App\Http\Controllers\AdmonCont\HorarioController;
 use App\Http\Controllers\AdmonCont\FacilityController;
 use App\Http\Controllers\AdmonCont\store\ListsControler;
+use App\Http\Controllers\AdmonCont\store\studentController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -74,10 +75,14 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     
     Route::middleware(['role:master'])->group(function () {
     //Listas
-    Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
-    Route::get('/lista-estudiantes/crear',[ListsControler::class, 'studentForm'])->name('Listas.students.create.form');
-    Route::delete('/lista-estudiantes/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
-    
+    Route::get('/lista-estudiantes', [studentController::class, 'index'])->name('Listas.students.index');
+    // 1. RUTA PARA MOSTRAR EL FORMULARIO AJAX
+    Route::get('/lista-estudiantes/crear', [studentController::class, 'createForm'])->name('Listas.students.create');
+    // 2. RUTA PARA OBTENER DATOS DE USUARIO POR ID (Cascada)
+    Route::get('/lista-estudiantes/usuario/{userId}', [studentController::class, 'getUserData'])->name('Listas.students.user.data');
+    // 3. RUTA PARA GUARDAR/ACTUALIZAR EL PERFIL ACADÉMICO (Store)
+    Route::post('/lista-estudiantes/guardar', [studentController::class, 'storeStudentAcademicProfile'])->name('Listas.students.store');
+
     Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
     Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
     Route::get('/lista-usuarios/{user}', [ListsControler::class, 'getUserData'])->name('Academic.user.data');

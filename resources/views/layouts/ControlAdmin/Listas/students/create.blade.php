@@ -26,6 +26,7 @@
         <div class="form-group">
             <label for="carrera_selector">Carrera</label>
             <select id="carrera_selector" name="carrera" class="form-control" required>
+                <option value="">-- Seleccione una Carrera --</option>
                 @foreach($carreras as $carrera)
                     <option value="{{ $carrera }}">{{ $carrera }}</option>
                 @endforeach
@@ -35,6 +36,7 @@
         <div class="form-group">
             <label for="status_selector">Status</label>
             <select id="status_selector" name="status" class="form-control" required>
+                <option value="">-- Seleccione un Status --</option>
                 @foreach($statuses as $status)
                     <option value="{{ $status }}">{{ ucfirst($status) }}</option>
                 @endforeach
@@ -44,7 +46,7 @@
 
     <div class="modal-footer-custom" style="margin-top: 20px;">
         <button type="submit" id="saveAcademicBtn" class="btn btn-primary" style="display: none;">Guardar Datos Académicos</button>
-        <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancelar</button>
+        <button type="button" class="btn btn-secondary" onclick="window.hideModal()">Cancelar</button>
     </div>
 </form>
 
