@@ -15,16 +15,7 @@
             height: 100%;
         }
         
-        .sidebar {
-            width: 250px;
-            background-color: #EAEAEA;
-            color: #333;
-            padding: 10px 0 0 0;
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    
         
         .logo-section {
             text-align: center;

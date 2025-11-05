@@ -1,4 +1,6 @@
+import './bootstrap';
 // Navegación SPA optimizada y simplificada
+
 class SimpleSPANavigation {
     constructor() {
         this.cache = new Map();
@@ -14,18 +16,50 @@ class SimpleSPANavigation {
     }
 
     setupEventListeners() {
-        // Interceptar clics en enlaces del menú 
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('.menu a');
-            if (link && this.shouldIntercept(link)) {
-                e.preventDefault();
-                this.setImmediateActivate(link);
-                this.navigate(link.href);
-            }
-        });
+      // Interceptar clics en cualquier parte del documento
+    document.addEventListener('click', (e) => {
+        
+        if (!(e.target instanceof Element)) {
+            return; 
+        }
+
+        const link = e.target.closest('.menu a'); 
+        const parentLi = link ? link.closest('li') : null;
+
+        // --- Lógica para Abrir/Cerrar Submenús ---
+        if (parentLi && parentLi.classList.contains('has-submenu')) {
+            e.preventDefault(); // Prevenir navegación si es un submenú
+            parentLi.classList.toggle('open'); // Abrir/cerrar el submenú clickeado
+
+            // Cerrar OTROS submenús que pudieran estar abiertos
+            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
+                if (openSubmenu !== parentLi) {
+                    openSubmenu.classList.remove('open');
+                }
+            });
+            return; 
+        }
+        
+        // --- Lógica para CERRAR submenús al hacer clic FUERA ---
+        // Si el clic NO fue dentro de un submenú o su botón...
+        if (!e.target.closest('.has-submenu')) {
+            // Buscamos todos los submenús que estén abiertos y los cerramos
+            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
+                openSubmenu.classList.remove('open');
+            });
+        }
+
+        // --- Lógica Original de la SPA (si el clic NO fue en un submenú) ---
+        if (link && this.shouldIntercept(link)) {
+            e.preventDefault();
+            this.setImmediateActivate(link);
+            this.navigate(link.href);
+        }
+    });
 
         // Manejar botón atrás/adelante del navegador
         window.addEventListener('popstate', (e) => {
+            if (!(e.target instanceof Element)) return;
             if (e.state && e.state.page) {
                 this.loadPage(e.state.page, false);
             }
@@ -34,6 +68,7 @@ class SimpleSPANavigation {
         // Precargar al hacer hover (optimizado)
         let hoverTimeout;
         document.addEventListener('mouseenter', (e) => {
+            if (!(e.target instanceof Element)) return;
             const link = e.target.closest('.menu a');
             if (link && this.shouldIntercept(link)) {
                 clearTimeout(hoverTimeout);
@@ -44,6 +79,7 @@ class SimpleSPANavigation {
         }, true);
 
         document.addEventListener('mouseleave', (e) => {
+            if (!(e.target instanceof Element)) return;
             const link = e.target.closest('.menu a');
             if (link) {
                 clearTimeout(hoverTimeout);
@@ -52,31 +88,29 @@ class SimpleSPANavigation {
     }
 
     setImmediateActivate(link) {
-        // Remover clase temporal de todos los elementos
+        
         document.querySelectorAll('.menu li').forEach(li => {
             li.classList.remove('spa-activating');
         });
 
         const li = link.closest('li');
         if (li) {
-            // Desactivar otros elementos
+            
             document.querySelectorAll('.menu li').forEach(other => {
                 if (other !== li) other.classList.remove('active');
             });
 
-            // Activar el elemento clickeado inmediatamente
+            
             li.classList.add('active', 'spa-activating');
         }
     }
 
     shouldIntercept(link) {
         return link.hostname === window.location.hostname && 
-                !link.hasAttribute('data-no-intercept') &&
-                !link.href.includes('logout') &&
-                // CRÍTICO: Mantenemos el !link.href.includes('#') para que la lógica SPA NO intente navegar 
-                // cuando se hace clic en el enlace padre del submenú (ej: Mi Información)
-                !link.href.includes('#') && 
-                !link.closest('.brand'); 
+               !link.hasAttribute('data-no-intercept') &&
+               !link.href.includes('logout') &&
+               !link.href.includes('#') &&
+               !link.closest('.brand'); 
     }
 
     async navigate(url) {
@@ -243,21 +277,11 @@ class SimpleSPANavigation {
 
     updateActiveMenuItem() {
         const currentPath = new URL(window.location.href).pathname.replace(/\/+$/, '') || '/';
-        
-        // 1. Limpiar el estado 'active', 'active-submenu' y 'open' de TODOS los elementos
-        document.querySelectorAll('.menu li').forEach(li => {
-            li.classList.remove('active', 'active-submenu', 'spa-activating');
-            // Quitamos la clase 'open' para que al recargar la página no se abra solo.
-            if (li.classList.contains('has-submenu')) {
-                li.classList.remove('open');
-            }
-        });
 
         document.querySelectorAll('.menu a').forEach(link => {
-            const li = link.closest('li'); // Aseguramos que tenemos el LI
-            
-            // ... (Tu código original tenía un error aquí, se usa 'li' en lugar de 'activeLink.closest') ...
-            
+            const li = link.closest('li');
+            if (!li) return;
+
             const href = link.getAttribute('href') || '#';
             let linkPath = '/';
             try {
@@ -266,39 +290,25 @@ class SimpleSPANavigation {
                 linkPath = href.replace(/\/+$/, '') || '/';
             }
 
-            // Lógica de coincidencia de ruta
             const isMatch = (linkPath === currentPath) || 
-                            (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) || 
-                            (linkPath !== '/' && currentPath === linkPath);
+                           (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) || 
+                           (linkPath !== '/' && currentPath === linkPath);
 
             if (isMatch) {
-                // Es un enlace activo
-                const parentHasSubmenu = li.closest('.has-submenu');
-                
-                if (parentHasSubmenu) {
-                    // Es un sub-enlace (e.g., Perfil)
-                    li.classList.add('active-submenu');
-                    
-                    // Asegurar que el padre esté marcado como activo y abierto.
-                    parentHasSubmenu.classList.add('active', 'open');
-                } else {
-                    // Es un enlace principal (e.g., Dashboard o Cursos)
+                if (!li.classList.contains('active')) {
                     li.classList.add('active');
                 }
-                
                 li.classList.remove('spa-activating');
-
             } else {
-                // Si no coincide, asegurar que no tenga el estado de activación temporal
                 if (!li.classList.contains('spa-activating')) {
-                    li.classList.remove('active', 'active-submenu');
+                    li.classList.remove('active');
                 }
             }
         });
     }
 
     preloadCriticalPages() {
-        const criticalPages = ['/dashboard', '/mi-informacion', '/ajustes'];
+        const criticalPages = ['/cursos', '/mi-informacion', '/ajustes'];
         
         setTimeout(() => {
             criticalPages.forEach(page => {
@@ -370,33 +380,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Exponer método de navegación globalmente
     window.navigateTo = (url) => window.spaNav.navigateTo(url);
 
-    // ==========================================================
-    // --- NUEVA LÓGICA: Manejo de clic para abrir/cerrar submenús (links con href="#") ---
-    // Esto es necesario porque la lógica SPA los ignora para la navegación.
-    // ==========================================================
-    document.querySelectorAll('.menu li.has-submenu > a[href="#"]').forEach(link => {
-        link.addEventListener('click', function(event) {
-            // 1. Prevenir el comportamiento por defecto (evita el salto al top de la página)
-            event.preventDefault(); 
-            
-            // 2. Encontrar el <li> padre
-            const parentLi = this.closest('li.has-submenu');
-            if (parentLi) {
-                
-                // 3. Opcional: Cerrar otros submenús abiertos para mantener la limpieza visual
-                document.querySelectorAll('.menu li.has-submenu.open').forEach(openLi => {
-                    // Cierra todos los otros submenús, excepto el que se acaba de clicar
-                    if (openLi !== parentLi) {
-                        openLi.classList.remove('open');
-                    }
-                });
-                
-                // 4. ¡Lo esencial! Alternar la clase 'open' en el LI, lo cual activa el CSS
-                parentLi.classList.toggle('open');
+    /**
+     * Función reutilizable para marcar una actividad como completada (vía AJAX)
+     */
+        // --- 1. Para LINKS (PDF, Texto, Quiz) ---
+        document.body.addEventListener('click', function(event) {
+            // 'event.target.closest' es la forma moderna de delegar eventos
+            const link = event.target.closest('.auto-complete-link');
+            if (link) {
+                const activityId = link.dataset.activityId;
+                markActivityAsComplete(activityId);
+                // La navegación al link (href) ocurre de forma natural
             }
         });
-    });
-    // --- FIN LÓGICA SUBMENÚS ---
+
+        // --- 2. Para VIDEOS (al finalizar) ---
+        const videoPlayers = document.querySelectorAll('.auto-complete-video');
+        videoPlayers.forEach(video => {
+            video.addEventListener('ended', (event) => {
+                const activityId = event.currentTarget.dataset.activityId;
+                markActivityAsComplete(activityId);
+            });
+        });
 });
 
 // Limpiar al cerrar
