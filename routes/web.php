@@ -15,6 +15,7 @@ use App\Http\Controllers\AdmonCont\HorarioController;
 use App\Http\Controllers\AdmonCont\FacilityController;
 use App\Http\Controllers\AdmonCont\store\ListsControler;
 use App\Http\Controllers\AdmonCont\store\studentController;
+use App\Http\Controllers\AdmonCont\MateriaController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -86,7 +87,11 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
     Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
     Route::get('/lista-usuarios/{user}', [ListsControler::class, 'getUserData'])->name('Academic.user.data');
-    Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
+
+    //Materias
+
+    Route::get('/listas/materias', [MateriaController::class, 'index'])->name('Listas.materias.index');
+
 
     //Aulas
     Route::get('/aulas',[FacilityController::class, 'index'])->name('Facilities.index');
