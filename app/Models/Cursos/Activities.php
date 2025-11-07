@@ -74,8 +74,5 @@ class Activities extends Model
                     ->withTimestamps('completed_at');
     }
 
-    public function completions()
-    {
-        return $this->morphMany(Completion::class, 'completable');
-    }
+
 }

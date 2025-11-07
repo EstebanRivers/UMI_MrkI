@@ -250,7 +250,19 @@
 
                             {{-- Render específico por tipo --}}
                             @if ($activity->type == 'Cuestionario' && is_array($activity->content))
-                                <form action="#" method="POST">
+                                
+                                {{--
+                                    FORMULARIO ACTUALIZADO:
+                                    - Añadimos un ID al formulario: "quiz-form-{{ $activity->id }}"
+                                    - Añadimos data-activity-id: "{{ $activity->id }}"
+                                    - Añadimos la ruta de envío: "{{ route('activities.submit', $activity) }}"
+                                --}}
+                                <form 
+                                    class="quiz-form"
+                                    id="quiz-form-{{ $activity->id }}"
+                                    action="{{ route('activities.submit', $activity) }}" 
+                                    method="POST"
+                                    data-activity-id="{{ $activity->id }}">
                                     @csrf
                                     <p class="question-text">
                                         {{ $activity->content['question'] ?? '' }}
@@ -259,11 +271,15 @@
                                     @foreach ($activity->content['options'] as $index => $option)
                                         <div class="option-box">
                                             <label>
+                                                {{-- Usamos el $index (0, 1, 2...) como valor --}}
                                                 <input type="radio" name="answer" value="{{ $index }}" {{ Auth::id() == $course->instructor_id ? 'disabled' : '' }}>
                                                 {{ $option }}
                                             </label>
                                         </div>
                                     @endforeach
+
+                                    {{-- Contenedor para mensajes de feedback --}}
+                                    <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
 
                                     @if (Auth::id() != $course->instructor_id)
                                         <button type="submit" class="btn-success">Enviar Respuesta</button>
@@ -271,6 +287,15 @@
                                         <p class="instructor-note">(Vista de previsualización para el instructor)</p>
                                     @endif
                                 </form>
+                            
+                            {{-- AQUÍ IRÁN TUS FUTURAS ACTIVIDADES --}}
+                            {{-- @elseif ($activity->type == 'SopaDeLetras')
+                                <div id="wordsearch-game-{{ $activity->id }}" data-words='@json($activity->content['words'] ?? [])'>
+                                    Cargando Sopa de Letras...
+                                </div>
+                                <button class="btn-success complete-game-btn" data-activity-id="{{ $activity->id }}">Completar</button> 
+                            --}}
+
                             @else
                                 <p>{{ is_array($activity->content) ? json_encode($activity->content) : $activity->content }}</p>
                             @endif
@@ -284,7 +309,15 @@
                         <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
 
                         @if ($activity->type == 'Cuestionario' && is_array($activity->content))
-                            <form action="#" method="POST">
+                            {{--
+                                FORMULARIO ACTUALIZADO (Versión Tema)
+                            --}}
+                            <form 
+                                class="quiz-form"
+                                id="quiz-form-{{ $activity->id }}"
+                                action="{{ route('activities.submit', $activity) }}" 
+                                method="POST"
+                                data-activity-id="{{ $activity->id }}">
                                 @csrf
                                 <p class="question-text">
                                     {{ $activity->content['question'] ?? '' }}
@@ -299,6 +332,8 @@
                                     </div>
                                 @endforeach
 
+                                <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+
                                 @if (Auth::id() != $course->instructor_id)
                                     <button type="submit" class="btn-success">Enviar Respuesta</button>
                                 @else
@@ -310,7 +345,6 @@
                         @endif
                     </div>
                 @endforeach
-
             @endforeach
         </div>
 
@@ -361,14 +395,14 @@
            3. LÓGICA DE PROGRESO (Marcar y Actualizar Barra)
            ================================================================== */
 
-        // --- Función para enviar progreso al backend ---
+        // --- Función para enviar progreso al backend (PARA PDFs/VIDEOS) ---
         const markItemAsComplete = (type, id, element) => {
             if (element.classList.contains('completed')) {
                 return;
             }
             element.classList.add('completed'); 
 
-            window.axios.post('{{ route("completions.mark") }}', { // Ruta actualizada
+            window.axios.post('{{ route("completions.mark") }}', { 
                 type: type, // 'Topics', 'Subtopic', o 'Activities'
                 id: id
             })
@@ -395,7 +429,7 @@
             const barText = document.getElementById('progress-bar-text');
 
             // Contamos cuántos items tienen la clase 'completed' en el DOM
-            const completedNow = document.querySelectorAll('.auto-complete-link.completed').length;
+            const completedNow = document.querySelectorAll('.syllabus-link.completed').length;
             const totalItems = parseInt(tracker.dataset.totalActivities, 10); // data-total-items
 
             if (totalItems === 0) return;
@@ -407,14 +441,18 @@
             barText.innerText = newProgress + '%';
         };
 
-        // --- Escuchar clics en los enlaces "completables" ---
+        // --- Escuchar clics en los enlaces "completables" (PDFs/Videos) ---
         const completableLinks = document.querySelectorAll('.auto-complete-link');
         completableLinks.forEach(link => {
             link.addEventListener('click', function(event) {
                 const type = this.dataset.completableType;
                 const id = this.dataset.completableId;
                 if (type && id) {
-                    markItemAsComplete(type, id, this);
+                    // Solo marcamos como completo si NO es un cuestionario
+                    // Los cuestionarios se marcan al enviar el form
+                    if (type !== 'Activities' || this.dataset.target.includes('activity-') === false || document.querySelector(this.dataset.target).querySelector('form.quiz-form') === null) {
+                         markItemAsComplete(type, id, this);
+                    }
                 }
             });
         });
@@ -436,12 +474,84 @@
             const parts = key.split('-');
             const type = parts[0].split('\\').pop(); // Obtiene 'Topics', 'Subtopic', 'Activities'
             const id = parts[1];
-
-            const link = document.querySelector(`.auto-complete-link[data-completable-type="${type}"][data-completable-id="${id}"]`);
+            
+            // IMPORTANTE: Buscamos el link en el SILLABUS, no en el contenido
+            const link = document.querySelector(`.syllabus-link[data-completable-type="${type}"][data-completable-id="${id}"]`);
             if (link) {
                 link.classList.add('completed');
             }
         }
+        
+        // --- (NUEVO) LÓGICA DE ENVÍO DE CUESTIONARIOS ---
+        document.querySelectorAll('.quiz-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevenir envío normal
+
+                const activityId = this.dataset.activityId;
+                const feedbackEl = document.getElementById(`feedback-${activityId}`);
+                const formData = new FormData(this);
+                const userAnswer = formData.get('answer');
+
+                if (userAnswer === null) {
+                    feedbackEl.style.color = 'red';
+                    feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
+                    return;
+                }
+
+                window.axios.post(this.action, {
+                    answer: userAnswer
+                })
+                .then(response => {
+                    // Éxito: Respuesta correcta
+                    feedbackEl.style.color = 'green';
+                    feedbackEl.innerText = response.data.message;
+
+                    // Deshabilitar el formulario
+                    this.querySelectorAll('input, button').forEach(el => el.disabled = true);
+
+                    // Marcar como completo en el SILLABUS
+                    const syllabusLink = document.querySelector(`.syllabus-link[data-completable-id="${activityId}"][data-completable-type="Activities"]`);
+                    if (syllabusLink) {
+                        syllabusLink.classList.add('completed');
+                    }
+                    
+                    // Actualizar la barra de progreso (solo si era nuevo)
+                    if (response.data.created) {
+                        updateProgressBar();
+                    }
+                })
+                .catch(error => {
+                    // Error: Respuesta incorrecta u otro
+                    feedbackEl.style.color = 'red';
+                    if (error.response && error.response.status === 422) {
+                        feedbackEl.innerText = error.response.data.message;
+                    } else {
+                        feedbackEl.innerText = 'Error al enviar la respuesta. Intenta más tarde.';
+                    }
+                });
+            });
+        });
+        
+        // --- (NUEVO) LÓGICA PARA SOPA DE LETRAS / CRUCIGRAMA ---
+        // (Ejemplo de cómo lo harías)
+        
+        // 1. Escuchar el botón "Completar"
+        // document.querySelectorAll('.complete-game-btn').forEach(button => {
+        //    button.addEventListener('click', function() {
+        //        const activityId = this.dataset.activityId;
+        //
+        //        // Llamar a la misma ruta 'submit', pero sin datos de respuesta
+        //        window.axios.post(`/actividades/${activityId}/submit`, {})
+        //            .then(response => {
+        //                // ... (mismo código de éxito que el cuestionario) ...
+        //                // Marcar en SILLABUS, actualizar barra, etc.
+        //            })
+        //            .catch(error => {
+        //                // ... (mismo código de error) ...
+        //            });
+        //    });
+        // });
+
 
     }); // Cierre del DOMContentLoaded
 </script>

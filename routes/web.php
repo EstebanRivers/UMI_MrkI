@@ -44,7 +44,8 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
 
     // Cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
-       // Gestión de cursos - solo para admins y docentes
+    
+    // --- Gestión de cursos - solo para admins y docentes ---
     Route::middleware(['role:master, docente'])->group(function () {
         Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
         Route::post('/cursos', [CourseController::class, 'store'])->name('courses.store');
@@ -60,16 +61,29 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
-        Route::post('/completions/mark', [CompletionController::class, 'mark'])->name('completions.mark');            
+        // SACAMOS completions.mark DE AQUÍ
     });
+
+    // --- Rutas de Progreso (Para todos los usuarios) ---
+    Route::post('/completions/mark', [CompletionController::class, 'mark'])
+        ->name('completions.mark'); // <- MOVIMOS AQUÍ
+    
+    Route::post('/actividades/{activity}/submit', [ActivitiesController::class, 'submit'])
+        ->name('activities.submit'); // <- AÑADIMOS ESTA RUTA
+
 
     //Vista del curso
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
-    // Ruta para inscribir al usuario autenticado en un curso
-    Route::post('/cursos/{course}/inscribir', [CourseController::class, 'enroll'])->name('courses.enroll')
-        ->middleware('auth');
+    
+    // Rutas para inscribir y desinscribir al usuario (para AJAX)
+    Route::post('/cursos/{course}/inscribir', [CourseController::class, 'enroll'])
+        ->name('courses.enroll');
+    
+    Route::post('/cursos/{course}/desinscribir', [CourseController::class, 'unenroll'])
+        ->name('courses.unenroll');
 
-    Route::middleware(['role:master,control_administrativo']) // 1. AÑADIMOS EL MIDDLEWARE DE ROL
+
+    Route::middleware(['role:master,control_administrativo']) 
         ->prefix('ajustes')->name('ajustes.')->group(function () {
         
         // --- Tus rutas existentes ---

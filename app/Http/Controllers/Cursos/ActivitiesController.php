@@ -7,6 +7,7 @@ use App\Models\Cursos\Subtopic;
 use App\Models\Cursos\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse; 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
@@ -18,19 +19,24 @@ class ActivitiesController extends Controller
             'topic_id' => 'nullable|exists:topics,id|required_without_all:subtopic_id',
             'subtopic_id' => 'nullable|exists:subtopics,id|required_without_all:topic_id',
             'title' => 'required|string|max:255',
-            'type' => 'required|string',
+            'type' => 'required|string', // Tipos: 'Cuestionario', 'SopaDeLetras', 'Crucigrama'
             'content' => 'required|array',
         ]);
 
         if ($validatedData['type']==='Cuestionario'){
             $request->validate([
                 'content.question' => 'required|string',
-                'content.options' => 'required|array|min:4',
+                'content.options' => 'required|array|min:4', // Ajusta si quieres menos opciones
                 'content.options.*' => 'required|string',
-                'content.correct_answer' => 'required',
+                'content.correct_answer' => 'required', // Debería ser el índice (0, 1, 2, 3...)
 
             ]);
         }
+        
+        // Lógica para 'SopaDeLetras' o 'Crucigrama'
+        // if ($validatedData['type']==='SopaDeLetras'){
+        //     $request->validate(['content.words' => 'required|array']);
+        // }
 
         $courseId = null;
 
@@ -76,16 +82,45 @@ class ActivitiesController extends Controller
         return back()->with('success', '¡Actividad eliminada exitosamente!');
     }
 
-    public function complete(Request $request, Activities $activity)
+    /**
+     * Procesa el envío de una actividad interactiva (Cuestionario, Sopa, etc.)
+     */
+    public function submit(Request $request, Activities $activity): JsonResponse
     {
         $user = Auth::user();
 
-        // syncWithoutDetaching es perfecto:
-        // 1. Si no existe, lo añade.
-        // 2. Si ya existe, no hace nada.
-        $user->completedActivities()->syncWithoutDetaching([$activity->id]);
+        // 1. Validar la respuesta (si aplica)
+        if ($activity->type === 'Cuestionario') {
+            $validated = $request->validate(['answer' => 'required']);
+            
+            $userAnswer = $validated['answer'];
+            $correctAnswer = $activity->content['correct_answer'] ?? null;
 
-        // Devolvemos JSON para que JavaScript lo entienda
-        return response()->json(['success' => true, 'activity_id' => $activity->id]);
+            // Comparamos la respuesta enviada (ej. "1") con la correcta (ej. "1")
+            if (strval($userAnswer) !== strval($correctAnswer)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Respuesta incorrecta. ¡Inténtalo de nuevo!'
+                ], 422); // Error de validación
+            }
+        }
+
+        // Para 'SopaDeLetras' o 'Crucigrama', la validación se hace en el frontend (JS).
+        // El simple hecho de llamar a esta ruta significa que el usuario completó el juego.
+        // Si quisieras más seguridad, el JS debería enviar una "prueba" que el backend pueda validar.
+        // Por ahora, confiamos en que si el JS lo envía, está completo.
+
+        // 2. Marcar como completado usando el sistema polimórfico
+        $completion = $user->completions()->firstOrCreate([
+            'completable_type' => Activities::class, // Usar el FQCN del modelo
+            'completable_id'   => $activity->id
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'created' => $completion->wasRecentlyCreated, // Para que el JS sepa si debe actualizar la barra
+            'message' => '¡Actividad completada exitosamente!'
+        ]);
     }
+
 }

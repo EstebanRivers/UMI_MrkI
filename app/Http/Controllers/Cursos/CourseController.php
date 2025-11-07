@@ -14,13 +14,13 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
-
+use Illuminate\Http\JsonResponse; // <-- Importante
 
 class CourseController extends Controller
 {
     use AuthorizesRequests;
     /**
-     * Muestrar lista de cursos
+     * Mostrar lista de cursos
      */
     public function index(): View
     {
@@ -136,10 +136,11 @@ class CourseController extends Controller
         
         $user = Auth::user();
         
-        // --- Lógica de Auto-Inscripción (se mantiene igual) ---
-        if ($user && !$user->courses->contains($course->id)) {
-            $user->courses()->attach($course->id);
-        }
+        // --- Lógica de Auto-Inscripción ELIMINADA ---
+        // if ($user && !$user->courses->contains($course->id)) {
+        //     $user->courses()->attach($course->id);
+        // }
+        // --- FIN DE LÓGICA ELIMINADA ---
 
         $totalItems = 0;
         $completedItems = 0;
@@ -389,6 +390,66 @@ class CourseController extends Controller
 
         return redirect()->route('Cursos.index')
             ->with('success', 'Curso "' . $courseTitle . '" eliminado exitosamente.');
+    }
+
+
+    // --- MÉTODOS DE INSCRIPCIÓN (NUEVOS) ---
+
+    /**
+     * Inscribe al usuario autenticado en un curso.
+     * Responde a una solicitud AJAX.
+     */
+    public function enroll(Request $request, Course $course): JsonResponse
+    {
+        $user = Auth::user();
+
+        // 1. Autorización: ¿Puede el usuario ver este curso?
+        //    Usamos la policy 'view' que ya definimos.
+        try {
+            $this->authorize('view', $course);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'No tienes permiso para inscribirte en este curso.'
+            ], 403);
+        }
+
+        // 2. Lógica de inscripción
+        // syncWithoutDetaching previene duplicados si ya está inscrito
+        $user->courses()->syncWithoutDetaching($course->id);
+
+        Log::info('Usuario inscrito en curso', [
+            'user_id' => $user->id, 
+            'course_id' => $course->id
+        ]);
+
+        return response()->json([
+            'success' => true, 
+            'message' => '¡Inscripción exitosa!'
+        ]);
+    }
+
+    /**
+     * Da de baja al usuario autenticado de un curso.
+     * Responde a una solicitud AJAX.
+     */
+    public function unenroll(Request $request, Course $course): JsonResponse
+    {
+        $user = Auth::user();
+
+        // 1. Lógica de desinscripción
+        // detach() simplemente quita la relación.
+        $user->courses()->detach($course->id);
+
+        Log::info('Usuario dado de baja de curso', [
+            'user_id' => $user->id, 
+            'course_id' => $course->id
+        ]);
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Has sido dado de baja del curso.'
+        ]);
     }
 
 }
