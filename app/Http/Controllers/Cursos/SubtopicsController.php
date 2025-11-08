@@ -44,8 +44,8 @@ class SubtopicsController extends Controller
             'order' => 'nullable|integer',
         ]);
 
-        if ($request->hasFile('file_path')){
-            $path = $request->file('file_path')->store('subtopic', 'public');
+        if ($request->hasFile('file')){
+            $path = $request->file('file')->store('subtopic', 'public');
 
             $validatedData['file_path']=$path;
             unset($validatedData['file']);

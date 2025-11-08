@@ -39,8 +39,8 @@ class TopicsController extends Controller
             'file_path' => 'nullable|file|mimes:pdf,doc,docx,pptx,mp4,mov,avi,wmv|max:51200',
         ]);
 
-        if ($request->hasFile('file_path')){
-            $path = $request->file('file_path')->store('topic_files', 'public');
+        if ($request->hasFile('file')){
+            $path = $request->file('file')->store('topic_files', 'public');
 
             $validatedData['file_path']=$path;
         }
