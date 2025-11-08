@@ -188,7 +188,7 @@
                                     </div>
                                 @elseif (in_array($extension, ['zip', 'rar']))
                                     <div class="file-viewer" style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                                        <p>📦 Este es un archivo comprimido (<strong>{{ strtoupper($extension) }}</strong>).</p>
+                                        <p> Este es un archivo comprimido (<strong>{{ strtoupper($extension) }}</strong>).</p>
                                         <a href="{{ $fileUrl }}" target="_blank" class="btn-secondary">Descargar archivo</a>
                                     </div>
                                 @else
