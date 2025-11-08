@@ -15,14 +15,10 @@
         </div>
         <div class="option-carrer">
             @if(Auth::user()->hasAnyRole(['master']))
-                <button type="button" onclick="openModal('createFormModal')">Agregar Carrera</button>
+                <button button type="button" id="openCreateCareerBtn">Agregar Carrera</button>
             @endif
         </div>
-        <div id="createFormModal" class="custom-modal">
-            <span class="close-button" onclick="closeModal('createFormModal')">&times;</span>
-            {{-- INCLUYENDO EL MÓDULO DEL FORMULARIO AQUÍ --}}
-            @include('layouts.ControlAdmin.Carreras.create')
-        </div>
+        @include('layouts.ControlAdmin.Carreras.create')
     </div>
     <!-- Grid de Carreras -->
     <div class="carrers-container">
@@ -47,13 +43,16 @@
                             </svg>
                         </button>
                         {{-- Editar Carrera --}}
-                        <button class="btn-edit">
+                        @if(Auth::user()->hasAnyRole(['master']))
+                            <button type="button" id="openEditModalBtn_{{ $carrera->id }}" class="btn-edit" data-career-id="{{ $carrera->id }}">
                             <svg width="20" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path
                             d="M22.3364 0.648281C21.2991 -0.216094 19.6225 -0.216094 18.5852 0.648281L17.1596 1.83235L21.7964 5.69638L23.2221 4.50836C24.2593 3.64399 24.2593 2.24678 23.2221 1.38241L22.3364 0.648281ZM8.16538 9.33149C7.87646 9.57225 7.65386 9.86827 7.52598 10.1959L6.12403 13.7007C5.98668 14.0402 6.09561 14.4151 6.39874 14.6717C6.70186 14.9282 7.15181 15.015 7.56387 14.9006L11.7697 13.7323C12.1581 13.6257 12.5133 13.4402 12.8069 13.1995L20.7308 6.59233L16.0892 2.72436L8.16538 9.33149ZM4.54685 2.31783C2.03661 2.31783 0 4.015 0 6.10686V16.211C0 18.3028 2.03661 20 4.54685 20H16.6718C19.182 20 21.2186 18.3028 21.2186 16.211V12.4219C21.2186 11.7233 20.5413 11.1589 19.703 11.1589C18.8647 11.1589 18.1874 11.7233 18.1874 12.4219V16.211C18.1874 16.9096 17.5101 17.474 16.6718 17.474H4.54685C3.70852 17.474 3.03123 16.9096 3.03123 16.211V6.10686C3.03123 5.40826 3.70852 4.84385 4.54685 4.84385H9.09369C9.93202 4.84385 10.6093 4.27944 10.6093 3.58084C10.6093 2.88223 9.93202 2.31783 9.09369 2.31783H4.54685Z"
                             fill="black" />
                         </svg>
                         </button>
+                        @include('layouts.ControlAdmin.Carreras.edit', ['career' => $carrera])
+                        @endif
                         {{-- Eliminar --}}
                         <form action="{{ route('career.destroy', $carrera->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta carrera?');">
                             @csrf
@@ -80,18 +79,100 @@
     </div>
 </div>
 {{-- Script JS para abrir/cerrar (el mismo de antes) --}}
-<script>
-    function openModal(modalId) {
-        document.getElementById(modalId).style.display = "block";
-    }
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
-    }
-    window.onclick = function(event) {
-        const modal = document.getElementById('createFormModal');
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-</script>
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- 1. LÓGICA DEL MODAL DE CREACIÓN (Singular) ---
+            
+            // Identificadores únicos para el modal de creación
+            const createModal = document.getElementById('createCareerModal');
+            const openCreateBtn = document.getElementById('openCreateCareerBtn'); 
+            
+            // Función para abrir el modal de Creación
+            if (openCreateBtn) {
+                openCreateBtn.addEventListener('click', () => {
+                    if (createModal) {
+                        createModal.style.display = 'flex';
+                    }
+                });
+            }
+
+            // Detectar errores de Creación (Asumiendo que no hay ID de carrera en old input, 
+            // solo el campo 'name' u otro campo requerido)
+            const hasCreateErrors = @json($errors->hasAny() && old('name') && !request()->routeIs('careers.update')); 
+
+            if (createModal && hasCreateErrors) {
+                 createModal.style.display = 'flex'; 
+            }
+            
+            // ----------------------------------------------------
+            
+            // --- 2. LÓGICA DEL MODAL DE EDICIÓN (Múltiple) ---
+            
+            // Selector de clase para TODOS los botones de edición
+            const openEditButtons = document.querySelectorAll('.btn-edit');
+
+            openEditButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const careerId = this.getAttribute('data-career-id');
+                    // Abrir el modal específico de esta carrera usando el ID único
+                    const modal = document.getElementById('editCareerModal_' + careerId);
+                    if (modal) {
+                        modal.style.display = 'flex';
+                    }
+                });
+            });
+
+            // Detectar errores de Edición (Asumiendo que un modal con error tiene .alert-danger)
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                const errorElement = modal.querySelector('.alert-danger'); 
+                
+                // Si encontramos un error en cualquier modal y no es el modal de creación
+                if (errorElement && modal.id.startsWith('editCareerModal_')) {
+                     modal.style.display = 'flex';
+                }
+            });
+
+
+            // ----------------------------------------------------
+            
+            // --- 3. LÓGICA UNIFICADA DE CIERRE (para todos los modales) ---
+            
+            // Cierre con el botón 'X' (.close-custom) o 'Cancelar' (.btn-secondary)
+            document.querySelectorAll('.close-custom, .btn-secondary').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Buscar el contenedor de modal más cercano y cerrarlo
+                    const modal = btn.closest('.modal-overlay');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+
+            // Cierre al hacer clic fuera del modal (overlay) y con tecla ESC
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                // Cierre por clic en overlay
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+
+            // Cierre con la tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    // Cierra cualquier modal que esté visible
+                    document.querySelectorAll('.modal-overlay').forEach(modal => {
+                         if (modal.style.display === 'flex') {
+                             modal.style.display = 'none';
+                         }
+                    });
+                }
+            });
+            
+        });
+    </script>
+@endpush
 @endsection

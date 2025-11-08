@@ -617,13 +617,15 @@
     z-index: 1000; /* Asegura que esté por encima de otros elementos */
 }
 
-/* Estilo del Contenido del Modal */
+/* Estilo del Contenido del Modal (Global)*/
 .modal-content-container {
     background-color: #fff;
     margin: 10% auto; /* Centrarlo verticalmente y horizontalmente */
+    margin-left: auto;
+    margin-right: auto;
     padding: 20px;
     border-radius: 8px;
-    width: 80%; /* Ancho deseado del modal */
+    width: 70%; /* Ancho deseado del modal */
     max-width: 600px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -632,3 +634,124 @@
 .modal-overlay.is-visible {
     display: block; /* Muestra el modal */
 }
+
+.modal-header-custom {
+    /* Usa Flexbox para controlar la alineación de los elementos internos */
+    display: flex;
+    
+    /* Alinear elementos a lo largo del eje vertical (centro) */
+    align-items: center; 
+    
+    /* Distribuir el espacio: empuja el botón de cerrar (right) y el título (center) */
+    justify-content: space-between; 
+    
+    padding: 15px; /* Ejemplo de padding */
+
+}
+
+/* 1. Centrar el título (H5) */
+/* El 'margin-right: auto' en el H5 empuja el botón de cierre a la derecha */
+.modal-header-custom h5 {
+    /* Ocupa el espacio necesario, pero se centra por el truco del flexbox */
+    flex-grow: 1; 
+    /* Alinea el texto del título en el centro de su propio espacio */
+    text-align: center; 
+    /* Hace que las letras sean bold (negrita) */
+    font-weight: bold; 
+    /* Necesitas forzar el título a no crecer más allá del centro */
+    margin: 0; 
+    /* Esta regla asegura que el botón no se pegue al título */
+    margin-right: 20px; 
+
+    font-size: 1.5rem;
+}
+
+/* 2. Posicionar el botón de cerrar a la derecha */
+.close-custom {
+    /* Asegura que el botón no crezca y se mantenga a la derecha */
+    flex-shrink: 0; 
+    font-size: 1.5rem; /* Ejemplo de tamaño para el 'x' */
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* 1. Las etiquetas (labels) encima de los inputs */
+.form-field {
+    /* Establece el contenedor de campo como un contenedor flexible */
+    display: flex;
+    /* Apila la etiqueta y el input verticalmente */
+    flex-direction: column; 
+    /* Agrega un poco de espacio entre campos */
+    margin-bottom: 15px; 
+}
+
+/* 2. Disposición de las opciones (Modalidad y Semestres) */
+.options {
+    /* Convierte el contenedor de 'options' en una fila flexible */
+    display: flex;
+    /* Distribuye el espacio entre los dos elementos */
+    justify-content: space-between; 
+    /* Asegura que los campos llenen el ancho disponible */
+    width: 100%;
+    /* Agrega un pequeño margen superior para separarlo de los campos anteriores */
+    margin-top: 15px;
+}
+
+/* 3. Ajuste de ancho para Checkboxes y Lists */
+.options .form-field {
+    /* Permite que cada campo ocupe el espacio disponible, asegurando igualdad */
+    flex-grow: 1; 
+    /* Define un ancho base para evitar que uno sea demasiado pequeño */
+    flex-basis: 48%; 
+}
+
+/* 4. Estilos básicos para inputs y selects (para una mejor apariencia) */
+.form-field input[type="text"],
+.form-field select {
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 2px solid red;
+    border-radius: 4px;
+    /* Asegura que ocupen todo el ancho de su contenedor */
+    width: 100%; 
+    box-sizing: border-box; /* Importante para incluir padding en el ancho total */
+}
+
+/* Estilos para los botones (opcional, para que se vean decentes) */
+.cancel-button,
+.submit-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.submit-button {
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.submit-button:hover {
+    transform: translateY(-1px);
+    color: var(--accent);
+}
+/* Estilo para centrar los botones en el footer */
+.modal-footer-custom {
+    /* Convierte el footer en un contenedor flexible */
+    display: flex;
+    /* Centra los elementos flexibles (los botones) horizontalmente */
+    justify-content: center;
+    /* Agrega el margen superior que tenías en el HTML */
+    margin-top: 15px; 
+    /* Si tienes más estilos para el footer, agrégalos aquí */
+    padding: 15px 0; /* Opcional: añade padding interno */
+}
+
+/* ... Mantener el resto de los estilos .cancel-button, .submit-button, etc. ... */

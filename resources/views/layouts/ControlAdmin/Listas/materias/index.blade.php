@@ -10,8 +10,19 @@
         <div class="content-title">
             <h1>Lista de Materias</h1>
         </div>
-        <div class="option-carrer">
-            <button id="openCreateCarrer">Agregar Carrera</button>
+    </div>
+    <div class="list-header-toolbar">
+        <div class="toolbar__section toolbar__section--left">
+            <div class="toolbar__search">
+                <input type="text" placeholder="Buscar por...">
+            </div>      
+            <div class="toolbar__section toolbar__section--right">
+                <div class="toolbar__actions">
+                    @if(Auth::user()->hasAnyRole(['master']))
+                        <button type="button" id="openModalBtn" class="btn btn--primary">Agregar Alumno</button>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
     <div class="Table-view">

@@ -117,9 +117,11 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
     
     //Carreras
-    Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');
-    Route::post('/carreras', [careerController::class, 'store'])->name('career.store');
-    Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
+    Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');//Mostrar Carreras
+    Route::get('/carreras/create',[careerController::class,'create'])->name('career.create');//Mostrar Formulario de Creación
+    Route::post('/carreras', [careerController::class, 'store'])->name('career.store');//Crear Carrera
+    Route::put('/carreras/{carrera}', [careerController::class, 'update'])->name('career.update');
+    Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');//Eliminar Carrera
     
     });
 
