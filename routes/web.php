@@ -16,6 +16,7 @@ use App\Http\Controllers\AdmonCont\FacilityController;
 use App\Http\Controllers\AdmonCont\store\ListsControler;
 use App\Http\Controllers\AdmonCont\store\studentController;
 use App\Http\Controllers\AdmonCont\MateriaController;
+use App\Http\Controllers\SchoolarCont\InscripcionController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -124,6 +125,14 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');//Eliminar Carrera
     
     });
+
+    //Control Escolar
+
+    //Inscripción
+    Route::middleware(['role:master'])->group(function () {
+        Route::get('/inscripcion',[InscripcionController::class, 'index'])->name('Inscripción.index');//Formulario de inscripción
+    });
+    
 
     //V1-DEPRECATED
     Route::middleware(['role:master'])->group(function () {

@@ -171,11 +171,7 @@ class User extends Authenticatable
     }
 
 
-    // El perfil corporativo asociado al usuario.
-    public function horarioProfile(): HasOne
-    {
-        return $this->belongsTo(Horario::class);
-    }
+
 
 
 }
