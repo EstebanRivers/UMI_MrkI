@@ -26,17 +26,43 @@ class ActivitiesController extends Controller
         if ($validatedData['type']==='Cuestionario'){
             $request->validate([
                 'content.question' => 'required|string',
-                'content.options' => 'required|array|min:4', // Ajusta si quieres menos opciones
+                'content.options' => 'required|array|min:4', 
                 'content.options.*' => 'required|string',
-                'content.correct_answer' => 'required', // Debería ser el índice (0, 1, 2, 3...)
+                'content.correct_answer' => 'required', 
 
             ]);
         }
         
         // Lógica para 'SopaDeLetras' o 'Crucigrama'
-        // if ($validatedData['type']==='SopaDeLetras'){
-        //     $request->validate(['content.words' => 'required|array']);
-        // }
+        elseif ($validatedData['type'] === 'SopaDeLetras') {
+            $request->validate([
+                'content.words' => 'required|array|min:1', // Debe tener al menos una palabra
+                'content.words.*' => 'required|string|distinct', // Palabras deben ser únicas
+                'content.grid_size' => 'required|integer|min:5|max:20', // Tamaño de 5x5 a 20x20
+            ]);
+        }
+
+        elseif ($validatedData['type'] === 'Crucigrama') {
+            $request->validate([
+                'content.grid_size' => 'required|integer|min:5|max:25',
+                
+                // Validar pistas horizontales (si existen)
+                'content.clues.across' => 'nullable|array',
+                'content.clues.across.*.number' => 'required|integer',
+                'content.clues.across.*.clue' => 'required|string',
+                'content.clues.across.*.answer' => 'required|string',
+                'content.clues.across.*.x' => 'required|integer', // Coordenada X (columna)
+                'content.clues.across.*.y' => 'required|integer', // Coordenada Y (fila)
+
+                // Validar pistas verticales (si existen)
+                'content.clues.down' => 'nullable|array',
+                'content.clues.down.*.number' => 'required|integer',
+                'content.clues.down.*.clue' => 'required|string',
+                'content.clues.down.*.answer' => 'required|string',
+                'content.clues.down.*.x' => 'required|integer',
+                'content.clues.down.*.y' => 'required|integer',
+            ]);
+        }
 
         $courseId = null;
 
@@ -68,8 +94,6 @@ class ActivitiesController extends Controller
         }
 
         Activities::create($validatedData);
-
-
         return back()->with('success', 'Actividad creada exitosamente.');
     }
 

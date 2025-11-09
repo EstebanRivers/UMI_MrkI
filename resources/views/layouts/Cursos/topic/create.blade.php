@@ -107,38 +107,127 @@
                     <input type="hidden" name="subtopic_id" id="activity-subtopic-id">
                     <input type="hidden" name="topic_id" id="activity-topic-id">
 
-                        <div class="header-activity" style="display:flex; justify-content: space-between; margin-bottom: 10px;">
-                            <h5>Nueva Actividad</h5>
-                            <button type="submit" class="btn-primary">+ Añadir Actividad</button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <input type="text" name="title" placeholder="Título de la actividad" required>
-                        </div>
+                    <div class="header-activity" style="display:flex; justify-content: space-between; margin-bottom: 10px;">
+                        <h5>Nueva Actividad</h5>
+                        <button type="submit" class="btn-primary">+ Añadir Actividad</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" name="title" placeholder="Título de la actividad" required>
+                    </div>
 
-                        <div class="form-group">
-                            <select name="type" required class="activity-type-selector">
-                                <option value="" disabled selected>Selecciona el tipo...</option>
-                                <option value="Cuestionario">Cuestionario</option>
-                                <option value="SopaDeLetras">Sopa de Letras</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="activity_type">Tipo de Actividad</label>
+                        <select name="type" id="activity_type" required>
+                            <option value="" disabled selected>Selecciona un tipo</option>
+                            <option value="Cuestionario">Cuestionario (Quiz)</option>
+                            <option value="SopaDeLetras">Sopa de Letras</option>
+                            <option value="Crucigrama">Crucigrama</option>
+                        </select>
+                    </div>
 
-                        <div class="activity-fields-container">
-                            <div class="activity-fields" id="fields-Cuestionario">
-                                <div class="form-group">
-                                    <label>Pregunta del cuestionario:</label>
-                                    <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí">
+                    <div id="activity-type-container">
+
+                        <div id="template-Cuestionario" class="activity-template" style="display: none;">
+                            <div class="activity-fields-container">
+                                <div class="activity-fields" id="fields-Cuestionario"> <div class="form-group">
+                                        <label>Pregunta del cuestionario:</label>
+                                        <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí" disabled>
+                                    </div>
                                 </div>
-                            </div>
                                 <label>Opciones de respuesta (marca la correcta):</label>
                                 @for ($i = 0; $i < 4; $i++)
                                     <div class="quiz-option">
-                                        <input type="radio" name="content[correct_answer]" value="{{ $i }}">
-                                        <input type="text" name="content[options][]" class="form-field-cuestionario" placeholder="Opción {{ $i + 1 }}">
+                                        <input type="radio" name="content[correct_answer]" value="{{ $i }}" disabled>
+                                        <input type="text" name="content[options][]" class="form-field-cuestionario" placeholder="Opción {{ $i + 1 }}" disabled>
                                     </div>
                                 @endfor
+                            </div>
                         </div>
+                        <div id="template-SopaDeLetras" class="activity-template" style="display: none;">
+                            
+                            <div class="form-group">
+                                <label for="content_grid_size">Tamaño de Cuadrícula (Ej: 10 para 10x10)</label>
+                                <input type="number" name="content[grid_size]" id="content_grid_size" 
+                                    value="10" min="5" max="20" disabled>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ws_word_input">Palabras a encontrar</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="ws_word_input" 
+                                        placeholder="Escribe una palabra y presiona 'Añadir'" 
+                                        style="flex: 1;" disabled>
+                                    <button type="button" id="ws_add_word_btn" class="btn-secondary" disabled>Añadir</button>
+                                </div>
+                                <small>Se recomiendan palabras sin espacios ni acentos, todo en mayúsculas.</small>
+                            </div>
+
+                            <label>Palabras añadidas:</label>
+                            <ul id="ws_word_list" style="list-style: disc; margin-left: 20px; min-height: 50px; background: #f4f4f4; border-radius: 4px; padding: 10px;"></ul>
+                            
+                            <div id="ws_hidden_inputs"></div>
+
+                        </div>
+                        <div id="template-Crucigrama" class="activity-template" style="display: none;">
+                            
+                            <div class="form-group">
+                                <label for="cw_grid_size">Tamaño de Cuadrícula (Ej: 15 para 15x15)</label>
+                                <input type="number" name="content[grid_size]" id="cw_grid_size" 
+                                    value="15" min="5" max="25" disabled>
+                            </div>
+
+                            <hr style="margin: 20px 0;">
+                            
+                            <fieldset style="border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                                <legend style="font-size: 1em; padding: 0 5px; width: auto;">Añadir Pista</legend>
+                                <div class="form-group">
+                                    <label for="cw_direction">Dirección</label>
+                                    <select id="cw_direction" style="width: 100%;">
+                                        <option value="across">Horizontal (Across)</option>
+                                        <option value="down">Vertical (Down)</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="cw_number">Número</label>
+                                        <input type="number" id="cw_number" min="1" value="1">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="cw_x">Columna (X)</label>
+                                        <input type="number" id="cw_x" min="0">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="cw_y">Fila (Y)</label>
+                                        <input type="number" id="cw_y" min="0">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cw_clue">Pista</label>
+                                    <input type="text" id="cw_clue" placeholder="Ej: Capital de Francia">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cw_answer">Respuesta</label>
+                                    <input type="text" id="cw_answer" placeholder="Ej: PARIS">
+                                </div>
+                                <button type="button" id="cw_add_clue_btn" class="btn-secondary" style="width: 100%;">+ Añadir Pista</button>
+                            </fieldset>
+
+                            <div style="display: flex; gap: 20px; margin-top: 15px;">
+                                <div style="flex: 1;">
+                                    <label>Horizontales:</label>
+                                    <ul id="cw_across_list" class="cw-clue-list"></ul>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Verticales:</label>
+                                    <ul id="cw_down_list" class="cw-clue-list"></ul>
+                                </div>
+                            </div>
+                            
+                            <div id="cw_hidden_inputs"></div>
+                            
+                        </div>
+                    </div> 
                 </form>
             </div>
             {{-- 2.4 FORMULARIO DE EDICIÓN DE TEMA (Inicialmente oculto) --}}
@@ -483,26 +572,164 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ===================================================
-    // 6. SELECTOR DE TIPO DE ACTIVIDAD
+    // 6. SELECTOR DE TIPO DE ACTIVIDAD (CORREGIDO)
     // ===================================================
-    document.querySelectorAll('.activity-type-selector').forEach(selector => {
-        selector.addEventListener('change', function () {
-            const selectedType = this.value;
-            const form = this.closest('form');
-            const allFields = form.querySelectorAll('.activity-fields');
+    const activityTypeSelect = document.getElementById('activity_type'); // <- Corregido: Usar el ID
 
-            allFields.forEach(field => {
-                field.style.display = 'none';
-                field.querySelectorAll('.form-field-cuestionario').forEach(input => input.required = false);
+    if (activityTypeSelect) {
+        activityTypeSelect.addEventListener('change', function () {
+            const selectedType = this.value; // ej: "Cuestionario" o "SopaDeLetras"
+            const form = this.closest('form');
+            
+            // 1. Ocultar TODAS las plantillas
+            const allTemplates = form.querySelectorAll('.activity-template');
+            allTemplates.forEach(template => {
+                template.style.display = 'none';
+                
+                // Deshabilitar todos sus campos para que no se envíen
+                template.querySelectorAll('input, button, select, textarea').forEach(input => {
+                    input.disabled = true;
+                });
             });
 
-            const activeFields = form.querySelector('#fields-' + selectedType);
-            if (activeFields) {
-                activeFields.style.display = 'block';
-                activeFields.querySelectorAll('.form-field-cuestionario').forEach(input => input.required = true);
+            // 2. Mostrar la plantilla seleccionada
+            const activeTemplate = form.querySelector('#template-' + selectedType);
+            if (activeTemplate) {
+                activeTemplate.style.display = 'block';
+                
+                // Habilitar solo sus campos
+                activeTemplate.querySelectorAll('input, button, select, textarea').forEach(input => {
+                    input.disabled = false;
+                });
             }
         });
-    });
+    }
+
+    // Lógica para el formulario de Sopa de Letras (Esta parte ya estaba bien)
+    const addWordBtn = document.getElementById('ws_add_word_btn');
+    const wordInput = document.getElementById('ws_word_input');
+    const wordList = document.getElementById('ws_word_list');
+    const hiddenInputsContainer = document.getElementById('ws_hidden_inputs');
+
+    if (addWordBtn) {
+        
+        // Función para añadir la palabra
+        const addWord = () => {
+            let word = wordInput.value.trim().toUpperCase();
+            
+            // Validar (simple)
+            if (word === '' || word.includes(' ')) {
+                alert('Por favor, escribe una sola palabra sin espacios.');
+                return;
+            }
+
+            // 1. Crear el input oculto para el formulario
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'content[words][]'; // Esto crea el array en PHP
+            hiddenInput.value = word;
+            hiddenInputsContainer.appendChild(hiddenInput);
+
+            // 2. Crear el elemento <li> para que el usuario lo vea
+            const li = document.createElement('li');
+            li.textContent = word;
+
+            // 3. (Opcional) Añadir botón de eliminar
+            const removeBtn = document.createElement('span');
+            removeBtn.textContent = ' [X]';
+            removeBtn.style.color = 'red';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.onclick = () => {
+                hiddenInputsContainer.removeChild(hiddenInput);
+                wordList.removeChild(li);
+            };
+            li.appendChild(removeBtn);
+            
+            wordList.appendChild(li);
+
+            // 4. Limpiar el input
+            wordInput.value = '';
+            wordInput.focus();
+        };
+
+        // Añadir al hacer clic
+        addWordBtn.addEventListener('click', addWord);
+        
+        // Añadir al presionar Enter
+        wordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Evitar que el formulario se envíe
+                addWord();
+            }
+        });
+    }
+
+    const addClueBtn = document.getElementById('cw_add_clue_btn');
+    const cwHiddenInputs = document.getElementById('cw_hidden_inputs');
+
+    if (addClueBtn) {
+        let counters = { across: 0, down: 0 };
+
+        addClueBtn.addEventListener('click', function() {
+            // 1. Obtener todos los valores del sub-formulario
+            const direction = document.getElementById('cw_direction').value; // 'across' o 'down'
+            const number = document.getElementById('cw_number').value;
+            const clue = document.getElementById('cw_clue').value;
+            const answer = document.getElementById('cw_answer').value.toUpperCase();
+            const x = document.getElementById('cw_x').value;
+            const y = document.getElementById('cw_y').value;
+
+            // 2. Validar
+            if (!number || !clue || !answer || x === '' || y === '') {
+                alert('Por favor, rellena todos los campos de la pista.');
+                return;
+            }
+            if (answer.includes(' ') || answer.length === 0) {
+                alert('La respuesta debe ser una sola palabra sin espacios.');
+                return;
+            }
+
+            const listId = `cw_${direction}_list`; // 'cw_across_list' o 'cw_down_list'
+            const listElement = document.getElementById(listId);
+            const index = counters[direction]++; // 0, 1, 2...
+            
+            // 3. Crear los inputs ocultos
+            const prefix = `content[clues][${direction}][${index}]`;
+            cwHiddenInputs.insertAdjacentHTML('beforeend', `
+                <input type="hidden" name="${prefix}[number]" value="${number}">
+                <input type="hidden" name="${prefix}[clue]" value="${clue}">
+                <input type="hidden" name="${prefix}[answer]" value="${answer}">
+                <input type="hidden" name="${prefix}[x]" value="${x}">
+                <input type="hidden" name="${prefix}[y]" value="${y}">
+            `);
+
+            // 4. Crear el <li> visible para el docente
+            const li = document.createElement('li');
+            li.textContent = `${number}. [${x},${y}] ${clue} (${answer})`;
+            
+            // 5. Botón de eliminar (opcional pero muy recomendado)
+            const removeBtn = document.createElement('span');
+            removeBtn.textContent = ' [X]';
+            removeBtn.style.color = 'red';
+            removeBtn.style.cursor = 'pointer';
+            li.appendChild(removeBtn);
+
+            removeBtn.addEventListener('click', () => {
+                // Eliminar todos los inputs ocultos de este grupo
+                cwHiddenInputs.querySelectorAll(`input[name^="${prefix}"]`).forEach(inp => inp.remove());
+                // Eliminar el <li>
+                listElement.removeChild(li);
+            });
+
+            listElement.appendChild(li);
+
+            // 6. Limpiar formulario
+            document.getElementById('cw_clue').value = '';
+            document.getElementById('cw_answer').value = '';
+            document.getElementById('cw_number').value = parseInt(number) + 1;
+            document.getElementById('cw_clue').focus();
+        });
+    }
 
     // ===================================================
     // 7. DELEGACIÓN DE EVENTO: EDITAR TEMA
