@@ -11,17 +11,6 @@
         <div class="content-title">
             <h1>Lista de Alumnos</h1>
         </div>
-        <div id="createAcademicModal" class="modal-overlay">
-            <div class="modal-content-container">
-                <div class="modal-header-custom">
-                    <h5 id="createAcademicModalLabel">Registrar Nuevo Alumno</h5>
-                    <button type="button" id="closeModalBtn" class="close-custom">&times;</button>
-                </div>
-                <div class="modal-body-custom" id="modalBodyContent">
-                    <div class="text-center">Cargando...</div>
-                </div>
-            </div>
-        </div>
     </div>
     <div class="list-header-toolbar">
         <div class="toolbar__section toolbar__section--left">
@@ -84,71 +73,4 @@
         </table>
     </div>
 </div>
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('createAcademicModal');
-            const openBtn = document.getElementById('openModalBtn');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const modalBodyContent = document.getElementById('modalBodyContent');
-            
-            // 💡 DEFINICIÓN DE RUTAS (CRÍTICO)
-            // Estas variables globales son usadas por las funciones handleUserSelect y handleFormSubmit
-            window.userDataUrlTemplate = '{{ route('Listas.students.user.data', ['user' => 'USER_ID_PLACEHOLDER'], false) }}';
-            window.storeUrl = '{{ route('Listas.students.store') }}';
-            window.createUrl = '{{ route('Listas.students.create') }}';
-
-            // --- 1. Funciones de Control del Modal (Accesibles Globalmente) ---
-            
-            const hideModal = () => {
-                if (modal) { modal.classList.remove('is-visible'); }
-                document.body.style.overflow = ''; 
-                // Limpiar contenido para forzar la recarga
-                if (modalBodyContent) { modalBodyContent.innerHTML = '<div class="text-center">Cargando...</div>'; }
-            };
-            window.hideModal = hideModal; 
-
-            const showModal = () => {
-                document.body.style.overflow = 'hidden'; 
-                if (modal) { modal.classList.add('is-visible'); }
-                
-                // Carga el formulario HTML
-                axios.get(window.createUrl)
-                    .then(response => {
-                        if (modalBodyContent) { modalBodyContent.innerHTML = response.data; }
-                    })
-                    .catch(error => {
-                        console.error("Error al cargar el formulario:", error);
-                        if (modalBodyContent) { modalBodyContent.innerHTML = '<p style="color:red;">Error al cargar el formulario. Inténtalo de nuevo.</p>'; }
-                    });
-            };
-
-            // --- 2. Lógica del Formulario: Delegación de Eventos ---
-            
-            // A. Delegación del Evento CHANGE (Selección de Usuario)
-            modal.addEventListener('change', function(event) {
-                if (event.target.id === 'user_selector') {
-                    // Llama a la función externa, pasándole el ID y la plantilla de URL
-                    // NOTA: handleUserSelect debe estar definido en el archivo externo
-                    handleUserSelect(event.target.value, window.userDataUrlTemplate);
-                }
-            });
-
-            // B. Delegación del Evento SUBMIT (Envío del Formulario)
-            modal.addEventListener('submit', function(event) {
-                if (event.target.id === 'createAcademicForm') {
-                    event.preventDefault(); 
-                    // Llama a la función externa
-                    handleFormSubmit(event.target);
-                }
-            });
-
-            // --- 3. Eventos de Control de Modal (Apertura y Cierre) ---
-            if (openBtn) { openBtn.addEventListener('click', function(event) { event.preventDefault(); showModal(); }); }
-            if (closeModalBtn) { closeModalBtn.addEventListener('click', hideModal); }
-            if (modal) { modal.addEventListener('click', function(event) { if (event.target === modal) { hideModal(); } }); }
-            document.addEventListener('keydown', function(event) { if (event.key === 'Escape' && modal.classList.contains('is-visible')) { hideModal(); } });
-        });
-    </script>
-@endpush
 @endsection

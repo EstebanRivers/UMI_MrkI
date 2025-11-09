@@ -34,7 +34,7 @@ class studentController extends Controller
         $academicColumns = [
             'user_id', // ¡CRUCIAL para la relación!
             'status', 
-            'carrera'
+            'carrera_id'
         ];
 
         $careerColumns=[
@@ -65,53 +65,5 @@ class studentController extends Controller
         return view($viewPath, [
             'dataList' => $dataList,
         ]);
-    }
-    
-    public function createForm()
-    {
-        // 1. Cargar la lista de TODOS los usuarios (sin filtro de rol)
-        $users = User::select('id', 'nombre', 'apellido_paterno', 'apellido_materno')->get();
-        
-        // 2. Opciones del formulario
-        $carreras = Career::select('id','official_id','name')->get();
-        $statuses = ['Aspirante', 'Activo', 'Inactivo', 'Egresado']; // Añadimos 'aspirante'
-        
-        // 🚨 CRÍTICO: Esta variable es para construir la URL en el frontend.
-        // Debe ser la parte inicial de la URL de tu ruta Listas.students.user.data.
-        $userDataRoute = '/lista-estudiantes/usuario/'; 
-
-        return view('layouts.ControlAdmin.Listas.students.create', compact('users', 'carreras', 'statuses', 'userDataRoute'));
-    }
-
-    public function getUserData(User $user)
-    {
-        // 1. Seleccionamos explícitamente los campos principales.
-        // Esto asegura que la serialización JSON contenga 'nombre', 'apellido_paterno', etc.,
-        // y resuelve los problemas de 'undefined' en el frontend.
-        $userColumns = [
-            'id', 
-            'nombre', 
-            'apellido_paterno', 
-            'apellido_materno',
-            // Añade cualquier otro campo que el frontend necesite
-        ];
-
-        // 2. Recargamos el usuario con solo los campos necesarios.
-        $student = User::select($userColumns)
-            ->where('id', $user->id)
-            ->first();
-
-        // Verificamos si la carga fue exitosa
-        if (!$student) {
-            return response()->json(['message' => 'Usuario no encontrado.'], 404);
-        }
-        
-        // 3. Cargamos la relación academicProfile.
-        // Esto es NECESARIO para que el frontend chequee si 'user.academic_profile' existe 
-        // y muestre la advertencia de actualización.
-        $student->load('academicProfile'); 
-        
-        // 4. Devolvemos el modelo actualizado como JSON.
-        return response()->json(['user' => $student]);
     }
 }

@@ -131,6 +131,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     //Inscripción
     Route::middleware(['role:master'])->group(function () {
         Route::get('/inscripcion',[InscripcionController::class, 'index'])->name('Inscripción.index');//Formulario de inscripción
+        Route::post('/inscripcion/create',[InscripcionController::class, 'store'])->name('Inscripcion.store');//Registrar Alumno
     });
     
 

@@ -18,7 +18,7 @@ class AcademicProfile extends Model
         'campus',
         'semestre',
         'status',
-        'carrera',
+        'carrera_id',
         'departamento',
         'modulos',
         'documentos',

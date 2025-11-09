@@ -9,7 +9,7 @@
     <div class="form-container">
         {{-- Encabezado --}}
         <div class="header-section">
-            <h2 class="form-title">✨ Formulario de Registro de Alumno</h2>
+            <h2 class="form-title">✨ Edición de Alumno</h2>
         </div>
         
         {{-- Cuerpo del formulario --}}
