@@ -186,9 +186,6 @@
                                 </form> 
                             
                             @elseif ($activity->type == 'SopaDeLetras' && is_array($activity->content))
-                                {{-- CSS --}}
-                                <style> .ws-game-container{display:flex;gap:30px;flex-wrap:wrap}.ws-grid{display:grid;grid-template-columns:repeat(var(--ws-grid-size,10),30px);border:1px solid #ccc;user-select:none}.ws-cell{width:30px;height:30px;display:flex;justify-content:center;align-items:center;border:1px dotted #eee;font-family:monospace;font-size:1.1em;text-transform:uppercase;cursor:pointer;transition:background-color .2s}.ws-cell.selected{background-color:#f7d9a3}.ws-cell.found{background-color:#a3f7b9}.ws-words-list h4{margin-bottom:10px}.ws-words-list ul{list-style:none;padding:0;margin:0}.ws-words-list li{font-size:1.1em;color:#555;transition:all .2s}.ws-words-list li.found{text-decoration:line-through;color:#aaa;font-weight:700} </style>
-                                {{-- HTML --}}
                                 <div class="ws-game-container" id="ws-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-words='@json($activity->content['words'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 10 }}">
                                     <div class="ws-grid"></div>
                                     <div class="ws-words-list">
@@ -200,9 +197,7 @@
                                 <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
                             
                             @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
-                                {{-- CSS --}}
-                                <style> .cw-game-layout{display:flex;flex-wrap:wrap;gap:20px}.cw-grid-container{flex-shrink:0}.cw-grid{display:grid;border:2px solid #333;grid-template-columns:repeat(var(--cw-grid-size,15),25px)}.cw-cell{width:25px;height:25px;position:relative;background:#333}.cw-cell.white{background:#fff;border:1px solid #ccc}.cw-cell input{width:100%;height:100%;border:none;padding:0;text-align:center;font-size:1em;text-transform:uppercase;box-sizing:border-box}.cw-cell input:focus{outline:2px solid #e69a37}.cw-cell .cw-number{position:absolute;top:1px;left:2px;font-size:.6em;font-weight:700;color:#555;z-index:1}.cw-clues-container{display:flex;gap:20px;flex-grow:1}.cw-clues-list{flex:1}.cw-clues-list h4{margin-bottom:10px}.cw-clues-list ul{list-style:none;padding-left:0;margin:0;font-size:.9em}.cw-clues-list li{margin-bottom:5px} </style>
-                                {{-- HTML --}}
+                                
                                 <div class="cw-game-layout" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
                                     <div class="cw-grid-container">
                                         <div class="cw-grid"></div>
@@ -274,9 +269,6 @@
                             <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
 
                         @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
-                            {{-- CSS --}}
-                            <style> .cw-game-layout{display:flex;flex-wrap:wrap;gap:20px}.cw-grid-container{flex-shrink:0}.cw-grid{display:grid;border:2px solid #333;grid-template-columns:repeat(var(--cw-grid-size,15),25px)}.cw-cell{width:25px;height:25px;position:relative;background:#333}.cw-cell.white{background:#fff;border:1px solid #ccc}.cw-cell input{width:100%;height:100%;border:none;padding:0;text-align:center;font-size:1em;text-transform:uppercase;box-sizing:border-box}.cw-cell input:focus{outline:2px solid #e69a37}.cw-cell .cw-number{position:absolute;top:1px;left:2px;font-size:.6em;font-weight:700;color:#555;z-index:1}.cw-clues-container{display:flex;gap:20px;flex-grow:1}.cw-clues-list{flex:1}.cw-clues-list h4{margin-bottom:10px}.cw-clues-list ul{list-style:none;padding-left:0;margin:0;font-size:.9em}.cw-clues-list li{margin-bottom:5px} </style>
-                            {{-- HTML --}}
                             <div class="cw-game-layout" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
                                 <div class="cw-grid-container">
                                     <div class="cw-grid"></div>
