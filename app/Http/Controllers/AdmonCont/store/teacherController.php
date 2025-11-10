@@ -188,4 +188,26 @@ class teacherController extends Controller
         
 
     }
+    public function edit(string $id)
+    {
+        // 1. Buscar al usuario y cargar las relaciones necesarias
+        // Usamos with(['address', 'academicProfile']) para cargar la información de dirección
+        // y la información académica en una sola consulta, evitando problemas N+1.
+        // findOrFail($id) asegura un error 404 si el ID no existe.
+        $user = User::with(['address', 'academicProfile'])->findOrFail($id);
+
+        // Opcional: Si quieres asegurar que solo se editen usuarios con el rol 'Alumno' (ID 7)
+        // Descomenta la siguiente línea si es necesario
+        
+        if (!$user->roles()->where('role_id', 6)->exists()) {
+            abort(403, 'Acceso no autorizado. Este usuario no es un alumno.');
+        }
+        
+        
+        // 2. Cargar la lista de carreras para llenar el dropdown
+        $carreras = Career::all(); 
+
+        // 3. Devolver la vista de edición con los datos
+        return view('layouts.ControlAdmin.Listas.members.edit', compact('user', 'carreras'));
+    }
 }

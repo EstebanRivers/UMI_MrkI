@@ -88,6 +88,9 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/lista-docentes/registro', [teacherController::class, 'form'])->name('Listas.members.form');
 
     Route::post('/lista-docentes/create', [teacherController::class, 'store'])->name('Listas.members.create');
+    //Editar Alumno
+    Route::get('/lista-docentes/{id}/edit',[teacherController::class, 'edit'])->name('Listas.members.edit');
+    Route::put('/lista-docentes/{id}',[teacherController::class, 'update'])->name('Listas.members.update');
 
 
     //Materias

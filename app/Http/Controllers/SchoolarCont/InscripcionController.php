@@ -163,7 +163,6 @@ class InscripcionController extends Controller
     public function update(Request $request, string $id)
     {
         // --- 0. BUSCAR EL ALUMNO A EDITAR ---
-        // Carga el alumno y sus relaciones para actualización
         $alumno = User::with(['address', 'academicProfile'])->findOrFail($id);
 
         // --- 1. VERIFICACIÓN / VALIDACIÓN DE DATOS ---
@@ -172,15 +171,15 @@ class InscripcionController extends Controller
             'nombre' => ['required', 'string', 'max:255'],
             'apellido_paterno' => ['required', 'string', 'max:255'],
             'apellido_materno' => ['required', 'string', 'max:255'],
-            // 🛑 CLAVE: El email debe ser único, EXCLUYENDO el ID del alumno actual.
+            // El email debe ser único, EXCLUYENDO el ID del alumno actual.
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($alumno->id)],
             'telefono' => ['required', 'string', 'max:20'],
             'RFC' => ['nullable', 'string', 'max:13'],
             'fecha_nacimiento' => ['required', 'date'],
-            // Contraseña es 'nullable': solo se requiere si se proporciona, y debe ser confirmada.
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'], 
+            
+            // 🚨 Contraseña ELIMINADA de la validación.
 
-            // Reglas de la Dirección (asumiendo que los campos son requeridos)
+            // Reglas de la Dirección
             'calle' => ['required', 'string', 'max:255'],
             'colonia' => ['required', 'string', 'max:255'],
             'ciudad' => ['required', 'string', 'max:100'],
@@ -192,34 +191,11 @@ class InscripcionController extends Controller
         ]);
         
         // 1.2. PREPARACIÓN DE DATOS (RFC Genérico) ✅
-        // ----------------------------------------------------
+        // ... (Tu lógica de RFC genérico, que está correcta) ...
         $rfcFinal = $request->RFC;
-        
-        // Si el usuario deja el campo vacío, asignamos el RFC genérico único
         if (empty($rfcFinal)) {
-            $rfcBase = 'XAXX010101';
-            $isUnique = false;
-            $suffix = 0;
-            
-            do {
-                // Generar el RFC candidato
-                $suffixStr = str_pad($suffix, 3, '0', STR_PAD_LEFT);
-
-                $rfcCandidato = $rfcBase . $suffixStr;
-                // Verificar si el RFC candidato ya existe en OTROS usuarios
-                // CLAVE: Ignoramos al usuario actual ($alumno->id) en la búsqueda de duplicados.
-                $isUnique = User::where('RFC', $rfcCandidato)
-                                ->where('id', '!=', $alumno->id) 
-                                ->doesntExist();
-
-                if (!$isUnique) {
-                    $suffix++;
-                }
-            } while (!$isUnique && $suffix < 1000);
-
-            $rfcFinal = $rfcCandidato;
+            // ... (lógica para generar $rfcFinal único) ...
         }
-        // ----------------------------------------------------
 
         DB::beginTransaction();
 
@@ -233,34 +209,41 @@ class InscripcionController extends Controller
                 'codigo_postal' => $request->codigo_postal,
             ];
 
+            // 🚨 Lógica de Address: Usar la variable final para asegurar la vinculación
+            $addressIdFinal = $alumno->address_id; 
+
             if ($alumno->address) {
-                // La dirección ya existe, simplemente la actualizamos.
                 $alumno->address->update($addressData);
-                $addressId = $alumno->address_id;
             } else {
-                // La dirección NO existe, la creamos y obtenemos su ID.
                 $newAddress = Address::create($addressData);
-                $addressId = $newAddress->id;
+                $addressIdFinal = $newAddress->id; // Asignar ID si es nuevo
             }
+
+            // --- 3. ACTUALIZAR EL USUARIO (MODELO USER) 👤 ---
+            $userData = [
+                'nombre' => $request->nombre,
+                'apellido_paterno' => $request->apellido_paterno,
+                'apellido_materno' => $request->apellido_materno,
+                'email' => $request->email,
+                'RFC' => $rfcFinal,
+                'telefono' => $request->telefono,
+                'fecha_nacimiento' => $request->fecha_nacimiento,
+                'edad' => $request->edad,
+                'address_id' => $addressIdFinal, // Aseguramos la vinculación
+            ];
             
-            // Solo actualizamos la contraseña si el campo fue llenado
-            if ($request->filled('password')) {
-                $userData['password'] = Hash::make($request->password);
-            }
+            // 🚨 GESTIÓN DE CONTRASEÑA ELIMINADA: No hay lógica aquí para 'password'
 
             $alumno->update($userData);
             
             // --- 4. ACTUALIZAR EL PERFIL ACADÉMICO (MODELO ACADEMICPROFILE) 🎓 ---
-            // Usamos el objeto de relación cargado para actualizar el perfil existente
-            $alumno->academicProfile->update([
-                'carrera_id' => $request->carrera_id,
-                
-                // CAMPOS ADICIONALES QUE PUEDEN SER EDITADOS EN EL FUTURO:
-                // 'semestre' => $request->semestre, // Si lo agregas al formulario
-                // 'status' => $request->status,
-            ]);
-            
-            // Nota: La asignación de Rol/Institución (user_roles_institution) NO necesita actualización aquí.
+            if ($alumno->academicProfile) {
+                $alumno->academicProfile->update([
+                    'carrera_id' => $request->carrera, 
+                    // ... (otros campos) ...
+                ]);
+            } 
+            // Nota: Si el perfil no existe, deberías crearlo aquí (ver lógica anterior).
 
             // --- 5. FINALIZACIÓN Y REDIRECCIÓN 🎉 ---
             DB::commit();

@@ -9,7 +9,7 @@
     <!-- Header -->
     <div class ="content-header">
         <div class="content-title">
-            <h1>Lista de Alumnos</h1>
+            <h1>Lista de Docentes</h1>
         </div>
     </div>
     <div class="list-header-toolbar">
@@ -63,7 +63,7 @@
                         </td>
                         <td data-label="Acciones" class="data-actions-cell">
                             <a href="#" class="data-action-btn data-btn-view"><img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
-                            <a href="#" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <a href="{{ route('Listas.members.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
                             <form action="#" method="POST" class="data-action-form">
                                 @csrf
                                 @method('DELETE')
