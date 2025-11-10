@@ -55,7 +55,7 @@
 }
 
 /* Espacio entre botones */
-.toolbar__actions button {
+.toolbar__actions button{
     background-color: #223f70;
     color: white;
     border: none;
@@ -68,6 +68,25 @@
 .toolbar__actions button:hover{
     transform: translateY(-1px);
     color: var(--accent);
+}
+
+.toolbar__actions .action-button {
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    
+    /* Importante para enlaces estilizados como botones */
+    text-decoration: none; 
+    display: inline-block; /* Asegura que el padding se aplique correctamente */
+}
+
+/* (Opcional) Estilo al pasar el ratón */
+.toolbar__actions .action-button:hover {
+    background-color: #315a9e; /* Un tono ligeramente más claro */
 }
 
 /* Estilo del campo de búsqueda */

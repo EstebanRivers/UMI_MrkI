@@ -96,6 +96,8 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     //Materias
 
     Route::get('/listas/materias', [MateriaController::class, 'index'])->name('Listas.materias.index');
+    Route::post('/listas/materias/create', [MateriaController::class, 'store'])->name('Listas.materias.store');
+    Route::put('/listas/materias/{registro}', [MateriaController::class, 'update'])->name('Listas.materias.update');
 
 
     //Aulas

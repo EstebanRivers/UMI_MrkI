@@ -27,9 +27,9 @@
         </div>
     </div>
     <!-- Tablas-->
-    <div class="data-table-container">
-        <table class="data-table">
-            <thead class="data-table-header">
+    <div class="Table-view">
+        <table class="tabla-base tabla-rayas tabla-bordes">
+            <thead class="encabezado-tabla">
                 <tr>
                     <th>Carrera</th>
                     <th>Nombre</th>

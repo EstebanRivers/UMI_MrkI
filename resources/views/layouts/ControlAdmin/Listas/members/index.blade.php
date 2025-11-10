@@ -28,8 +28,8 @@
                 <div class="toolbar__actions">
                     @if(Auth::user()->hasAnyRole(['master']))
                         {{-- Se cambia <button> por <a> y se usa la directiva route() de Blade --}}
-                        <a href="{{ route('Listas.members.form') }}" class="btn btn--primary">
-                            Agregar Alumno
+                        <a href="{{ route('Listas.members.form') }}" class="action-button">
+                            Agregar Docente
                         </a>
                     @endif
                 </div>
@@ -37,9 +37,9 @@
         </div>
     </div>
     <!-- Tablas-->
-    <div class="data-table-container">
-        <table class="data-table">
-            <thead class="data-table-header">
+    <div class="Table-view">
+        <table class="tabla-base tabla-rayas tabla-bordes">
+            <thead class="encabezado-tabla">
                 <tr>
                     <th>Carrera</th>
                     <th>Nombre</th>
@@ -49,7 +49,7 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody class="data-table-body">
+            <tbody class="cuerpo-tabla">
                 @foreach ($dataList as $user)
                     <tr> 
                         <td data-label="Carrera">{{ $user->academicProfile?->carrera_id ?? 'Sin datos' }}</td>
