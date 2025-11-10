@@ -357,7 +357,7 @@
                             <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
 
                         @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
-                            <div class="cw-game-layout" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
+                            <div class="cw-game-container" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
                                 <div class="cw-grid-container">
                                     <div class="cw-grid"></div>
                                 </div>
@@ -374,7 +374,6 @@
                             </div>
                             <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}">Comprobar y Terminar</button>
                             <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-
                         @else
                             {{-- Fallback --}}
                             <p>{{ is_array($activity->content) ? json_encode($activity->content) : $activity->content }}</p>
@@ -470,11 +469,14 @@
                 if (type === 'Activities' && this.dataset.target) {
                     const targetPanel = document.querySelector(this.dataset.target);
                     if (targetPanel) {
+                        // VVVVV ESTA ES LA LÍNEA CORREGIDA VVVVV
+                        // Comprueba si el panel contiene CUALQUIERA de los juegos
                         if (targetPanel.querySelector('.quiz-form') || 
                             targetPanel.querySelector('.ws-game-container') ||
-                            targetPanel.querySelector('.cw-game-layout')) { 
+                            targetPanel.querySelector('.cw-game-layout')) { // <-- AÑADIDO
                             isInteractive = true;
                         }
+                        // ^^^^^ ESTA ES LA LÍNEA CORREGIDA ^^^^^
                     }
                 }
                 
