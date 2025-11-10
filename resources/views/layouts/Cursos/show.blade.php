@@ -142,13 +142,104 @@
 
                 {{-- Panel Tema --}}
                 <div class="content-panel" id="content-topic-{{ $topic->id }}">
-                    {{-- ... (código del panel de tema sin cambios) ... --}}
+                     <h2>{{ $topic->title }}</h2>
+
+                    {{-- Descripción y Archivos del Tema --}}
+                    <div class="topic-content" >
+                        <p>{{ $topic->description }}</p>
+
+                        @if ($topic->file_path)
+                            @php
+                                $extension = strtolower(pathinfo($topic->file_path, PATHINFO_EXTENSION));
+                                $videoExtensions = ['mp4', 'mov', 'webm', 'ogg'];
+                                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+                            @endphp
+
+                            @if ($extension == 'pdf')
+                                <div class="file-viewer" style="margin-top: 15px;">
+                                    <iframe src="{{ asset('storage/' . $topic->file_path) }}" width="100%" height="600px" style="border: 1px solid #ccc; border-radius: 5px;"></iframe>
+                                </div>
+                            @elseif (in_array($extension, $videoExtensions))
+                                <div class="file-viewer" style="margin-top: 15px;">
+                                    <video width="100%" controls style="border-radius: 5px; background: #000;">
+                                        <source src="{{ asset('storage/' . $topic->file_path) }}" type="video/{{ $extension }}">
+                                        Tu navegador no soporta la reproducción de video.
+                                    </video>
+                                </div>
+                            @elseif (in_array($extension, $imageExtensions))
+                                <div class="file-viewer" style="margin-top: 15px;">
+                                    <img src="{{ asset('storage/' . $topic->file_path) }}" alt="Material del tema" style="max-width: 100%; border-radius: 8px; border: 1px solid #eee;">
+                                </div>
+                            @else
+                                @php
+                                    $fileUrl = asset('storage/' . $topic->file_path);
+                                @endphp
+
+                                @if (in_array($extension, ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt']))
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        {{-- Intentar mostrar usando el visor de Google Docs --}}
+                                        <iframe 
+                                            src="https://docs.google.com/gview?url={{ $fileUrl }}&embedded=true" 
+                                            width="100%" 
+                                            height="500px" 
+                                            style="border: 1px solid #ccc; border-radius: 5px;">
+                                        </iframe>
+                                    </div>
+                                @elseif (in_array($extension, ['zip', 'rar']))
+                                    <div class="file-viewer" style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                        <p> Este es un archivo comprimido (<strong>{{ strtoupper($extension) }}</strong>).</p>
+                                        <a href="{{ $fileUrl }}" target="_blank" class="btn-secondary">Descargar archivo</a>
+                                    </div>
+                                @else
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        <iframe src="{{ $fileUrl }}" width="100%" height="600px" style="border: 1px solid #ccc; border-radius: 5px;">
+                                        </iframe>
+                                    </div>
+                                @endif
+
+                            @endif
+                        @endif
+                    </div>
                 </div>
 
                 {{-- Paneles de Subtemas --}}
                 @foreach ($topic->subtopics as $subtopic)
                     <div class="content-panel" id="content-subtopic-{{ $subtopic->id }}">
-                        {{-- ... (código del panel de subtema sin cambios) ... --}}
+                        <h2>{{ $subtopic->title }}</h2>
+
+                        <div class="subtopic-content" >
+                            <p>{{ $subtopic->description }}</p>
+
+                            {{-- Archivos del Subtema --}}
+                            @if ($subtopic->file_path)
+                                @php
+                                    $extension = strtolower(pathinfo($subtopic->file_path, PATHINFO_EXTENSION));
+                                    $videoExtensions = ['mp4', 'mov', 'webm', 'ogg'];
+                                    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+                                @endphp
+
+                                @if ($extension == 'pdf')
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        <iframe src="{{ asset('storage/' . $subtopic->file_path) }}" width="100%" height="600px" style="border: 1px solid #ccc; border-radius: 5px;"></iframe>
+                                    </div>
+                                @elseif (in_array($extension, $videoExtensions))
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        <video width="100%" controls style="border-radius: 5px; background: #000;">
+                                            <source src="{{ asset('storage/' . $subtopic->file_path) }}" type="video/{{ $extension }}">
+                                            Tu navegador no soporta la reproducción de video.
+                                        </video>
+                                    </div>
+                                @elseif (in_array($extension, $imageExtensions))
+                                    <div class="file-viewer" style="margin-top: 15px;">
+                                        <img src="{{ asset('storage/' . $subtopic->file_path) }}" alt="Material del subtema" style="max-width: 100%; border-radius: 8px; border: 1px solid #eee;">
+                                    </div>
+                                @else
+                                    <a href="{{ asset('storage/' . $subtopic->file_path) }}" target="_blank" class="download-link">
+                                        📎 Descargar Material ({{ strtoupper($extension) }})
+                                    </a>
+                                @endif
+                            @endif
+                        </div>
                     </div>
 
                     {{-- ========================================================== --}}
@@ -161,12 +252,9 @@
                             {{-- Render específico por tipo --}}
                             @if ($activity->type == 'Cuestionario' && is_array($activity->content))
                                 
-                                <form 
-                                    class="quiz-form"
-                                    id="quiz-form-{{ $activity->id }}"
+                                <form class="quiz-form" id="quiz-form-{{ $activity->id }}"
                                     action="{{ route('activities.submit', $activity) }}" 
-                                    method="POST"
-                                    data-activity-id="{{ $activity->id }}">
+                                    method="POST" data-activity-id="{{ $activity->id }}">
                                     @csrf
                                     <p class="question-text">{{ $activity->content['question'] ?? '' }}</p>
                                     @foreach ($activity->content['options'] as $index => $option)
@@ -382,10 +470,9 @@
                 if (type === 'Activities' && this.dataset.target) {
                     const targetPanel = document.querySelector(this.dataset.target);
                     if (targetPanel) {
-                        // Comprueba si el panel contiene CUALQUIERA de los juegos
                         if (targetPanel.querySelector('.quiz-form') || 
                             targetPanel.querySelector('.ws-game-container') ||
-                            targetPanel.querySelector('.cw-game-layout')) { // <-- AÑADIDO
+                            targetPanel.querySelector('.cw-game-layout')) { 
                             isInteractive = true;
                         }
                     }
