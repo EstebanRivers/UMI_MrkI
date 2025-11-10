@@ -8,7 +8,8 @@ use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\Ajustes\AjustesController;
-
+use App\Http\Controllers\Facturacion\BillingController;
+use App\Http\Controllers\Facturacion\PaymentController; 
 
 
 // Rutas de autenticación
@@ -34,7 +35,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         ->name('context.switch');
 
     // Dashboard - accesible para todos los usuarios autenticados
-    Route::get('/bienvenido', function () {return view('dashboard.index');
+    Route::get('/bienvenido', function () {return view('Dashboard.index');
     })->name('dashboard');
 
     // Mi Informacion
@@ -80,10 +81,11 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
 
 
-    // Facturación 
-    Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); 
-    })->name('Facturacion.index');
-    
+// --- RUTAS DE FACTURACIÓN  ---
+    Route::get('/facturacion', [BillingController::class, 'index'])->name('Facturacion.index');
+    Route::post('/facturacion', [BillingController::class, 'store'])->name('Facturacion.store'); 
+    Route::delete('/facturacion/{billing}', [BillingController::class, 'destroy'])->name('Facturacion.destroy');
+     Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
     
     // Control Administrativo - roles especificos
     Route::middleware(['role:master'])->group(function () {
@@ -96,5 +98,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
        Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
         })->name('Ajustes.index');
     }); */
+
+    
 
 });

@@ -62,7 +62,24 @@ use Illuminate\Support\Facades\DB;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
+    
     use HasFactory, Notifiable;
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
+    }
+
+    public function billings()
+    {
+        return $this->hasMany(\App\Models\Facturacion\Billing::class);
+    }
+
 
     /**
      * Verifica si el rol ACTIVO en la sesión coincide con el nombre dado.
