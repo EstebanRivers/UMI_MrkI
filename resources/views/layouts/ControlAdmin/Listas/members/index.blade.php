@@ -23,7 +23,17 @@
                     <button class="btn btn--secondary">Importar</button>
                 </div>
             </div>
-            
+
+            <div class="toolbar__section toolbar__section--right">
+                <div class="toolbar__actions">
+                    @if(Auth::user()->hasAnyRole(['master']))
+                        {{-- Se cambia <button> por <a> y se usa la directiva route() de Blade --}}
+                        <a href="{{ route('Listas.members.form') }}" class="btn btn--primary">
+                            Agregar Alumno
+                        </a>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
     <!-- Tablas-->
@@ -42,7 +52,7 @@
             <tbody class="data-table-body">
                 @foreach ($dataList as $user)
                     <tr> 
-                        <td data-label="Carrera">{{ $user->academicProfile?->career?->name ?? 'Sin datos' }}</td>
+                        <td data-label="Carrera">{{ $user->academicProfile?->carrera_id ?? 'Sin datos' }}</td>
                         <td data-label="Nombre">{{ $user->nombre }}</td>
                         <td data-label="Paterno">{{ $user->apellido_paterno }}</td>
                         <td data-label="Materno">{{ $user->apellido_materno }}</td>
@@ -53,7 +63,7 @@
                         </td>
                         <td data-label="Acciones" class="data-actions-cell">
                             <a href="#" class="data-action-btn data-btn-view"><img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
-                            <a href="{{ route('Listas.students.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <a href="#" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
                             <form action="#" method="POST" class="data-action-form">
                                 @csrf
                                 @method('DELETE')

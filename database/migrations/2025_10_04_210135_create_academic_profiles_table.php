@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('carrera')->nullable();
             $table->integer('semestre')->nullable();
             $table->string('departamento')->nullable();
+            $table->string('status')->nullable();
             $table->json('rol')->nullable();
+            
 
             $table->json('documentos')->nullable();
             $table->timestamps();

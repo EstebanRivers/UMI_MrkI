@@ -16,6 +16,7 @@ use App\Http\Controllers\AdmonCont\FacilityController;
 use App\Http\Controllers\AdmonCont\store\ListsControler;
 use App\Http\Controllers\AdmonCont\store\studentController;
 use App\Http\Controllers\AdmonCont\MateriaController;
+use App\Http\Controllers\AdmonCont\store\teacherController;
 use App\Http\Controllers\SchoolarCont\InscripcionController;
 
 // Rutas de autenticación
@@ -78,16 +79,16 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::middleware(['role:master'])->group(function () {
     //Listas
     Route::get('/lista-estudiantes', [studentController::class, 'index'])->name('Listas.students.index');
-    // 1. RUTA PARA MOSTRAR EL FORMULARIO AJAX
-    Route::get('/lista-estudiantes/crear', [studentController::class, 'createForm'])->name('Listas.students.create');
-    // 2. RUTA PARA OBTENER DATOS DE USUARIO POR ID (Cascada)
-    Route::get('/lista-estudiantes/usuario/{userId}', [studentController::class, 'getUserData'])->name('Listas.students.user.data');
-    // 3. RUTA PARA GUARDAR/ACTUALIZAR EL PERFIL ACADÉMICO (Store)
-    Route::post('/lista-estudiantes/guardar', [studentController::class, 'storeStudentAcademicProfile'])->name('Listas.students.store');
+    //Editar Alumno
+    Route::get('/lista-estudiantes/{id}/edit',[InscripcionController::class, 'edit'])->name('Listas.students.edit');
+    Route::put('/lista-estudiantes/{id}',[InscripcionController::class, 'update'])->name('Listas.students.update');
+    
+    Route::get('/lista-docentes', [teacherController::class, 'index'])->name('Listas.members.index');
 
-    Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
-    Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
-    Route::get('/lista-usuarios/{user}', [ListsControler::class, 'getUserData'])->name('Academic.user.data');
+    Route::get('/lista-docentes/registro', [teacherController::class, 'form'])->name('Listas.members.form');
+
+    Route::post('/lista-docentes/create', [teacherController::class, 'store'])->name('Listas.members.create');
+
 
     //Materias
 

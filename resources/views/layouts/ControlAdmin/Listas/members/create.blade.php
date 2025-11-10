@@ -9,22 +9,25 @@
     <div class="form-container">
         {{-- Encabezado --}}
         <div class="header-section">
-            <h2 class="form-title">✨ Edición de Alumno</h2>
+            <h2 class="form-title">Registro de Docente</h2>
         </div>
         
         {{-- Cuerpo del formulario --}}
         <div class="form-body">
-            <form method="POST" action="{{ route('Listas.students.update',$user->id) }}" class="registration-form">
+            <form method="POST" action="{{ route('Listas.members.create') }}" class="registration-form">
                 @csrf
-                @method('PUT')
-                {{-- Manejo de Errores de Validación --}}
-                @if ($errors->any())
-                    <div class="error-message">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                
+                {{-- Bloque para mostrar mensajes Flash (éxito o error) --}}
+                @if (session('success'))
+                    <div class="message-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    {{-- Esta es la sección que necesitas para ver el error del bloque catch --}}
+                    <div class="message-error" style="border: 1px solid red; padding: 10px; margin-bottom: 15px; background: #ffe0e0;">
+                        <strong>¡Error en el servidor!</strong> {{ session('error') }}
                     </div>
                 @endif
 
@@ -35,19 +38,19 @@
                     {{-- Nombre(s) --}}
                     <div class="form-field">
                         <label for="nombre">Nombre(s)</label>
-                        <input type="text" id="nombre" name="nombre" value="{{ old('nombre', $user->nombre) }}" required>
+                        <input type="text" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
                     </div>
 
                     {{-- Apellido Paterno --}}
                     <div class="form-field">
                         <label for="apellido_paterno">Apellido Paterno</label>
-                        <input type="text" id="apellido_paterno" name="apellido_paterno" value="{{ old('apellido_paterno', $user->apellido_paterno) }}" required>
+                        <input type="text" id="apellido_paterno" name="apellido_paterno" value="{{ old('apellido_paterno') }}" required>
                     </div>
 
                     {{-- Apellido Materno --}}
                     <div class="form-field">
                         <label for="apellido_materno">Apellido Materno</label>
-                        <input type="text" id="apellido_materno" name="apellido_materno" value="{{ old('apellido_materno',$user->apellido_materno) }}" required>
+                        <input type="text" id="apellido_materno" name="apellido_materno" value="{{ old('apellido_materno') }}" required>
                     </div>
                 </div>
 
@@ -55,13 +58,13 @@
                     {{-- Email --}}
                     <div class="form-field">
                         <label for="email">Correo Electrónico (Email)</label>
-                        <input type="email" id="email" name="email" value="{{ old('email',$user->email) }}" required>
+                        <input type="email" id="email" name="email" value="{{ old('email') }}" required>
                     </div>
 
                     {{-- Teléfono --}}
                     <div class="form-field">
                         <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" name="telefono" value="{{ old('telefono', $user->telefono) }}" required>
+                        <input type="text" id="telefono" name="telefono" value="{{ old('telefono') }}" required>
                     </div>
                 </div>
 
@@ -69,19 +72,19 @@
                     {{-- RFC --}}
                     <div class="form-field">
                         <label for="RFC">RFC</label>
-                        <input type="text" id="RFC" name="RFC" value="{{ old('RFC',$user->RFC) }}">
+                        <input type="text" id="RFC" name="RFC" value="{{ old('RFC') }}">
                     </div>
 
                     {{-- Fecha de Nacimiento --}}
                     <div class="form-field">
                         <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento',$user->fecha_nacimiento) }}" required>
+                        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" required>
                     </div>
 
                     {{-- Edad --}}
                     <div class="form-field">
                         <label for="edad">Edad</label>
-                        <input type="number" id="edad" name="edad" value="{{ old('edad',$user->edad) }}" readonly>
+                        <input type="number" id="edad" name="edad" value="{{ old('edad') }}">
                     </div>
                 </div>
                 
@@ -93,26 +96,27 @@
                 <div class="form-group-triple">
                     <div class="form-field">
                         <label for="calle_1">Calle</label>
-                        <input type="text" id="calle" name="calle" value="{{ old('calle', $user->address?->calle) }}" required>
+                        <input type="text" id="calle" name="calle" value="" required>
                     </div>
                     <div class="form-field">
                         <label for="colonia">Colonia</label>
-                        <input type="text" id="colonia" name="colonia" value="{{ old('colonia', $user->address?->colonia) }}" required>
+                        <input type="text" id="colonia" name="colonia" value="" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="ciudad">Ciudad</label>
+                        <input type="text" id="ciudad" name="ciudad" value="" required>
                     </div>
                 </div>
                 
                 <div class="form-group-triple">
-                    <div class="form-field">
-                        <label for="ciudad">Ciudad</label>
-                        <input type="text" id="ciudad" name="ciudad" value="{{ old('ciudad', $user->address?->ciudad) }}" required>
-                    </div>
+                    
                     <div class="form-field">
                         <label for="estado">Estado</label>
-                        <input type="text" id="estado" name="estado" value="{{ old('estado', $user->address?->estado) }}" required>
+                        <input type="text" id="estado" name="estado" value="" required>
                     </div>
                     <div class="form-field">
                         <label for="codigo_postal">Código Postal</label>
-                        <input type="text" id="codigo_postal" name="codigo_postal" value="{{ old('codigo_postal', $user->address?->codigo_postal) }}" required>
+                        <input type="text" id="codigo_postal" name="codigo_postal" value="" required>
                     </div>
                 </div>
 
@@ -121,6 +125,18 @@
                 <hr>
 
                 <div class="form-group-triple">
+                    {{-- Contraseña --}}
+                    <div class="form-field">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    {{-- Confirmar Contraseña --}}
+                    <div class="form-field">
+                        <label for="password_confirmation">Confirmar Contraseña</label>
+                        <input type="password" id="password_confirmation" name="password_confirmation" required>
+                    </div>
+
                     {{-- Carrera --}}
                     <div class="form-field">
                         <label for="carrera">Carrera</label>
@@ -130,6 +146,11 @@
                                 <option value="{{ $carrera->id }}"{{ old('carrera') == $carrera->id ? 'selected' : '' }}>{{ $carrera->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    {{-- Confirmar Contraseña --}}
+                    <div class="form-field">
+                        <label for="departamento">Departamento</label>
+                        <input type="text" id="departamento" name="departamento" required>
                     </div>
                 </div>
 

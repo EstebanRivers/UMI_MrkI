@@ -5,11 +5,16 @@ namespace App\Http\Controllers\AdmonCont\store;
 use App\Http\Controllers\Controller;
 use App\Models\AdmonCont\Career;
 use App\Models\Users\AcademicProfile;
+use App\Models\Users\Address;
 use App\Models\Users\User;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use PhpParser\Node\Stmt\TryCatch;
 
 class studentController extends Controller
 {
@@ -40,6 +45,7 @@ class studentController extends Controller
         $careerColumns=[
             'official_id',
             'name',
+            'id'
         ];
         
         // --- Ejecución de la Consulta ---
@@ -52,8 +58,12 @@ class studentController extends Controller
             // Selecciona las columnas necesarias de la tabla 'users'
             ->select($userColumns)
             // Carga la relación 'academicProfile' con columnas específicas
-            ->with(['academicProfile' => function (Relation $query) use ($academicColumns) {
+            ->with(['academicProfile' => function (Relation $query) use ($academicColumns, $careerColumns) {
                 $query->select($academicColumns);
+                $query->with(['career' => function (Relation $query) use ($careerColumns) {
+                    // Selecciona solo las columnas de la tabla de Carreras que necesitas (ej: name)
+                    $query->select($careerColumns); 
+                }]);
             }])
             ->get(); // Ejecuta la consulta y obtiene la colección de resultados
 
@@ -66,4 +76,5 @@ class studentController extends Controller
             'dataList' => $dataList,
         ]);
     }
+    
 }

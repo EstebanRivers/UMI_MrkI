@@ -9,7 +9,7 @@
     <div class="form-container">
         {{-- Encabezado --}}
         <div class="header-section">
-            <h2 class="form-title">✨ Formulario de Registro de Alumno</h2>
+            <h2 class="form-title">Registro de Alumno</h2>
         </div>
         
         {{-- Cuerpo del formulario --}}
@@ -17,14 +17,17 @@
             <form method="POST" action="{{ route('Inscripcion.store') }}" class="registration-form">
                 @csrf
                 
-                {{-- Manejo de Errores de Validación --}}
-                @if ($errors->any())
-                    <div class="error-message">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                {{-- Bloque para mostrar mensajes Flash (éxito o error) --}}
+                @if (session('success'))
+                    <div class="message-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    {{-- Esta es la sección que necesitas para ver el error del bloque catch --}}
+                    <div class="message-error" style="border: 1px solid red; padding: 10px; margin-bottom: 15px; background: #ffe0e0;">
+                        <strong>¡Error en el servidor!</strong> {{ session('error') }}
                     </div>
                 @endif
 
@@ -81,7 +84,7 @@
                     {{-- Edad --}}
                     <div class="form-field">
                         <label for="edad">Edad</label>
-                        <input type="number" id="edad" name="edad" value="{{ old('edad') }}" readonly>
+                        <input type="number" id="edad" name="edad" value="{{ old('edad') }}">
                     </div>
                 </div>
                 
@@ -93,11 +96,7 @@
                 <div class="form-group-triple">
                     <div class="form-field">
                         <label for="calle_1">Calle</label>
-                        <input type="text" id="calle_1" name="calle_1" value="" required>
-                    </div>
-                    <div class="form-field">
-                        <label for="calle_2">Número Exterior/Interior</label>
-                        <input type="text" id="calle_2" name="calle_2" value="" required>
+                        <input type="text" id="calle" name="calle" value="" required>
                     </div>
                     <div class="form-field">
                         <label for="colonia">Colonia</label>
