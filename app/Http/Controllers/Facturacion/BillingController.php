@@ -33,43 +33,54 @@ class BillingController extends Controller
                 $q->whereIn('name', ['estudiante']);
             });
 
-            // (Filtro de rol ya no es necesario)
-
             // Cargar usuarios con sus facturas y pagos
             $usersWithBillings = $query->with([
-                                        'billings' => function($q_billing) {
-                                            $q_billing->with('payments'); // Carga los abonos
-                                        }, 
-                                        'roles'
-                                    ])
-                                    ->orderBy('nombre')
-                                    ->get();
+                        'billings' => function($q_billing) {
+                            $q_billing->with('payments'); // Carga los abonos
+                        }, 
+                        'roles'
+                    ])
+                    ->orderBy('nombre')
+                    ->get();
 
             // Filtrar la COLECCIÓN de usuarios por nombre/email si hay búsqueda
             if ($request->filled('search')) {
-                 $searchTerm = strtolower($request->input('search'));
-                 $usersWithBillings = $usersWithBillings->filter(function ($u) use ($searchTerm) {
+                $searchTerm = strtolower($request->input('search'));
+                $usersWithBillings = $usersWithBillings->filter(function ($u) use ($searchTerm) {
                     return str_contains(strtolower($u->nombre), $searchTerm) ||
-                           str_contains(strtolower($u->apellido_paterno), $searchTerm) ||
-                           str_contains(strtolower($u->email), $searchTerm);
-                 });
+                            str_contains(strtolower($u->apellido_paterno), $searchTerm) ||
+                            str_contains(strtolower($u->email), $searchTerm);
+                });
             }
             
-            // Filtro de Status (aplicado a la colección)
+            // =================================================================
+            // === BLOQUE DE FILTRO DEL ADMIN (CORREGIDO) ===
+            // =================================================================
             if ($request->filled('status')) {
                 $statusFilter = $request->input('status');
                 
+                // Usamos la variable correcta: $usersWithBillings
                 $usersWithBillings = $usersWithBillings->filter(function($user) use ($statusFilter) {
+                    // Revisamos si el usuario tiene CUALQUIER factura que coincida
                     return $user->billings->contains(function($billing) use ($statusFilter) {
-                        $totalPagado = $billing->payments->sum('monto');
-                        $estatus = 'Pendiente';
-                        if ($totalPagado >= $billing->monto) $estatus = 'Pagada';
-                        elseif ($totalPagado > 0) $estatus = 'Abonado';
                         
+                        // --- Lógica de estado correcta ---
+                        $estatus = $billing->status; 
+                        $totalPagado = $billing->payments->sum('monto');
+
+                        if ($estatus == 'Pendiente') {
+                            if ($totalPagado >= $billing->monto) { $estatus = 'Pagada'; } 
+                            elseif ($totalPagado > 0) { $estatus = 'Abonado'; }
+                        }
+                        // --- Fin de la lógica ---
+
                         return $estatus === $statusFilter;
                     });
                 });
             }
+            // =================================================================
+            // === FIN DEL BLOQUE DEL ADMIN ===
+            // =================================================================
 
             $viewData['usersWithBillings'] = $usersWithBillings;
 
@@ -78,10 +89,10 @@ class BillingController extends Controller
             $query = Billing::where('user_id', $user->id)->with('payments'); // Cargar pagos
 
             if ($request->filled('search')) {
-                 $searchTerm = $request->input('search');
-                 $query->where(function ($q) use ($searchTerm) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($q) use ($searchTerm) {
                     $q->where('concepto', 'like', "%{$searchTerm}%")
-                      ->orWhere('factura_uid', 'like', "%{$searchTerm}%");
+                        ->orWhere('factura_uid', 'like', "%{$searchTerm}%");
                 });
             }
             if ($request->filled('period_id')) {
@@ -90,17 +101,29 @@ class BillingController extends Controller
             
             $billings = $query->orderBy('fecha_vencimiento', 'desc')->get();
 
-             if ($request->filled('status')) {
+            // =================================================================
+            // === BLOQUE DE FILTRO DEL ALUMNO (CORREGIDO) ===
+            // =================================================================
+            if ($request->filled('status')) {
                 $statusFilter = $request->input('status');
+                
+                // Usamos la variable correcta: $billings
                 $billings = $billings->filter(function($billing) use ($statusFilter) {
+                    
+                    // --- Lógica de estado correcta ---
+                    $estatus = $billing->status; 
                     $totalPagado = $billing->payments->sum('monto');
-                    $estatus = 'Pendiente';
-                    if ($totalPagado >= $billing->monto) $estatus = 'Pagada';
-                    elseif ($totalPagado > 0) $estatus = 'Abonado';
+
+                    if ($estatus == 'Pendiente') {
+                        if ($totalPagado >= $billing->monto) { $estatus = 'Pagada'; } 
+                        elseif ($totalPagado > 0) { $estatus = 'Abonado'; }
+                    }
+                    // --- Fin de la lógica ---
+
                     return $estatus === $statusFilter;
                 });
             }
-
+            
             $viewData['billings'] = $billings;
         }
 
@@ -118,7 +141,7 @@ class BillingController extends Controller
             abort(403, 'ACCIÓN NO AUTORIZADA.');
         }
 
-        // --- VALIDACIÓN CORREGIDA ---
+        // --- VALIDACIÓN ---
         $validated = $request->validate([
             'concepto' => 'required|string|max:255',
             'monto' => 'required|numeric|min:0',
@@ -134,9 +157,9 @@ class BillingController extends Controller
 
         $xmlPath = null; // Inicia como null
         if ($request->hasFile('archivo_xml')) {
-        // Guarda en la carpeta 'facturas_xml' dentro del disco 'public"
-        $xmlPath = $request->file('archivo_xml')->store('facturas_xml', 'public');
-    }
+            // Guarda en la carpeta 'facturas_xml' dentro del disco 'public"
+            $xmlPath = $request->file('archivo_xml')->store('facturas_xml', 'public');
+        }
         $lastId = Billing::count();
         $newUid = "FAC-" . str_pad($lastId + 1, 3, "0", STR_PAD_LEFT);
 
@@ -152,6 +175,7 @@ class BillingController extends Controller
             'status' => $validated['status'],
         ]);
         
+
         return redirect()->route('Facturacion.index', ['_fragment' => 'user-anchor-' . $validated['user_id']])
                          ->with('success', 'Factura creada exitosamente.');
     }
@@ -170,6 +194,11 @@ class BillingController extends Controller
             Storage::disk('public')->delete($billing->archivo_path);
         }
         
+        // Borrar XML si existe
+        if ($billing->xml_path) { 
+            Storage::disk('public')->delete($billing->xml_path);
+        }
+
         $billing->delete();
         
         // Redirige CON ancla
@@ -177,4 +206,3 @@ class BillingController extends Controller
                          ->with('success', 'Factura eliminada exitosamente.');
     }
 }
-
