@@ -1,4 +1,4 @@
-import './bootstrap';
+import { initializeFacturacionModal } from './facturacion.js';
 // Navegación SPA optimizada y simplificada
 
 class SimpleSPANavigation {
@@ -13,6 +13,7 @@ class SimpleSPANavigation {
         this.setupEventListeners();
         this.updateActiveMenuItem();
         this.preloadCriticalPages();
+        this.initializePageSpecificScripts(window.location.href);
     }
 
     setupEventListeners() {
@@ -231,6 +232,8 @@ class SimpleSPANavigation {
         return scripts;
     }
 
+    
+
     updatePage(content, url) {
         const mainElement = document.querySelector('#main-content, .main-content');
         if (mainElement) {
@@ -248,6 +251,9 @@ class SimpleSPANavigation {
                 
                 // Scroll suave al top
                 this.scrollToTop();
+
+                this.initializePageSpecificScripts(url);
+
             }, 100);
         }
 
@@ -273,6 +279,20 @@ class SimpleSPANavigation {
                 }
             }
         });
+    }
+
+    initializePageSpecificScripts(url) {
+        try {
+            const path = new URL(url).pathname;
+            // Busca si la ruta actual incluye '/facturacion'
+            if (path.includes('/facturacion')) {
+                // Verifica si la función fue importada correctamente
+                if (typeof initializeFacturacionModal === 'function') {
+                    initializeFacturacionModal(); // Llama a la función
+                } else { console.warn('initializeFacturacionModal function not found.'); }
+            }
+            // else if (path.includes('/cursos')) { initializeCursosLogic(); }
+        } catch (e) { console.error("Error initializing page specific scripts:", e); }
     }
 
     updateActiveMenuItem() {
@@ -435,4 +455,6 @@ window.addEventListener('beforeunload', () => {
             menu.classList.remove('show');
         }
     });
+
+    
 })();

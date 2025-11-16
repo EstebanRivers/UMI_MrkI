@@ -7,8 +7,9 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
-use App\Http\Controllers\Cursos\CompletionController;
 use App\Http\Controllers\Ajustes\AjustesController;
+use App\Http\Controllers\Facturacion\BillingController;
+use App\Http\Controllers\Facturacion\PaymentController; 
 
 
 // Rutas de autenticación
@@ -34,7 +35,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         ->name('context.switch');
 
     // Dashboard - accesible para todos los usuarios autenticados
-    Route::get('/bienvenido', function () {return view('dashboard.index');
+    Route::get('/bienvenido', function () {return view('Dashboard.index');
     })->name('dashboard');
 
     // Mi Informacion
@@ -44,8 +45,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
 
     // Cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
-    
-    // --- Gestión de cursos - solo para admins y docentes ---
+       // Gestión de cursos - solo para admins y docentes
     Route::middleware(['role:master, docente'])->group(function () {
         Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
         Route::post('/cursos', [CourseController::class, 'store'])->name('courses.store');
@@ -61,29 +61,9 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
-        // SACAMOS completions.mark DE AQUÍ
     });
 
-    // --- Rutas de Progreso (Para todos los usuarios) ---
-    Route::post('/completions/mark', [CompletionController::class, 'mark'])
-        ->name('completions.mark'); // <- MOVIMOS AQUÍ
-    
-    Route::post('/actividades/{activity}/submit', [ActivitiesController::class, 'submit'])
-        ->name('activities.submit'); // <- AÑADIMOS ESTA RUTA
-
-
-    //Vista del curso
-    Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
-    
-    // Rutas para inscribir y desinscribir al usuario (para AJAX)
-    Route::post('/cursos/{course}/inscribir', [CourseController::class, 'enroll'])
-        ->name('courses.enroll');
-    
-    Route::post('/cursos/{course}/desinscribir', [CourseController::class, 'unenroll'])
-        ->name('courses.unenroll');
-
-
-    Route::middleware(['role:master,control_administrativo']) 
+    Route::middleware(['role:master,control_administrativo']) // 1. AÑADIMOS EL MIDDLEWARE DE ROL
         ->prefix('ajustes')->name('ajustes.')->group(function () {
         
         // --- Tus rutas existentes ---
@@ -97,15 +77,28 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
     });
 
-    // Facturación 
-    Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); 
-    })->name('Facturacion.index');
-    
+    //Vista del curso
+    Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
+
+
+// --- RUTAS DE FACTURACIÓN  ---
+    Route::get('/facturacion', [BillingController::class, 'index'])->name('Facturacion.index');
+    Route::post('/facturacion', [BillingController::class, 'store'])->name('Facturacion.store'); 
+    Route::delete('/facturacion/{billing}', [BillingController::class, 'destroy'])->name('Facturacion.destroy');
+     Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
     
     // Control Administrativo - roles especificos
     Route::middleware(['role:master'])->group(function () {
         Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
         })->name('ControlAdmin.index');
     });
+
+    // --- RUTA DUPLICADA DE '/ajustes' ---
+    /*Route::middleware(['role:master'])->group(function () {
+       Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
+        })->name('Ajustes.index');
+    }); */
+
+    
 
 });
