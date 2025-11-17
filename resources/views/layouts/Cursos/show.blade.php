@@ -99,7 +99,7 @@
                         data-target="#content-activity-{{ $finalExamActivity->id }}"
                         data-completable-type="Activities"
                         data-completable-id="{{ $finalExamActivity->id }}">
-                        <span style="font-size: 1.1em;">🎓</span> Examen Final
+                        <span style="font-size: 1.1em;"></span> Examen Final
                     </strong>
                 </div>
             @endif
@@ -271,17 +271,14 @@
                                     @foreach ($activity->content['options'] as $index => $option)
                                         <div class="option-box">
                                             <label>
-                                                <input type="radio" name="answer" value="{{ $index }}" {{ Auth::id() == $course->instructor_id ? 'disabled' : '' }}>
+                                                <input type="radio" name="answer" value="{{ $index }}" >
                                                 {{ $option }}
                                             </label>
                                         </div>
                                     @endforeach
                                     <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                                    @if (Auth::id() != $course->instructor_id)
                                         <button type="submit" class="btn-success">Enviar Respuesta</button>
-                                    @else
-                                        <p class="instructor-note">(Vista de previsualización para el instructor)</p>
-                                    @endif
+                                   
                                 </form> 
                             
                             @elseif ($activity->type == 'SopaDeLetras' && is_array($activity->content))
@@ -391,10 +388,65 @@
                         @endif
                     </div>
                 @endforeach
-
             @endforeach
-        </div>
+            @if ($finalExamActivity)
+                @php $activity = $finalExamActivity; @endphp
 
+                <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none; border-left: 5px solid #e69a37;">
+                    <h2 style="color: #e69a37;">🎓 Examen Final</h2>
+                    <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
+
+                    {{-- Aquí usamos la lógica del "Examen" (múltiples preguntas) --}}
+                    @if ($activity->type == 'Examen' && is_array($activity->content))
+
+                        <form class="quiz-form" id="quiz-form-{{ $activity->id }}"
+                            action="{{ route('activities.submit', $activity) }}" 
+                            method="POST" data-activity-id="{{ $activity->id }}">
+                            @csrf
+
+                            @foreach ($activity->content['questions'] as $q_index => $questionData)
+                                <div class="quiz-question-block" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                                    <p class="question-text"><strong>{{ $q_index + 1 }}. {{ $questionData['question'] }}</strong></p>
+                                    @foreach ($questionData['options'] as $opt_index => $option)
+                                        <div class="option-box">
+                                            <label>
+                                                <input type="radio" name="answers[{{ $q_index }}][a]" value="{{ $opt_index }}" data-question-index="{{ $q_index }}">
+                                                {{ $option }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                    <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
+                                </div>
+                            @endforeach
+                            <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+                            <button type="submit" class="btn-success">Enviar Examen</button>
+                        </form>
+
+                    @elseif ($activity->type == 'Cuestionario' && is_array($activity->content))
+                        <form class="quiz-form" id="quiz-form-{{ $activity->id }}"
+                                action="{{ route('activities.submit', $activity) }}" 
+                                method="POST" data-activity-id="{{ $activity->id }}">
+                                @csrf
+                                <p class="question-text">{{ $activity->content['question'] ?? '' }}</p>
+                                @foreach ($activity->content['options'] as $index => $option)
+                                    <div class="option-box">
+                                        <label>
+                                            <input type="radio" name="answer" value="{{ $index }}" {{ Auth::id() == $course->instructor_id ? 'disabled' : '' }}>
+                                            {{ $option }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                                <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+                                @if (Auth::id() != $course->instructor_id)
+                                    <button type="submit" class="btn-success">Enviar Respuesta</button>
+                                @else
+                                    <p class="instructor-note">(Vista de previsualización para el instructor)</p>
+                                @endif
+                            </form>
+                    @endif
+                </div>
+            @endif
+        </div>
     </div>
 </div>
 
@@ -540,13 +592,22 @@
                 e.preventDefault(); 
                 const activityId = this.dataset.activityId;
                 const feedbackEl = document.getElementById(`feedback-${activityId}`);
-                const formData = new FormData(this);
-                const userAnswer = formData.get('answer');
+                let formData;
+                const isMultiQuestionExam = this.querySelector('input[name^="answers["]');
 
-                if (userAnswer === null) {
-                    feedbackEl.style.color = 'red';
-                    feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
-                    return;
+                if (isMultiQuestionExam) {
+                    // Es el Examen (múltiples preguntas)
+                    // Serializar el formulario para obtener el array 'answers'
+                    formData = new FormData(this);
+                } else {
+                    // Es el Cuestionario (1 pregunta)
+                    const singleAnswer = this.querySelector('input[name="answer"]:checked');
+                    if (singleAnswer === null) {
+                        feedbackEl.style.color = 'red';
+                        feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
+                        return;
+                    }
+                    formData = { answer: singleAnswer.value };
                 }
                 window.axios.post(this.action, { answer: userAnswer })
                     .then(response => {

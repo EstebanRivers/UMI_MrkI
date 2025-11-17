@@ -117,14 +117,16 @@
                         <input type="text" name="title" placeholder="Título de la actividad" required>
                     </div>
 
-                    <div class="form-group" style="background: #fffbe6; padding: 10px; border-radius: 8px; border: 1px solid #ffe58f; margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; gap: 10px; margin: 0;">
-                            <input type="checkbox" name="is_final_exam" value="1" id="is_final_exam_checkbox">
-                            <strong>Marcar como Examen Final</strong>
-                        </label>
-                        <small style="display: block; margin-top: 5px; color: #666;">
-                            Si se marca, esta actividad se asociará a todo el curso y se ocultará hasta que el usuario complete el 100% del contenido. Se ignorará la selección de Tema/Subtema.
-                        </small>
+                    <div class="form-group-exam">
+                        <details>
+                            <summary class="exam-label">
+                                <input type="checkbox" name="is_final_exam" value="1" id="is_final_exam_checkbox">
+                                <strong>Marcar como Examen Final</strong>
+                            </summary>
+                            <small class="exam-note">
+                                Si se marca, esta actividad se ocultará hasta que se complete el 100% del curso.
+                            </small>
+                        </details>
                     </div>
 
                     <div class="form-group">
@@ -134,6 +136,7 @@
                             <option value="Cuestionario">Cuestionario (Quiz)</option>
                             <option value="SopaDeLetras">Sopa de Letras</option>
                             <option value="Crucigrama">Crucigrama</option>
+                            <option value="Examen">Examen (Múltiples preguntas)</option> 
                         </select>
                     </div>
 
@@ -141,10 +144,10 @@
 
                         <div id="template-Cuestionario" class="activity-template" style="display: none;">
                             <div class="activity-fields-container">
-                                <div class="activity-fields" id="fields-Cuestionario"> <div class="form-group">
+                                 <div class="form-group">
                                         <label>Pregunta del cuestionario:</label>
                                         <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí" disabled>
-                                    </div>
+                                    
                                 </div>
                                 <label>Opciones de respuesta (marca la correcta):</label>
                                 @for ($i = 0; $i < 4; $i++)
@@ -245,6 +248,15 @@
                             
                             <div id="cw_hidden_inputs"></div>
                             
+                        </div>
+
+                        <div id="template-Examen" class="activity-template" style="display: none;">
+                            <div class="activity-fields-container" id="examen-questions-container">
+                                {{-- Las preguntas se añadirán aquí con JS --}}
+                            </div>
+                            <button type="button" id="add-examen-question-btn" class="btn-secondary-exam" disabled>
+                                + Añadir Pregunta al Examen
+                            </button>
                         </div>
                     </div> 
                 </form>
@@ -870,6 +882,56 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('cw_number').value = parseInt(number) + 1;
             document.getElementById('cw_clue').focus();
         });
+    }
+
+    // --- LÓGICA PARA NUEVO EXAMEN (MÚLTIPLES PREGUNTAS) ---
+    const addExamenBtn = document.getElementById('add-examen-question-btn');
+    const examenContainer = document.getElementById('examen-questions-container');
+    let examenQuestionCounter = 0;
+
+    if (addExamenBtn) {
+        document.getElementById('activity_type').addEventListener('change', function() {
+            if (this.value === 'Examen') {
+                addExamenBtn.disabled = false;
+                if (examenContainer.childElementCount === 0) {
+                    addExamenQuestionBlock(); // Añadir la primera pregunta
+                }
+            } else {
+                addExamenBtn.disabled = true;
+            }
+        });
+        addExamenBtn.addEventListener('click', addExamenQuestionBlock);
+    }
+
+    function addExamenQuestionBlock() {
+        const index = examenQuestionCounter++;
+        const questionBlock = document.createElement('div');
+        questionBlock.classList.add('quiz-question-block');
+        questionBlock.style.border = '1px solid #ccc';
+        questionBlock.style.padding = '10px';
+        questionBlock.style.marginBottom = '10px';
+        questionBlock.style.borderRadius = '8px';
+
+        questionBlock.innerHTML = `
+            <h5>Pregunta ${index + 1}</h5>
+            <div class="form-group">
+                <label>Texto de la Pregunta:</label>
+                <input type="text" name="content[questions][${index}][question]" class="form-field-examen" required>
+            </div>
+            <label>Opciones (marca la correcta):</label>
+            ${[0, 1, 2, 3].map(optIndex => `
+                <div class="quiz-option">
+                    <input type="radio" name="content[questions][${index}][correct_answer]" value="${optIndex}" required>
+                    <input type="text" name="content[questions][${index}][options][]" class="form-field-examen" placeholder="Opción ${optIndex + 1}" required>
+                </div>
+            `).join('')}
+            <button type="button" class="btn-danger-small btn-remove-question" style="margin-top: 5px;">Eliminar Pregunta</button>
+        `;
+        questionBlock.querySelectorAll('.form-field-examen, input[type="radio"]').forEach(el => el.disabled = false);
+        questionBlock.querySelector('.btn-remove-question').addEventListener('click', function() {
+            questionBlock.remove();
+        });
+        examenContainer.appendChild(questionBlock);
     }
 
     // ===================================================

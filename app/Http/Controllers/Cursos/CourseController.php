@@ -137,8 +137,10 @@ class CourseController extends Controller
         $user = Auth::user();
         
         // --- Lógica de Auto-Inscripción ELIMINADA ---
-        if ($user && !$user->courses->contains($course->id)) {
+        $isEnrolled = $user ? $user->courses->contains($course->id) : false;
+        if ($user && !$isEnrolled) {
             $user->courses()->attach($course->id);
+            $isEnrolled = true; 
         }
         // --- FIN DE LÓGICA ELIMINADA ---
 
@@ -175,18 +177,22 @@ class CourseController extends Controller
                 
                 // 3. Contar todas las Actividades (quizzes)
                 foreach ($subtopic->activities as $activity) {
-                    $totalItems++;
-                    if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
-                        $completedItems++;
+                    if (!$activity->is_final_exam) {
+                        $totalItems++;
+                        if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
+                            $completedItems++;
+                        }
                     }
                 }
             }
             
             // 4. Contar Actividades directas del Tema
             foreach ($topic->activities as $activity) {
-                $totalItems++;
-                if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
-                    $completedItems++;
+                if (!$activity->is_final_exam) {
+                    $totalItems++;
+                    if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
+                        $completedItems++;
+                    }
                 }
             }
         }
