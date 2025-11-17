@@ -6,7 +6,8 @@
     font-family: 'Poppins', Tahoma, sans-serif;
     background: #ECF0F1;
     border-radius: 8px;    
-    height: calc(100vh - 40px); /* Ocupa el 100% de la altura de la ventana, menos 40px de margen */
+    height: auto; /* o simplemente elimina la línea */
+    min-height: calc(100vh - 40px);    
     display: flex;
     flex-direction: column;
 }
@@ -30,7 +31,6 @@
     display: flex;
     gap: 20px;    
     flex-grow: 1;
-    overflow: hidden; 
 }
 
 /* Columna izquierda: temario + guía */
@@ -98,6 +98,7 @@
     padding: 5px 20px 10px 20px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow-y: auto;
 }
 .content-panel {
     display: none;
@@ -358,19 +359,19 @@
 
 .cw-game-layout {
     display: flex;
-    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+    flex-wrap: wrap; 
     gap: 20px;
-    justify-content: center; /* Centra el contenido si hay espacio */
+    justify-content: center; 
 }
 
 .cw-grid-container {
-    flex-shrink: 0; /* Evita que la cuadrícula se encoja */
-    min-width: 200px; /* Tamaño mínimo */
+    flex-shrink: 0; 
+    min-width: 200px; 
 }
 
 .cw-grid {
     display: grid;
-    grid-template-columns: repeat(var(--cw-grid-size, 15), 30px); /* Tamaño de celda y número de columnas */
+    grid-template-columns: repeat(var(--cw-grid-size, 15), 30px); 
     border: 2px solid #333;
     background-color: #f0f0f0;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
@@ -387,8 +388,8 @@
     font-size: 16px;
     font-weight: bold;
     text-transform: uppercase;
-    position: relative; /* Para posicionar el número de la pista */
-    background-color: #333; /* Celdas negras por defecto */
+    position: relative; 
+    background-color: #333; 
 }
 
 .cw-cell.white {
@@ -406,7 +407,7 @@
     background-color: transparent;
     padding: 0;
     margin: 0;
-    outline: none; /* Quitar el contorno al enfocar */
+    outline: none; 
 }
 
 .cw-cell input:focus {
@@ -417,15 +418,15 @@
     position: absolute;
     top: 1px;
     left: 2px;
-    font-size: 9px; /* Más pequeño */
+    font-size: 9px; 
     font-weight: bold;
     color: #555;
-    z-index: 1; /* AÑADIDO: Para estar sobre el input */
+    z-index: 1; 
 }
 
 .cw-clues-container {
-    flex: 1; /* Permite que ocupe el espacio restante */
-    min-width: 280px; /* Ancho mínimo para las pistas */
+    flex: 1; 
+    min-width: 280px; 
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
@@ -442,21 +443,21 @@
 
 .cw-clues-list h4 {
     margin-top: 0;
-    margin-bottom: 10px; /* AÑADIDO */
+    margin-bottom: 10px;
     color: #333;
 }
 
 .cw-clues-list ul {
-    list-style: none; /* CAMBIADO: 'decimal' a 'none' para que no haya doble numeración */
-    padding-left: 0; /* CAMBIADO */
-    margin: 0; /* AÑADIDO */
-    font-size: 0.9em; /* AÑADIDO */
+    list-style: none;
+    padding-left: 0; 
+    margin: 0; 
+    font-size: 0.9em; 
 }
 
 .cw-clues-list li {
     margin-bottom: 5px;
-    font-size: 14px; /* AÑADIDO */
-    line-height: 1.4; /* AÑADIDO */
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .cw-game-footer {
