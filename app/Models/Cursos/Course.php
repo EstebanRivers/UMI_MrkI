@@ -114,4 +114,10 @@ class Course extends Model
         return $this->belongsToMany(User::class, 'course_user');
     }
 
+    public function finalExam()
+    {
+        return $this->hasOne(Activities::class)
+                    ->where('is_final_exam', true);
+    }
+
 }

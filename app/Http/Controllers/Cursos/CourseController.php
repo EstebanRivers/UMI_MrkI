@@ -132,14 +132,14 @@ class CourseController extends Controller
     public function show(Course $course)
     {
         // Cargar toda la data del curso
-        $course->load('topics.subtopics.activities');
+        $course->load('topics.subtopics.activities', 'topics.activities', 'finalExam');
         
         $user = Auth::user();
         
         // --- Lógica de Auto-Inscripción ELIMINADA ---
-        // if ($user && !$user->courses->contains($course->id)) {
-        //     $user->courses()->attach($course->id);
-        // }
+        if ($user && !$user->courses->contains($course->id)) {
+            $user->courses()->attach($course->id);
+        }
         // --- FIN DE LÓGICA ELIMINADA ---
 
         $totalItems = 0;
@@ -193,13 +193,18 @@ class CourseController extends Controller
 
         $progress = ($totalItems > 0) ? round(($completedItems / $totalItems) * 100) : 0;
         
+        // Obtener el examen final (será null si no existe)
+        $finalExamActivity = $course->finalExam;
+
         // Pasamos los nuevos totales a la vista
         return view('layouts.Cursos.show', compact(
             'course', 
-            'progress', 
-            'totalItems', // Reemplaza a totalActivities
-            'completedItems', // Reemplaza a completedCount
-            'userCompletionsMap' // Lo pasamos al JS
+            'progress', // Progreso del contenido principal
+            'totalItems', 
+            'completedItems', 
+            'userCompletionsMap',
+            'isEnrolled', // (Añadido por si acaso, si mantienes la auto-inscripción)
+            'finalExamActivity' // <-- PASAR EL EXAMEN A LA VISTA
         ));
     }
 

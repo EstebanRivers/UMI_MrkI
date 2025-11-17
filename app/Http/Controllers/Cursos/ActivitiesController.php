@@ -16,10 +16,14 @@ class ActivitiesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validatedData = $request->validate([
-            'topic_id' => 'nullable|exists:topics,id|required_without_all:subtopic_id',
-            'subtopic_id' => 'nullable|exists:subtopics,id|required_without_all:topic_id',
+            'course_id' => 'required|exists:courses,id', 
+            'is_final_exam' => 'nullable|boolean', 
+            
+            'topic_id' => 'nullable|exists:topics,id|required_without_all:subtopic_id,is_final_exam',
+            'subtopic_id' => 'nullable|exists:subtopics,id|required_without_all:topic_id,is_final_exam',
+
             'title' => 'required|string|max:255',
-            'type' => 'required|string', // Tipos: 'Cuestionario', 'SopaDeLetras', 'Crucigrama'
+            'type' => 'required|string', 
             'content' => 'required|array',
         ]);
 
@@ -65,9 +69,15 @@ class ActivitiesController extends Controller
         }
 
         $courseId = null;
+        $validatedData['is_final_exam'] = $request->has('is_final_exam');
 
         // 2. LÓGICA DE LIMPIEZA DE ID (Asegurar que solo uno se guarde)
-        if ($request->filled('subtopic_id')) {
+        if ($validatedData['is_final_exam']) {
+            // Es un examen final, pertenece al CURSO. Anular temas.
+            $validatedData['topic_id'] = null;
+            $validatedData['subtopic_id'] = null;
+
+        } elseif ($request->filled('subtopic_id')) {
             // Caso 1: Actividad pertenece a un Subtema
             $validatedData['topic_id'] = null; // Forzar a NULL
             

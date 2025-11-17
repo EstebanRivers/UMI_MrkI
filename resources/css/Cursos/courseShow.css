@@ -307,6 +307,7 @@
     display: grid;
     grid-template-columns: repeat(var(--ws-grid-size, 10), 30px);
     border: 1px solid #ccc;
+    -webkit-user-select: none;
     user-select: none;
 }
 .ws-cell {

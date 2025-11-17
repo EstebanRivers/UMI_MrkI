@@ -104,6 +104,7 @@
                 <h3>Añadir Nueva Actividad</h3>
                 <form id="activity-form" action="{{route('activities.store')}}" method="POST">
                     @csrf
+                    <input type="hidden" name="course_id" value="{{ $course->id }}">
                     <input type="hidden" name="subtopic_id" id="activity-subtopic-id">
                     <input type="hidden" name="topic_id" id="activity-topic-id">
 
@@ -114,6 +115,16 @@
                     
                     <div class="form-group">
                         <input type="text" name="title" placeholder="Título de la actividad" required>
+                    </div>
+
+                    <div class="form-group" style="background: #fffbe6; padding: 10px; border-radius: 8px; border: 1px solid #ffe58f; margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                            <input type="checkbox" name="is_final_exam" value="1" id="is_final_exam_checkbox">
+                            <strong>Marcar como Examen Final</strong>
+                        </label>
+                        <small style="display: block; margin-top: 5px; color: #666;">
+                            Si se marca, esta actividad se asociará a todo el curso y se ocultará hasta que el usuario complete el 100% del contenido. Se ignorará la selección de Tema/Subtema.
+                        </small>
                     </div>
 
                     <div class="form-group">

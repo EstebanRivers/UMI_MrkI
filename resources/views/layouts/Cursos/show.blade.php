@@ -92,6 +92,17 @@
                     </div>
                 </div>
             @endforeach
+            @if ($finalExamActivity)
+                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #e69a37; margin-top: 15px; padding-top: 15px;">
+                    <strong 
+                        class="syllabus-link auto-complete-link accordion-toggle"
+                        data-target="#content-activity-{{ $finalExamActivity->id }}"
+                        data-completable-type="Activities"
+                        data-completable-id="{{ $finalExamActivity->id }}">
+                        <span style="font-size: 1.1em;">🎓</span> Examen Final
+                    </strong>
+                </div>
+            @endif
         </div>
         {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
             <div class="course-progress-container" 
@@ -427,6 +438,20 @@
         /* ==================================================================
            3. LÓGICA DE PROGRESO (CORREGIDA)
            ================================================================== */
+        // --- Referencia al enlace del examen ---
+        const finalExamSyllabusLink = document.getElementById('final-exam-syllabus-link');
+
+        // --- Función para comprobar y mostrar el examen ---
+        function checkAndShowFinalExam(progressValue) {
+            if (progressValue >= 100 && finalExamSyllabusLink) {
+                // Comprobar si ya se mostró para no repetir alertas
+                if (finalExamSyllabusLink.style.display === 'none') {
+                    finalExamSyllabusLink.style.display = 'block';
+                    // Opcional: Mostrar un mensaje
+                    alert('¡Felicidades! Has completado el curso y desbloqueado el Examen Final.');
+                }
+            }
+        }
 
         const markItemAsComplete = (type, id, element) => {
             if (element.classList.contains('completed')) return;
@@ -448,12 +473,17 @@
             if (!tracker) return;
             const barFill = document.getElementById('progress-bar-fill');
             const barText = document.getElementById('progress-bar-text');
-            const completedNow = document.querySelectorAll('.syllabus-link.completed').length;
+            const completedNow = document.querySelectorAll('.course-syllabus .syllabus-link.completed').length;
             const totalItems = parseInt(tracker.dataset.totalActivities, 10); 
-            if (totalItems === 0) return;
+            if (totalItems === 0) {
+                checkAndShowFinalExam(100); // Si no hay items, desbloquear
+                return;
+            };
             let newProgress = Math.round((completedNow / totalItems) * 100);
+            if (newProgress > 100) newProgress = 100; // Asegurar el tope
             barFill.style.width = newProgress + '%';
             barText.innerText = newProgress + '%';
+            checkAndShowFinalExam(newProgress);
         };
 
         // --- Escuchar clics en los enlaces "completables" (PDFs/Videos) ---
@@ -537,6 +567,11 @@
                     });
             });
         });
+
+        // --- COMPROBACIÓN INICIAL AL CARGAR PÁGINA ---
+        // Obtenemos el progreso inicial que pasó el controlador
+        const initialProgress = {{ $progress ?? 0 }};
+        checkAndShowFinalExam(initialProgress);
         
         
         /* ==================================================================
