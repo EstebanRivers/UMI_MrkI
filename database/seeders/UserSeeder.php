@@ -13,6 +13,7 @@ use App\Models\Users\Workstation;
 use App\Models\Users\Career;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // Añadido para manejo de errores
 
 class UserSeeder extends Seeder
 {
@@ -21,137 +22,126 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Busca el rol que quieres asignar
-        $masterRole = Role::where('name', 'master')->first(); // O el rol que necesites
+        try {
+            // --- 1. Buscar Roles Necesarios ---
+            $masterRole = Role::where('name', 'master')->firstOrFail();
+            $alumnoRole = Role::where('name', 'estudiante')->firstOrFail();
+            $anfitrionRole = Role::where('name', 'anfitrion')->firstOrFail();
 
-        // 2. Busca TODAS las instituciones a las que quieres asignarlo
-        $institutions = Institution::whereIn('name', [
-            'Palacio Mundo Imperial',
-            'Universidad Mundo Imperial',
-            'Princess Mundo Imperial',
-            'Pierre Mundo Imperial',
-        ])->get();
+            // --- 2. Buscar Instituciones Necesarias ---
+            $universidadMI = Institution::where('name', 'Universidad Mundo Imperial')->firstOrFail();
+            $palacioMI = Institution::where('name', 'Palacio Mundo Imperial')->firstOrFail();
+            
+            // Busca TODAS las instituciones a las que asignarás el master
+            $allInstitutions = Institution::whereIn('name', [
+                'Palacio Mundo Imperial',
+                'Universidad Mundo Imperial',
+                'Princess Mundo Imperial',
+                'Pierre Mundo Imperial',
+            ])->get();
 
-        // 1. Busca la institución
-        $umi = Institution::where('name', 'Universidad Mundo Imperial')->first();
-
-        // Si $umi no existe, usa la primera institución que encuentre como plan B
-        if (!$umi) {
-            $umi = Institution::first();
-}
-
-        // 3. Crea el usuario master
-        $masterUser = User::firstOrCreate(
-            ['email' => 'master@UMI.com'],
-            [
-                'nombre' => 'Esteban',
-                'apellido_paterno' => 'Rivera',
-                'apellido_materno' => 'Molina',
-                'password' => Hash::make('master1234'),
-                'RFC' => 'XAXX010101000',
-                'institution_id' => $umi->id
-            ]
-        );
-
-        // 4. Asignar MÚLTIPLES instituciones y roles al usuario
-        foreach ($institutions as $institution) {
-        // Inserta una nueva fila en la tabla 'role_user_institution'
-        // que vincula al usuario, el rol y la institución actual del bucle.
-        DB::table('user_roles_institution')->insert([
-            'user_id' => $masterUser->id,
-            'role_id' => $masterRole->id,
-            'institution_id' => $institution->id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        }
-
-        $universidadMI = Institution::where('name', 'Universidad Mundo Imperial')->first();
-            if ($universidadMI) {
-                Career::firstOrCreate(['name' => 'Ingenieria en Sistemas', 'institution_id' => $universidadMI->id]);
-                Career::firstOrCreate(['name' => 'Administracion de Empresas', 'institution_id' => $universidadMI->id]);
+            if ($allInstitutions->isEmpty()) {
+                 throw new \Exception('Error Crítico: No se encontró ninguna institución para asignar al usuario Master.');
             }
 
-        $palacioMI = Institution::where('name', 'Palacio Mundo Imperial')->first();
-            if ($palacioMI) {
-                Department::firstOrCreate(['name' => 'Talento Humano', 'institution_id' => $palacioMI->id]);
-                Department::firstOrCreate(['name' => 'Calidad', 'institution_id' => $palacioMI->id]);
+
+            // --- 3. Crear Carreras, Departamentos y Puestos (Si no existen) ---
+            Career::firstOrCreate(['name' => 'Ingenieria en Sistemas', 'institution_id' => $universidadMI->id]);
+            Career::firstOrCreate(['name' => 'Administracion de Empresas', 'institution_id' => $universidadMI->id]);
+            
+            $talentoHumanoDep = Department::firstOrCreate(
+                ['name' => 'Talento Humano', 'institution_id' => $palacioMI->id]
+            );
+            Department::firstOrCreate(['name' => 'Calidad', 'institution_id' => $palacioMI->id]);
+
+            Workstation::firstOrCreate(
+                ['name' => 'Reclutador', 'department_id' => $talentoHumanoDep->id, 'institution_id' => $palacioMI->id]
+            );
+            Workstation::firstOrCreate(
+                ['name' => 'Analista de Nomina', 'department_id' => $talentoHumanoDep->id, 'institution_id' => $palacioMI->id]
+            );
+
+            // --- 4. Crear Usuario Master ---
+            $masterUser = User::firstOrCreate(
+                ['email' => 'master@UMI.com'],
+                [
+                    'nombre' => 'Esteban',
+                    'apellido_paterno' => 'Rivera',
+                    'apellido_materno' => 'Molina',
+                    'password' => Hash::make('master1234'),
+                    'RFC' => 'XAXX010101000',
+                    'role_id' => $masterRole->id, // Asigna rol principal
+                    // !! CORRECCIÓN: Volvemos a añadir institution_id !!
+                    // Asigna una institución primaria (ej. la primera encontrada)
+                    'institution_id' => $allInstitutions->first()->id, 
+                ]
+            );
+
+            // Asignar Master a TODAS sus instituciones (Ambas tablas pivote)
+            foreach ($allInstitutions as $institution) {
+                DB::table('user_roles_institution')->updateOrInsert(
+                   ['user_id' => $masterUser->id, 'institution_id' => $institution->id],
+                   ['role_id' => $masterRole->id, 'created_at' => now(), 'updated_at' => now()]
+                );
+                $masterUser->institutions()->syncWithoutDetaching($institution->id);
             }
-        
-        $talentoHumanoDep = Department::where('name', 'Talento Humano')->first();
-           if ($talentoHumanoDep) { 
-            Workstation::firstOrCreate(
+
+            // --- 5. Crear Usuario Multi-Rol (Tribilin) ---
+            $ingenieriaCareer = Career::where('name', 'Ingenieria en Sistemas')->where('institution_id', $universidadMI->id)->firstOrFail();
+            $talentoHumanoDep = Department::where('name', 'Talento Humano')->where('institution_id', $palacioMI->id)->firstOrFail();
+            $reclutadorWorkstation = Workstation::where('name', 'Reclutador')->where('department_id', $talentoHumanoDep->id)->firstOrFail();
+
+            $multiRoleUser = User::firstOrCreate(
+                ['email' => 'multirol@UMI.com'],
                 [
-                    'name' => 'Reclutador',
-                    'department_id' => $talentoHumanoDep->id,
-                    'institution_id' => $talentoHumanoDep->institution_id,
+                    'nombre' => 'Tribilin',
+                    'apellido_paterno' => 'Cobo',
+                    'apellido_materno' => 'Loquendo',
+                    'password' => Hash::make('contrasena'),
+                    'RFC' => 'GAPX010101XYZ',
+                    'role_id' => $alumnoRole->id, // Rol principal default
+                     
+                    'institution_id' => $universidadMI->id,
+                    'department_id' => $talentoHumanoDep->id, 
+                    'workstation_id' => $reclutadorWorkstation->id 
                 ]
             );
-            Workstation::firstOrCreate(
+
+            // Asignar rol de "estudiante" en la Universidad
+            DB::table('user_roles_institution')->updateOrInsert(
+                ['user_id' => $multiRoleUser->id, 'institution_id' => $universidadMI->id],
+                ['role_id' => $alumnoRole->id, 'created_at' => now(), 'updated_at' => now()]
+            );
+            $multiRoleUser->institutions()->syncWithoutDetaching($universidadMI->id);
+            AcademicProfile::updateOrInsert(
+                ['user_id' => $multiRoleUser->id],
+                ['career_id' => $ingenieriaCareer->id]
+            );
+
+            // Asignar rol de "anfitrion" en el Palacio
+            DB::table('user_roles_institution')->updateOrInsert(
+                ['user_id' => $multiRoleUser->id, 'institution_id' => $palacioMI->id],
+                ['role_id' => $anfitrionRole->id, 'created_at' => now(), 'updated_at' => now()]
+            );
+            $multiRoleUser->institutions()->syncWithoutDetaching($palacioMI->id);
+            CorporateProfile::updateOrInsert(
+                ['user_id' => $multiRoleUser->id],
                 [
-                    'name' => 'Analista de Nomina',
                     'department_id' => $talentoHumanoDep->id,
-                    'institution_id' => $talentoHumanoDep->institution_id,
+                    'workstation_id' => $reclutadorWorkstation->id,
                 ]
             );
+            
+            $this->command->info('UserSeeder ejecutado exitosamente!');
+
+        } catch (ModelNotFoundException $e) {
+            $this->command->error("Error en UserSeeder: No se encontró un modelo necesario (Rol, Institución, Carrera, etc.). Verifica los nombres y que los Seeders anteriores se hayan ejecutado.");
+            $this->command->error($e->getMessage());
+        } catch (\Exception $e) {
+            $this->command->error("Error inesperado en UserSeeder:");
+            $this->command->error($e->getMessage());
+             // Añade esto para más detalles si el error persiste
+             \Log::error("Error en UserSeeder: " . $e->getMessage() . "\n" . $e->getTraceAsString());
         }
-        $alumnoRole = Role::where('name', 'estudiante')->first();
-        $anfitrionRole = Role::where('name','anfitrion')->first();
-
-        if (!$alumnoRole || !$anfitrionRole || !$palacioMI || !$universidadMI) {
-            // Detiene el seeder y muestra un error claro.
-            throw new \Exception('No se pudo encontrar un Rol o Institución. Revisa los nombres en UserSeeder.');
-        }
-
-        // 2. Obtener los perfiles específicos
-        $ingenieriaCareer = Career::where('name', 'Ingenieria en Sistemas')->where('institution_id', $universidadMI->id)->first();
-        $talentoHumanoDep = Department::where('name', 'Talento Humano')->where('institution_id', $palacioMI->id)->first();
-        $reclutadorWorkstation = Workstation::where('name', 'Reclutador')->where('department_id', $talentoHumanoDep->id)->first();
-
-        // Asegurarse de que los perfiles específicos existen
-        if (!$ingenieriaCareer || !$talentoHumanoDep || !$reclutadorWorkstation) {
-            throw new \Exception('Error en el Seeder: No se encontró la carrera, departamento o puesto especificado.');
-        }
-
-        // 3. Crear el usuario "Tribilin"
-        $multiRoleUser = User::firstOrCreate(
-            ['email' => 'multirol@UMI.com'],
-            [
-                'nombre' => 'Tribilin',
-                'apellido_paterno' => 'Cobo',
-                'apellido_materno' => 'Loquendo',
-                'password' => Hash::make('contrasena'),
-                'RFC' => 'GAPX010101XYZ',
-                'institution_id' => $umi->id
-            ]
-        );
-
-       // 4. Asignar rol de "estudiante" y perfil académico en la Universidad
-        DB::table('user_roles_institution')->updateOrInsert(
-            ['user_id' => $multiRoleUser->id, 'institution_id' => $universidadMI->id],
-            ['role_id' => $alumnoRole->id, 'created_at' => now(), 'updated_at' => now()]
-        );
-
-        // CORRECCIÓN AQUÍ: Busca el perfil solo por user_id
-        AcademicProfile::updateOrInsert(
-            ['user_id' => $multiRoleUser->id],
-            ['career_id' => $ingenieriaCareer->id]
-        );
-
-
-        // 5. Asignar rol de "anfitrion" y perfil corporativo en el Palacio
-        DB::table('user_roles_institution')->updateOrInsert(
-            ['user_id' => $multiRoleUser->id, 'institution_id' => $palacioMI->id],
-            ['role_id' => $anfitrionRole->id, 'created_at' => now(), 'updated_at' => now()]
-        );
-
-        // CORRECCIÓN AQUÍ: Busca el perfil solo por user_id
-        CorporateProfile::updateOrInsert(
-            ['user_id' => $multiRoleUser->id],
-            [
-                'department_id' => $talentoHumanoDep->id,
-                'workstation_id' => $reclutadorWorkstation->id,
-            ]
-        );
     }
 }

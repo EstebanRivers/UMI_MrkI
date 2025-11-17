@@ -8,7 +8,7 @@ use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\Ajustes\AjustesController;
-
+use App\Http\Controllers\Control_admin\ControlAdministrativoController;
 
 
 // Rutas de autenticación
@@ -61,20 +61,30 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
     });
+// Ajustes
+Route::middleware(['role:master,control_administrativo'])
+    ->prefix('ajustes')->name('ajustes.')->group(function () {
+    
+    // --- Rutas existentes ---
+    Route::get('/{seccion}', [AjustesController::class, 'show'])->name('show');
+    Route::post('/{seccion}', [AjustesController::class, 'store'])->name('store');
+    
+    // --- Rutas del Modal ---
+    Route::get('/{seccion}/create-form', [AjustesController::class, 'getCreateForm'])->name('getCreateForm');
+    Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
+    Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
+    Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
+    
+    Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
+         ->name('users.toggleStatus'); 
 
-    Route::middleware(['role:master,control_administrativo']) // 1. AÑADIMOS EL MIDDLEWARE DE ROL
-        ->prefix('ajustes')->name('ajustes.')->group(function () {
-        
-        // --- Tus rutas existentes ---
-        Route::get('/{seccion}', [AjustesController::class, 'show'])->name('show');
-        Route::post('/{seccion}', [AjustesController::class, 'store'])->name('store');
-        
-        // --- 2. AÑADIMOS LAS RUTAS FALTANTES PARA EL MODAL ---
-        Route::get('/{seccion}/create-form', [AjustesController::class, 'getCreateForm'])->name('getCreateForm');
-        Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
-        Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
-        Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
-    });
+    Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
+         ->name('users.toggleStatus');
+         
+    Route::post('periods/{id}/toggle-status', [AjustesController::class, 'togglePeriodStatus'])
+         ->name('periods.toggleStatus');
+
+});
 
     //Vista del curso
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
@@ -86,15 +96,26 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     
     
     // Control Administrativo - roles especificos
-    Route::middleware(['role:master'])->group(function () {
-        Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
-        })->name('ControlAdmin.index');
+    Route::middleware(['role:master,control_administrativo'])
+        ->prefix('control-administrativo')
+        ->name('control.') // Esto crea nombres como 'control.academico'
+        ->group(function () {
+
+            // Ruta para "Control Académico"
+            Route::get('/academico', [ControlAdministrativoController::class, 'showAcademico'])
+                 ->name('academico');
+
+            // Ruta para "Control Escolar"
+            Route::get('/escolar', [ControlAdministrativoController::class, 'showEscolar'])
+                 ->name('escolar');
+
+            // Ruta para "Planeación y Vinculación"
+            Route::get('/planeacion', [ControlAdministrativoController::class, 'showPlaneacion'])
+                 ->name('planeacion');
+
+
     });
 
-    // --- RUTA DUPLICADA DE '/ajustes' ---
-    /*Route::middleware(['role:master'])->group(function () {
-       Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
-        })->name('Ajustes.index');
-    }); */
+   
 
 });

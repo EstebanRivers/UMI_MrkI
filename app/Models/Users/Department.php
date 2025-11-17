@@ -41,17 +41,13 @@ class Department extends Model
         'institution_id',
     ];
 
-    /**
-     * Define la relación "pertenece a" con Institution.
-     */
+    
     public function institution()
     {
         return $this->belongsTo(Institution::class, 'institution_id');
     }
 
-    /**
-     * Define la relación "tiene muchos" con Workstation.
-     */
+    
     public function workstations()
     {
         return $this->hasMany(Workstation::class);

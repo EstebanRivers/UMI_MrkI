@@ -70,8 +70,7 @@ class Institution extends Model
 
     public function workstations(): HasManyThrough
     {
-        // El primer argumento es el modelo final al que queremos llegar (Workstation).
-        // El segundo argumento es el modelo intermedio (Department).
+        
         return $this->hasManyThrough(Workstation::class, Department::class);
     }
 }

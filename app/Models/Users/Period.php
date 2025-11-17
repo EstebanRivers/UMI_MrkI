@@ -21,6 +21,7 @@ class Period extends Model
         'end_date',
         'is_active',
         'institution_id',
+        'monthly_payments_count',
     ];
 
     /**
@@ -34,9 +35,7 @@ class Period extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Define la relación "pertenece a" con Institution.
-     */
+    
     public function institution()
     {
         return $this->belongsTo(Institution::class, 'institution_id');
