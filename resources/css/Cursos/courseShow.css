@@ -475,3 +475,26 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
+
+/* Clase para ocultar preguntas */
+    .question-step {
+        display: none; /* Ocultas por defecto */
+    }
+    
+    /* Clase para mostrar la pregunta activa */
+    .question-step.active {
+        display: block;
+        animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .exam-progress {
+        font-weight: bold;
+        color: #666;
+        margin-bottom: 15px;
+        display: block;
+    }
