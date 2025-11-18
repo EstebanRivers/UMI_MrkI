@@ -392,8 +392,8 @@
             @if ($finalExamActivity)
                 @php $activity = $finalExamActivity; @endphp
 
-                <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none; border-left: 5px solid #e69a37;">
-                    <h2 style="color: #e69a37;">🎓 Examen Final</h2>
+                <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none; ">
+                    <h2 style="color: #e69a37;"> Examen Final</h2>
                     <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
 
                     {{-- Aquí usamos la lógica del "Examen" (múltiples preguntas) --}}
