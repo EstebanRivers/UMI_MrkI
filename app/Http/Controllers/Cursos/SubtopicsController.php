@@ -7,6 +7,7 @@ use App\Models\Cursos\Subtopic;
 use App\Models\Cursos\Topics;
 use Illuminate\Routing\Controller;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Storage;
 
 class SubtopicsController extends Controller
 {
@@ -85,6 +86,10 @@ class SubtopicsController extends Controller
     public function destroy(Subtopic $subtopic)
     {
         $subtopic->delete();
+
+        if ($subtopic->file_path) {
+            Storage::disk('public')->delete($subtopic->file_path);
+        }
 
         return back()->with('success', '¡Subtema eliminado exitosamente!');
     }

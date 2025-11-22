@@ -99,6 +99,12 @@
             <input type="file" id="image" name="image" accept="image/*"
                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
         </div>
+        {{-- Material de apoyo --}}
+        <div style="margin-bottom: 30px;">
+            <label for="guide_material" style="display: block; margin-bottom: 8px; font-weight: 600;">Material de Guía (PDF, Word, PPT)</label>
+            <input type="file" id="guide_material" name="guide_material" accept=".pdf,.doc,.docx,.ppt,.pptx"
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+        </div>
 
         {{-- Botón de Enviar --}}
         <button type="submit"
@@ -111,47 +117,45 @@
 
 @push('scripts')
 <script>
-    // Se ejecuta cuando todo el HTML ha sido cargado
-    document.addEventListener('DOMContentLoaded', function () {
-        
-        // 1. Obtenemos los datos que pasamos desde el controlador
-        const departmentWorkstations = @json($departmentWorkstationsMap);
 
-        // 2. Añadimos un "oyente" al DOCUMENTO entero.
-        // Este es el "supervisor" que nunca desaparece.
-        document.addEventListener('change', function (e) {
+    // 1. Obtenemos los datos que pasamos desde el controlador
+    const departmentWorkstations = @json($departmentWorkstationsMap);
+
+    // 2. Referencias a los <select>
+    const departmentSelect = document.getElementById('department_id');
+    const workstationSelect = document.getElementById('workstation_id');
+
+    // 3. Función para poblar los puestos
+    function populateWorkstations(selectedDepartmentId) {
+        if (!workstationSelect) return; // Salir si no existe el select
+
+        // Limpiamos las opciones anteriores de puestos (dejando las 2 primeras)
+        while (workstationSelect.options.length > 2) {
+            workstationSelect.remove(2);
+        }
+
+        if (selectedDepartmentId && departmentWorkstations[selectedDepartmentId]) {
+            workstationSelect.disabled = false;
+            workstationSelect.querySelector('option').textContent = 'Selecciona el Puesto (Opcional)';
             
-            // 3. Verificamos si el elemento que cambió fue nuestro filtro de departamento
-            if (e.target && e.target.id === 'department_id') {
-                
-                // Si la condición es cierta, ¡ejecutamos la misma lógica de antes!
-                const departmentSelect = e.target; // El elemento que cambió
-                const workstationSelect = document.getElementById('workstation_id');
+            const workstations = departmentWorkstations[selectedDepartmentId];
+            
+            workstations.forEach(function (workstation) {
+                const option = new Option(workstation.name, workstation.id);
+                workstationSelect.add(option);
+            });
 
-                // Limpiamos las opciones anteriores de puestos (dejando las 2 primeras)
-                while (workstationSelect.options.length > 2) {
-                    workstationSelect.remove(2);
-                }
+        } else {
+            workstationSelect.disabled = true;
+            workstationSelect.querySelector('option').textContent = 'Primero selecciona un departamento';
+        }
+    }
 
-                const selectedDepartmentId = departmentSelect.value;
-
-                if (selectedDepartmentId && departmentWorkstations[selectedDepartmentId]) {
-                    workstationSelect.disabled = false;
-                    workstationSelect.querySelector('option').textContent = 'Selecciona el Puesto (Opcional)';
-                    
-                    const workstations = departmentWorkstations[selectedDepartmentId];
-                    
-                    workstations.forEach(function (workstation) {
-                        const option = new Option(workstation.name, workstation.id);
-                        workstationSelect.add(option);
-                    });
-
-                } else {
-                    workstationSelect.disabled = true;
-                    workstationSelect.querySelector('option').textContent = 'Primero selecciona un departamento';
-                }
-            }
+    // 4. Añadimos un "oyente" SOLO al <select> de departamento
+    if (departmentSelect) {
+        departmentSelect.addEventListener('change', function (e) {
+            populateWorkstations(this.value);
         });
-    });
+    }
 </script>
 @endpush

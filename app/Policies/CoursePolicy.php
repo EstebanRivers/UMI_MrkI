@@ -51,27 +51,31 @@ class CoursePolicy
         // Un estudiante solo puede ver el curso si está dirigido a su carrera.
         if ($user->hasActiveRole('estudiante')) {
             $academicProfile = $user->academicProfile;
-            return $academicProfile && $course->career_id === $academicProfile->career_id;
+            
+            // CORREGIDO: Verificar que el perfil existe Y que el curso incluye la carrera.
+            return $academicProfile && $course->careers->contains($academicProfile->career_id);
         }
 
         // Un anfitrión solo puede ver el curso si está dirigido a su departamento o puesto.
         if ($user->hasActiveRole('anfitrion')) {
             $corporateProfile = $user->corporateProfile;
+            
             // Si el usuario no tiene perfil corporativo, no puede ver ningún curso.
             if (!$corporateProfile) {
                 return false;
             }
 
+            // --- LÓGICA CORREGIDA ---
             // El usuario SÍ puede ver el curso si:
-            // 1. El curso pertenece a su departamento Y...
-            return $course->department_id === $corporateProfile->department_id &&
-                   (
-                       // 2a. ...el curso es para TODO el departamento (ningún puesto específico).
-                       is_null($course->workstation_id) ||
+            // 1. El curso está dirigido a su departamento Y...
+            $isForDepartment = $course->departments->contains($corporateProfile->department_id);
 
-                       // 2b. ...el curso es específicamente para su puesto de trabajo.
-                       $course->workstation_id === $corporateProfile->workstation_id
-                   );
+            // 2. ... ( (El curso es para TODO el depto (lista de puestos vacía) ) O 
+            //           (El curso SÍ tiene puestos Y el suyo está incluido) )
+            $isForEveryoneInDept = $course->workstations->isEmpty();
+            $isForTheirWorkstation = $course->workstations->contains($corporateProfile->workstation_id);
+
+            return $isForDepartment && ($isForEveryoneInDept || $isForTheirWorkstation);
         }
 
         return false;
@@ -96,7 +100,8 @@ class CoursePolicy
         if ($course->institution_id != $activeInstitutionId) {
             return false;
         }
-
+        
+        // El 'before' ya maneja al 'master', así que solo comprobamos 'docente'
         return $user->hasActiveRole('docente')
             ? $course->instructor_id == $user->id
             : false;
@@ -113,6 +118,7 @@ class CoursePolicy
             return false;
         }
 
+        // El 'before' ya maneja al 'master', así que solo comprobamos 'docente'
         return $user->hasActiveRole('docente')
             ? $course->instructor_id == $user->id
             : false;
@@ -123,7 +129,8 @@ class CoursePolicy
      */
     public function restore(User $user, Course $course): bool
     {
-        return $user->hasActiveRole('master');
+        // Esta regla ya es manejada por el método 'before'
+        return false; 
     }
 
     /**
@@ -131,6 +138,7 @@ class CoursePolicy
      */
     public function forceDelete(User $user, Course $course): bool
     {
-        return $user->hasActiveRole('master');
+        // Esta regla ya es manejada por el método 'before'
+        return false;
     }
 }

@@ -67,6 +67,7 @@ class Course extends Model
         'instructor_id',
         'institution_id',
         'image',
+        'guide_material_path',
 
     ];
 
@@ -101,6 +102,22 @@ class Course extends Model
     public function workstations()
     {
         return $this->morphedByMany(Workstation::class, 'targetable');
+    }
+
+    /**
+     * Los usuarios inscritos en este curso.
+     */
+    public function users()
+    {
+        // Asumiendo que tu modelo de usuario es 'User'
+        // Usa App\Models\Users\User::class
+        return $this->belongsToMany(User::class, 'course_user');
+    }
+
+    public function finalExam()
+    {
+        return $this->hasOne(Activities::class)
+                    ->where('is_final_exam', true);
     }
 
 }

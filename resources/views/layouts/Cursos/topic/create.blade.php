@@ -104,41 +104,161 @@
                 <h3>Añadir Nueva Actividad</h3>
                 <form id="activity-form" action="{{route('activities.store')}}" method="POST">
                     @csrf
+                    <input type="hidden" name="course_id" value="{{ $course->id }}">
                     <input type="hidden" name="subtopic_id" id="activity-subtopic-id">
                     <input type="hidden" name="topic_id" id="activity-topic-id">
 
-                        <div class="header-activity" style="display:flex; justify-content: space-between; margin-bottom: 10px;">
-                            <h5>Nueva Actividad</h5>
-                            <button type="submit" class="btn-primary">+ Añadir Actividad</button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <input type="text" name="title" placeholder="Título de la actividad" required>
-                        </div>
+                    <div class="header-activity" style="display:flex; justify-content: space-between; margin-bottom: 10px;">
+                        <h5>Nueva Actividad</h5>
+                        <button type="submit" class="btn-primary">+ Añadir Actividad</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="text" name="title" placeholder="Título de la actividad" required>
+                    </div>
 
-                        <div class="form-group">
-                            <select name="type" required class="activity-type-selector">
-                                <option value="" disabled selected>Selecciona el tipo...</option>
-                                <option value="Cuestionario">Cuestionario</option>
-                                <option value="SopaDeLetras">Sopa de Letras</option>
-                            </select>
-                        </div>
+                    <div class="form-group-exam">
+                        <details>
+                            <summary class="exam-label">
+                                <input type="checkbox" name="is_final_exam" value="1" id="is_final_exam_checkbox">
+                                <strong>Marcar como Examen Final</strong>
+                            </summary>
+                            <small class="exam-note">
+                                Si se marca, esta actividad se ocultará hasta que se complete el 100% del curso.
+                            </small>
+                        </details>
+                    </div>
 
-                        <div class="activity-fields-container">
-                            <div class="activity-fields" id="fields-Cuestionario">
-                                <div class="form-group">
-                                    <label>Pregunta del cuestionario:</label>
-                                    <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí">
+                    <div class="form-group">
+                        <label for="activity_type">Tipo de Actividad</label>
+                        <select name="type" id="activity_type" required>
+                            <option value="" disabled selected>Selecciona un tipo</option>
+                            <option value="Cuestionario">Cuestionario (Quiz)</option>
+                            <option value="SopaDeLetras">Sopa de Letras</option>
+                            <option value="Crucigrama">Crucigrama</option>
+                            <option value="Examen">Examen (Múltiples preguntas)</option> 
+                        </select>
+                    </div>
+
+                    <div id="activity-type-container">
+
+                        <div id="template-Cuestionario" class="activity-template" style="display: none;">
+                            <div class="activity-fields-container">
+                                 <div class="form-group">
+                                        <label>Pregunta del cuestionario:</label>
+                                        <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí" disabled>
+                                    
                                 </div>
-                            </div>
                                 <label>Opciones de respuesta (marca la correcta):</label>
                                 @for ($i = 0; $i < 4; $i++)
                                     <div class="quiz-option">
-                                        <input type="radio" name="content[correct_answer]" value="{{ $i }}">
-                                        <input type="text" name="content[options][]" class="form-field-cuestionario" placeholder="Opción {{ $i + 1 }}">
+                                        <input type="radio" name="content[correct_answer]" value="{{ $i }}" disabled>
+                                        <input type="text" name="content[options][]" class="form-field-cuestionario" placeholder="Opción {{ $i + 1 }}" disabled>
                                     </div>
                                 @endfor
+                            </div>
                         </div>
+                        <div id="template-SopaDeLetras" class="activity-template" style="display: none;">
+                            
+                            <div class="form-group">
+                                <label for="content_grid_size">Tamaño de Cuadrícula (Ej: 10 para 10x10)</label>
+                                <input type="number" name="content[grid_size]" id="content_grid_size" 
+                                    value="10" min="5" max="20" disabled>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="ws_word_input">Palabras a encontrar</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="ws_word_input" 
+                                        placeholder="Escribe una palabra y presiona 'Añadir'" 
+                                        style="flex: 1;" disabled>
+                                    <button type="button" id="ws_add_word_btn" class="btn-secondary" disabled>Añadir</button>
+                                </div>
+                                <small>Se recomiendan palabras sin espacios ni acentos, todo en mayúsculas.</small>
+                            </div>
+
+                            <label>Palabras añadidas:</label>
+                            <ul id="ws_word_list" style="list-style: disc; margin-left: 20px; min-height: 50px; background: #f4f4f4; border-radius: 4px; padding: 10px;"></ul>
+                            
+                            <div id="ws_hidden_inputs"></div>
+
+                        </div>
+                        <div id="template-Crucigrama" class="activity-template" style="display: none;">
+                            <div class="form-group">
+                                <label for="cw_grid_size">Tamaño de Cuadrícula (Ej: 15 para 15x15)</label>
+                                <input type="number" name="content[grid_size]" id="cw_grid_size" 
+                                    value="15" min="5" max="25" disabled>
+                            </div>
+
+                            <div id="cw-editor-container">
+                                <div>
+                                    <label>Haz clic en una celda para elegir la posición:</label>
+                                    <div id="cw-editor-grid">
+                                        </div>
+                                </div>
+
+                                <div style="flex: 1; min-width: 250px;">
+                                    <fieldset style="border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                                        <legend style="font-size: 1em; padding: 0 5px; width: auto;">Añadir Pista</legend>
+                                        
+                                        <div class="form-group">
+                                            <label>Posición Seleccionada (X, Y):</label>
+                                            <input type="text" id="cw_coords_display" value="0, 0" readonly disabled 
+                                                style="background: #eee; font-weight: bold;">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="cw_direction">Dirección</label>
+                                            <select id="cw_direction" style="width: 100%;">
+                                                <option value="across">Horizontal (Across)</option>
+                                                <option value="down">Vertical (Down)</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="cw_number">Número</label>
+                                            <input type="number" id="cw_number" min="1" value="1" style="width: 100%;">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="cw_clue">Pista</label>
+                                            <input type="text" id="cw_clue" placeholder="Ej: Capital de Francia">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="cw_answer">Respuesta (sin espacios, en mayúsculas)</label>
+                                            <input type="text" id="cw_answer" placeholder="Ej: PARIS">
+                                        </div>
+                                        
+                                        <button type="button" id="cw_add_clue_btn" class="btn-secondary" style="width: 100%;">+ Añadir Pista</button>
+                                    </fieldset>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 20px; margin-top: 15px;">
+                                <div style="flex: 1;">
+                                    <label>Horizontales:</label>
+                                    <ul id="cw_across_list" class="cw-clue-list"></ul>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Verticales:</label>
+                                    <ul id="cw_down_list" class="cw-clue-list"></ul>
+                                </div>
+                            </div>
+                            
+                            <div id="cw_hidden_inputs"></div>
+                            
+                        </div>
+
+                        <div id="template-Examen" class="activity-template" style="display: none;">
+                            <div class="activity-fields-container" id="examen-questions-container">
+                                {{-- Las preguntas se añadirán aquí con JS --}}
+                            </div>
+                            <button type="button" id="add-examen-question-btn" class="btn-secondary-exam" disabled>
+                                + Añadir Pregunta al Examen
+                            </button>
+                        </div>
+                    </div> 
                 </form>
             </div>
             {{-- 2.4 FORMULARIO DE EDICIÓN DE TEMA (Inicialmente oculto) --}}
@@ -203,6 +323,37 @@
                 
             {{-- Lista de temas y subtemas --}}
             <div class="topics-list-content">
+                @if ($course->finalExam)
+                    @php $activity = $course->finalExam; @endphp
+                    
+                    <div class="topic-card final-exam-card" data-activity-id="{{ $activity->id }}" style="margin-bottom: 20px;">
+                        <div class="card-body" style="border-left: 5px solid #e69a37; padding: 15px; border-radius: 4px; background: #fffbe6;">
+                            <div class="topic-header" style="align-items: center; justify-content: space-between;">
+                                
+                                <div>
+                                    <h5 style="color: #e69a37; font-weight: 700; margin-bottom: 5px;">
+                                        🎓 EXAMEN FINAL DEL CURSO
+                                    </h5>
+                                    <p class="topic-title" style="font-weight: 600; font-size: 15px;">{{ $activity->title }}</p>
+                                    <p style="font-size: 0.9em; color: #555;">Tipo: {{ $activity->type }} ({{ count($activity->content['questions'] ?? []) }} preguntas)</p>
+                                </div>
+                                
+                                <div class="topic-actions">
+                                    {{-- Botón eliminar actividad/examen usando la ruta existente --}}
+                                    <form action="{{ route('activities.destroy', $activity) }}" method="POST" 
+                                        onsubmit="return confirm('¿Eliminar el Examen Final? Esto no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger" title="Eliminar Examen">
+                                            <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
+                                                style="width:24px;height:24px" loading="lazy">
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 @forelse ($course->topics as $topic)
                 <div class="topic-card" data-topic-id="{{ $topic->id }}" data-topic-title="{{ $topic->title }}">
                     <div class="card-body">
@@ -483,26 +634,336 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ===================================================
-    // 6. SELECTOR DE TIPO DE ACTIVIDAD
+    // 6. SELECTOR DE TIPO DE ACTIVIDAD (CORREGIDO)
     // ===================================================
-    document.querySelectorAll('.activity-type-selector').forEach(selector => {
-        selector.addEventListener('change', function () {
-            const selectedType = this.value;
-            const form = this.closest('form');
-            const allFields = form.querySelectorAll('.activity-fields');
+    const activityTypeSelect = document.getElementById('activity_type'); // <- Corregido: Usar el ID
 
-            allFields.forEach(field => {
-                field.style.display = 'none';
-                field.querySelectorAll('.form-field-cuestionario').forEach(input => input.required = false);
+    if (activityTypeSelect) {
+        activityTypeSelect.addEventListener('change', function () {
+            const selectedType = this.value; // ej: "Cuestionario" o "SopaDeLetras"
+            const form = this.closest('form');
+            
+            // 1. Ocultar TODAS las plantillas
+            const allTemplates = form.querySelectorAll('.activity-template');
+            allTemplates.forEach(template => {
+                template.style.display = 'none';
+                
+                // Deshabilitar todos sus campos para que no se envíen
+                template.querySelectorAll('input, button, select, textarea').forEach(input => {
+                    input.disabled = true;
+                });
             });
 
-            const activeFields = form.querySelector('#fields-' + selectedType);
-            if (activeFields) {
-                activeFields.style.display = 'block';
-                activeFields.querySelectorAll('.form-field-cuestionario').forEach(input => input.required = true);
+            // 2. Mostrar la plantilla seleccionada
+            const activeTemplate = form.querySelector('#template-' + selectedType);
+            if (activeTemplate) {
+                activeTemplate.style.display = 'block';
+                
+                // Habilitar solo sus campos
+                activeTemplate.querySelectorAll('input, button, select, textarea').forEach(input => {
+                    input.disabled = false;
+                });
+                if (selectedType === 'Crucigrama') {
+                    const gridSize = document.getElementById('cw_grid_size').value;
+                    drawEditorGrid(gridSize);
+                }
             }
         });
-    });
+    }
+
+    // Lógica para el formulario de Sopa de Letras (Esta parte ya estaba bien)
+    const addWordBtn = document.getElementById('ws_add_word_btn');
+    const wordInput = document.getElementById('ws_word_input');
+    const wordList = document.getElementById('ws_word_list');
+    const hiddenInputsContainer = document.getElementById('ws_hidden_inputs');
+
+    if (addWordBtn) {
+        
+        // Función para añadir la palabra
+        const addWord = () => {
+            let word = wordInput.value.trim().toUpperCase();
+            
+            // Validar (simple)
+            if (word === '' || word.includes(' ')) {
+                alert('Por favor, escribe una sola palabra sin espacios.');
+                return;
+            }
+
+            // 1. Crear el input oculto para el formulario
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'content[words][]'; // Esto crea el array en PHP
+            hiddenInput.value = word;
+            hiddenInputsContainer.appendChild(hiddenInput);
+
+            // 2. Crear el elemento <li> para que el usuario lo vea
+            const li = document.createElement('li');
+            li.textContent = word;
+
+            // 3. (Opcional) Añadir botón de eliminar
+            const removeBtn = document.createElement('span');
+            removeBtn.textContent = ' [X]';
+            removeBtn.style.color = 'red';
+            removeBtn.style.cursor = 'pointer';
+            removeBtn.onclick = () => {
+                hiddenInputsContainer.removeChild(hiddenInput);
+                wordList.removeChild(li);
+            };
+            li.appendChild(removeBtn);
+            
+            wordList.appendChild(li);
+
+            // 4. Limpiar el input
+            wordInput.value = '';
+            wordInput.focus();
+        };
+
+        // Añadir al hacer clic
+        addWordBtn.addEventListener('click', addWord);
+        
+        // Añadir al presionar Enter
+        wordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Evitar que el formulario se envíe
+                addWord();
+            }
+        });
+    }
+
+    // ===================================================
+    // 7. LÓGICA DEL EDITOR DE CRUCIGRAMA (NUEVO)
+    // ===================================================
+
+    // --- Variables Globales del Editor ---
+    const editorGrid = document.getElementById('cw-editor-grid');
+    const gridSizeInput = document.getElementById('cw_grid_size');
+    const coordsDisplay = document.getElementById('cw_coords_display');
+    const addClueBtn = document.getElementById('cw_add_clue_btn');
+    const cwHiddenInputs = document.getElementById('cw_hidden_inputs');
+    let activeCell = { x: 0, y: 0 }; // Guarda la (X, Y) seleccionada
+    let editorCells = []; // Para acceder a las celdas
+
+    // --- Función para Dibujar la Cuadrícula del Editor ---
+    function drawEditorGrid(size) {
+        if (!editorGrid) return;
+        editorGrid.innerHTML = '';
+        editorGrid.style.setProperty('--cw-editor-grid-size', size);
+        editorCells = []; // Limpiar la referencia
+
+        for (let y = 0; y < size; y++) {
+            let row = [];
+            for (let x = 0; x < size; x++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cw-editor-cell');
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+
+                // Evento de clic para seleccionar la celda
+                cell.addEventListener('click', () => {
+                    // Quitar 'selected' de la celda anterior
+                    const oldSelected = editorGrid.querySelector('.selected');
+                    if (oldSelected) oldSelected.classList.remove('selected');
+                    
+                    // Añadir 'selected' a la nueva
+                    cell.classList.add('selected');
+                    activeCell = { x: x, y: y }; // ¡Guardar coordenadas!
+                    
+                    // Actualizar el display
+                    if(coordsDisplay) coordsDisplay.value = `${x}, ${y}`;
+                });
+                
+                editorGrid.appendChild(cell);
+                row.push(cell);
+            }
+            editorCells.push(row);
+        }
+        
+        // Seleccionar (0,0) por defecto
+        if (editorCells.length > 0) {
+            editorCells[0][0].classList.add('selected');
+            if(coordsDisplay) coordsDisplay.value = '0, 0';
+            activeCell = { x: 0, y: 0 };
+        }
+    }
+
+    // --- Función para Escribir una palabra en el Editor Visual ---
+    function placeWordOnEditor(word, x, y, direction, number) {
+        let placed = true;
+        for (let i = 0; i < word.length; i++) {
+            let currentX = x + (direction === 'across' ? i : 0);
+            let currentY = y + (direction === 'down' ? i : 0);
+            
+            // 1. Comprobar límites
+            if (currentY >= editorCells.length || currentX >= editorCells[0].length) {
+                alert(`Error: La palabra "${word}" se sale de la cuadrícula.`);
+                return false;
+            }
+            
+            const cell = editorCells[currentY][currentX];
+            const letter = word[i].toUpperCase();
+
+            // 2. Comprobar colisiones
+            if (cell.textContent !== '' && cell.textContent !== letter) {
+                alert(`Error: La letra "${letter}" choca con "${cell.textContent}" en [${currentX},${currentY}].`);
+                return false;
+            }
+        }
+        
+        // Si no hubo errores, escribir la palabra
+        for (let i = 0; i < word.length; i++) {
+            let currentX = x + (direction === 'across' ? i : 0);
+            let currentY = y + (direction === 'down' ? i : 0);
+            const cell = editorCells[currentY][currentX];
+            
+            // Poner la letra
+            cell.textContent = word[i].toUpperCase();
+            
+            // Poner el número (solo en la primera celda)
+            if (i === 0 && !cell.querySelector('.cw-editor-number')) {
+                cell.innerHTML += `<span class="cw-editor-number">${number}</span>`;
+            }
+        }
+        return true;
+    }
+
+    // --- Event Listener para el tamaño de la cuadrícula ---
+    if (gridSizeInput) {
+        gridSizeInput.addEventListener('change', () => {
+            // (Advertencia: esto borrará el crucigrama si ya se empezó)
+            if (confirm('Cambiar el tamaño borrará el crucigrama actual. ¿Continuar?')) {
+                drawEditorGrid(gridSizeInput.value);
+                // También deberías limpiar las listas y los inputs ocultos
+                document.getElementById('cw_across_list').innerHTML = '';
+                document.getElementById('cw_down_list').innerHTML = '';
+                cwHiddenInputs.innerHTML = '';
+            } else {
+                // Revertir
+            }
+        });
+    }
+
+    // --- Event Listener para el botón "+ Añadir Pista" (MODIFICADO) ---
+    if (addClueBtn) {
+        let counters = { across: 0, down: 0 };
+
+        addClueBtn.addEventListener('click', function() {
+            // 1. Obtener valores del formulario
+            const direction = document.getElementById('cw_direction').value;
+            const number = document.getElementById('cw_number').value;
+            const clue = document.getElementById('cw_clue').value;
+            const answer = document.getElementById('cw_answer').value.toUpperCase();
+            
+            // 2. OBTENER (X, Y) DEL EDITOR, NO DE INPUTS
+            const x = activeCell.x;
+            const y = activeCell.y;
+
+            if (!number || !clue || !answer || x === null || y === null) {
+                alert('Por favor, rellena todos los campos de la pista y selecciona una celda.');
+                return;
+            }
+            if (answer.includes(' ') || answer.length === 0) {
+                alert('La respuesta debe ser una sola palabra sin espacios.');
+                return;
+            }
+            
+            // 3. Dibujar la palabra en el editor
+            if (!placeWordOnEditor(answer, x, y, direction, number)) {
+                return; // Detener si la palabra no se pudo colocar
+            }
+
+            // --- El resto de la lógica es la misma que ya tenías ---
+            
+            const listId = `cw_${direction}_list`; 
+            const listElement = document.getElementById(listId);
+            const index = counters[direction]++; 
+            
+            // 4. Crear los inputs ocultos
+            const prefix = `content[clues][${direction}][${index}]`;
+            cwHiddenInputs.insertAdjacentHTML('beforeend', `
+                <input type="hidden" name="${prefix}[number]" value="${number}">
+                <input type="hidden" name="${prefix}[clue]" value="${clue}">
+                <input type="hidden" name="${prefix}[answer]" value="${answer}">
+                <input type="hidden" name="${prefix}[x]" value="${x}">
+                <input type="hidden" name="${prefix}[y]" value="${y}">
+            `);
+
+            // 5. Crear el <li> visible
+            const li = document.createElement('li');
+            li.textContent = `${number}. [${x},${y}] ${clue} (${answer})`;
+            
+            const removeBtn = document.createElement('span');
+            removeBtn.textContent = ' [X]';
+            removeBtn.style.color = 'red';
+            removeBtn.style.cursor = 'pointer';
+            li.appendChild(removeBtn);
+
+            removeBtn.addEventListener('click', () => {
+                // (Nota: Esto elimina la pista de la lista, pero no
+                // la borra del editor visual. Se necesitaría lógica adicional
+                // para "limpiar" las celdas de la cuadrícula)
+                cwHiddenInputs.querySelectorAll(`input[name^="${prefix}"]`).forEach(inp => inp.remove());
+                listElement.removeChild(li);
+            });
+
+            listElement.appendChild(li);
+
+            // 6. Limpiar formulario
+            document.getElementById('cw_clue').value = '';
+            document.getElementById('cw_answer').value = '';
+            document.getElementById('cw_number').value = parseInt(number) + 1;
+            document.getElementById('cw_clue').focus();
+        });
+    }
+
+    // --- LÓGICA PARA NUEVO EXAMEN (MÚLTIPLES PREGUNTAS) ---
+    const addExamenBtn = document.getElementById('add-examen-question-btn');
+    const examenContainer = document.getElementById('examen-questions-container');
+    let examenQuestionCounter = 0;
+
+    if (addExamenBtn) {
+        document.getElementById('activity_type').addEventListener('change', function() {
+            if (this.value === 'Examen') {
+                addExamenBtn.disabled = false;
+                if (examenContainer.childElementCount === 0) {
+                    addExamenQuestionBlock(); // Añadir la primera pregunta
+                }
+            } else {
+                addExamenBtn.disabled = true;
+            }
+        });
+        addExamenBtn.addEventListener('click', addExamenQuestionBlock);
+    }
+
+    function addExamenQuestionBlock() {
+        const index = examenQuestionCounter++;
+        const questionBlock = document.createElement('div');
+        questionBlock.classList.add('quiz-question-block');
+        questionBlock.style.border = '1px solid #ccc';
+        questionBlock.style.padding = '10px';
+        questionBlock.style.marginBottom = '10px';
+        questionBlock.style.borderRadius = '8px';
+
+        questionBlock.innerHTML = `
+            <h5>Pregunta ${index + 1}</h5>
+            <div class="form-group">
+                <label>Texto de la Pregunta:</label>
+                <input type="text" name="content[questions][${index}][question]" class="form-field-examen" required>
+            </div>
+            <label>Opciones (marca la correcta):</label>
+            ${[0, 1, 2, 3].map(optIndex => `
+                <div class="quiz-option">
+                    <input type="radio" name="content[questions][${index}][correct_answer]" value="${optIndex}" required>
+                    <input type="text" name="content[questions][${index}][options][]" class="form-field-examen" placeholder="Opción ${optIndex + 1}" required>
+                </div>
+            `).join('')}
+            <button type="button" class="btn-danger-small btn-remove-question" style="margin-top: 5px;">Eliminar Pregunta</button>
+        `;
+        questionBlock.querySelectorAll('.form-field-examen, input[type="radio"]').forEach(el => el.disabled = false);
+        questionBlock.querySelector('.btn-remove-question').addEventListener('click', function() {
+            questionBlock.remove();
+        });
+        examenContainer.appendChild(questionBlock);
+    }
 
     // ===================================================
     // 7. DELEGACIÓN DE EVENTO: EDITAR TEMA

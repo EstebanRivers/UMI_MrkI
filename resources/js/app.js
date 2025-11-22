@@ -1,4 +1,6 @@
+import './bootstrap';
 // Navegación SPA optimizada y simplificada
+
 class SimpleSPANavigation {
     constructor() {
         this.cache = new Map();
@@ -377,6 +379,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Exponer método de navegación globalmente
     window.navigateTo = (url) => window.spaNav.navigateTo(url);
+
+    /**
+     * Función reutilizable para marcar una actividad como completada (vía AJAX)
+     */
+        // --- 1. Para LINKS (PDF, Texto, Quiz) ---
+        document.body.addEventListener('click', function(event) {
+            // 'event.target.closest' es la forma moderna de delegar eventos
+            const link = event.target.closest('.auto-complete-link');
+            if (link) {
+                const activityId = link.dataset.activityId;
+                markActivityAsComplete(activityId);
+                // La navegación al link (href) ocurre de forma natural
+            }
+        });
+
+        // --- 2. Para VIDEOS (al finalizar) ---
+        const videoPlayers = document.querySelectorAll('.auto-complete-video');
+        videoPlayers.forEach(video => {
+            video.addEventListener('ended', (event) => {
+                const activityId = event.currentTarget.dataset.activityId;
+                markActivityAsComplete(activityId);
+            });
+        });
 });
 
 // Limpiar al cerrar

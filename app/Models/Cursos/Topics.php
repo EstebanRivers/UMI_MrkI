@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Cursos\Completion;
 
 /**
  * @property int $id
@@ -62,5 +63,10 @@ class Topics extends Model
     public function subtopics(): HasMany
     {
         return $this->hasMany(Subtopic::class, 'topic_id');
+    }
+
+    public function completions()
+    {
+        return $this->morphMany(Completion::class, 'completable');
     }
 }

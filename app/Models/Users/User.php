@@ -16,6 +16,9 @@ use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
 use App\Models\AdmonCont\Horario;
 use Illuminate\Support\Facades\DB;
+use App\Models\Cursos\Course;
+use App\Models\Cursos\Completion;
+use App\Models\Cursos\Activities;
 
 /**
  * @property int $id
@@ -220,12 +223,21 @@ class User extends Authenticatable
         return $this->hasOne(CorporateProfile::class);
     }
 
-
-    // El perfil corporativo asociado al usuario.
-    public function horarioProfile(): HasOne
+    /**
+     * Los cursos a los que el usuario está inscrito.
+     */
+    public function courses()
     {
-        return $this->hasOne(Horario::class);
+        return $this->belongsToMany(Course::class, 'course_user');
     }
 
+    /**
+     * Todas las cosas que el usuario ha completado (temas, subtemas, actividades).
+     */
+    public function completions()
+    {
+        return $this->hasMany(Completion::class);
+    }
 
+    
 }

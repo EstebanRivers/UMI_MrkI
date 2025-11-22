@@ -83,7 +83,8 @@ class TopicsController extends Controller
         if ($request->hasFile('file')) {
             // Eliminar archivo anterior si existe
             if ($topic->file_path) {
-                Storage::delete($topic->file_path);
+                Storage::disk('public')->delete($topic->file_path);
+
             }
             $topic->file_path = $request->file('file')->store('topics', 'public');
         }
