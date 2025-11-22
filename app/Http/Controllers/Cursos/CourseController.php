@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse; // <-- Importante
+use App\Models\Cursos\Activities;
 
 class CourseController extends Controller
 {
@@ -202,6 +203,14 @@ class CourseController extends Controller
         // Obtener el examen final (será null si no existe)
         $finalExamActivity = $course->finalExam;
 
+        $finalExamData = null;
+        if ($finalExamActivity && $user) {
+            $finalExamData = $user->completions()
+                ->where('completable_type', Activities::class) // Asegúrate de importar Activities
+                ->where('completable_id', $finalExamActivity->id)
+                ->first();
+        }
+
         // Pasamos los nuevos totales a la vista
         return view('layouts.Cursos.show', compact(
             'course', 
@@ -210,7 +219,8 @@ class CourseController extends Controller
             'completedItems', 
             'userCompletionsMap',
             'isEnrolled', // (Añadido por si acaso, si mantienes la auto-inscripción)
-            'finalExamActivity' // <-- PASAR EL EXAMEN A LA VISTA
+            'finalExamActivity', // <-- PASAR EL EXAMEN A LA VISTA
+            'finalExamData' // <-- PASAR LOS DATOS DEL EXAMEN A LA VISTA
         ));
     }
 
@@ -460,6 +470,39 @@ class CourseController extends Controller
         return response()->json([
             'success' => true, 
             'message' => 'Has sido dado de baja del curso.'
+        ]);
+    }
+
+    public function showCertificate(Course $course)
+    {
+        $user = Auth::user();
+        
+        // 1. Buscar el examen final del curso
+        $finalExam = $course->finalExam;
+        
+        if (!$finalExam) {
+            return redirect()->route('course.show', $course)
+                ->with('error', 'Este curso no tiene certificado disponible.');
+        }
+
+        // 2. Verificar si el usuario completó ese examen específico
+        $completion = $user->completions()
+            ->where('completable_type', Activities::class)
+            ->where('completable_id', $finalExam->id)
+            ->first();
+
+        // 3. Validar (puedes añadir validación de puntaje mínimo aquí si quieres, ej: score >= 60)
+        if (!$completion) {
+            return redirect()->route('course.show', $course)
+                ->with('error', 'Debes completar el examen final para ver el certificado.');
+        }
+
+        // 4. Retornar la vista del certificado
+        return view('layouts.Cursos.certificate', [
+            'course' => $course,
+            'user' => $user,
+            'score' => $completion->score,
+            'date' => $completion->created_at->format('d/m/Y')
         ]);
     }
 

@@ -323,6 +323,37 @@
                 
             {{-- Lista de temas y subtemas --}}
             <div class="topics-list-content">
+                @if ($course->finalExam)
+                    @php $activity = $course->finalExam; @endphp
+                    
+                    <div class="topic-card final-exam-card" data-activity-id="{{ $activity->id }}" style="margin-bottom: 20px;">
+                        <div class="card-body" style="border-left: 5px solid #e69a37; padding: 15px; border-radius: 4px; background: #fffbe6;">
+                            <div class="topic-header" style="align-items: center; justify-content: space-between;">
+                                
+                                <div>
+                                    <h5 style="color: #e69a37; font-weight: 700; margin-bottom: 5px;">
+                                        🎓 EXAMEN FINAL DEL CURSO
+                                    </h5>
+                                    <p class="topic-title" style="font-weight: 600; font-size: 15px;">{{ $activity->title }}</p>
+                                    <p style="font-size: 0.9em; color: #555;">Tipo: {{ $activity->type }} ({{ count($activity->content['questions'] ?? []) }} preguntas)</p>
+                                </div>
+                                
+                                <div class="topic-actions">
+                                    {{-- Botón eliminar actividad/examen usando la ruta existente --}}
+                                    <form action="{{ route('activities.destroy', $activity) }}" method="POST" 
+                                        onsubmit="return confirm('¿Eliminar el Examen Final? Esto no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger" title="Eliminar Examen">
+                                            <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
+                                                style="width:24px;height:24px" loading="lazy">
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 @forelse ($course->topics as $topic)
                 <div class="topic-card" data-topic-id="{{ $topic->id }}" data-topic-title="{{ $topic->title }}">
                     <div class="card-body">

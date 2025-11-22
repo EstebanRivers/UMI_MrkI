@@ -61,7 +61,6 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
-        // SACAMOS completions.mark DE AQUÍ
     });
 
     // --- Rutas de Progreso (Para todos los usuarios) ---
@@ -71,6 +70,8 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::post('/actividades/{activity}/submit', [ActivitiesController::class, 'submit'])
         ->name('activities.submit'); // <- AÑADIMOS ESTA RUTA
 
+    Route::get('/cursos/{course}/certificado', [CourseController::class, 'showCertificate'])
+        ->name('courses.certificate');
 
     //Vista del curso
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');

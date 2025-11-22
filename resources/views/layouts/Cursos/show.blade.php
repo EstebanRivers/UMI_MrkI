@@ -396,82 +396,104 @@
                     <h2 style="color: #e69a37;"> Examen Final</h2>
                     <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
 
-                    {{-- CORRECCIÓN: Usar un nuevo @if aquí, no @elseif --}}
-                    @if ($activity->type == 'Examen' && is_array($activity->content))
-
-                        <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
-                            action="{{ route('activities.submit', $activity) }}" 
-                            method="POST" data-activity-id="{{ $activity->id }}">
-                            @csrf
+                    {{-- CASO 1: YA COMPLETÓ EL EXAMEN --}}
+                    @if ($finalExamData) 
+                        <div class="exam-completed-container" style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 10px;">
+                            <h3 style="color: #28a745; font-size: 2em; margin-bottom: 10px;">¡Felicidades!</h3>
+                            <p style="font-size: 1.2em; margin-bottom: 30px;">Has completado el examen final.</p>
                             
-                            @php
-                                $questions = $activity->content['questions'];
-                                $totalQuestions = count($questions);
-                            @endphp
-
-                            {{-- Contenedor de Preguntas (Wizard) --}}
-                            <div class="questions-wrapper" id="questions-wrapper-{{ $activity->id }}">
-                                
-                                @foreach ($questions as $q_index => $questionData)
-                                    {{-- La clase 'question-step' y 'active' (solo al 1ro) --}}
-                                    <div class="quiz-question-block question-step {{ $q_index === 0 ? 'active' : '' }}" 
-                                        data-index="{{ $q_index }}"
-                                        style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
-                                        
-                                        <span class="exam-progress">Pregunta {{ $q_index + 1 }} de {{ $totalQuestions }}</span>
-                                        
-                                        <p class="question-text" style="font-size: 1.2em; margin-bottom: 15px;">
-                                            <strong>{{ $questionData['question'] }}</strong>
-                                        </p>
-                                        
-                                        @foreach ($questionData['options'] as $opt_index => $option)
-                                            <div class="option-box" style="margin-bottom: 10px;">
-                                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                                    <input type="radio" name="answers[{{ $q_index }}][a]" 
-                                                        value="{{ $opt_index }}" data-question-index="{{ $q_index }}"
-                                                        style="margin-right: 10px;">
-                                                    {{ $option }}
-                                                </label>
-                                            </div>
-                                        @endforeach
-                                        <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
-                                        
-                                        {{-- Mensaje de error --}}
-                                        <div class="step-error-msg" style="color: red; display: none; margin-top: 10px;">
-                                            Debes seleccionar una opción para continuar.
-                                        </div>
-                                    </div>
-                                @endforeach
+                            <div style="font-size: 3em; font-weight: bold; color: #e69a37; margin-bottom: 30px;">
+                                {{ $finalExamData->score }} / 100
                             </div>
 
-                            <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                            
-                            {{-- Controles de Navegación --}}
-                            
-                                <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
-                                    <button type="button" class="btn-secondary btn-next-step" 
-                                            data-form-id="quiz-form-{{ $activity->id }}"
-                                            style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
-                                        Siguiente Pregunta &rarr;
-                                    </button>
+                            <a href="{{ route('courses.certificate', $course) }}" target="_blank" class="btn-success" style="padding: 15px 30px; font-size: 1.1em; text-decoration: none;">
+                                 Ver mi Certificado
+                            </a>
+                        </div>
 
-                                    <button type="submit" class="btn-success btn-finish-exam" 
-                                            style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
-                                        Finalizar y Calificar
-                                    </button>
+                    {{-- CASO 2: AÚN NO LO COMPLETA (Muestra el formulario) --}}
+                    @else
+                        
+                        <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
+
+                        @if ($activity->type == 'Examen' && is_array($activity->content))
+
+                            <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
+                                action="{{ route('activities.submit', $activity) }}" 
+                                method="POST" data-activity-id="{{ $activity->id }}">
+                                @csrf
+                                
+                                @php
+                                    $questions = $activity->content['questions'];
+                                    $totalQuestions = count($questions);
+                                @endphp
+
+                                {{-- Contenedor de Preguntas (Wizard) --}}
+                                <div class="questions-wrapper" id="questions-wrapper-{{ $activity->id }}">
+                                    
+                                    @foreach ($questions as $q_index => $questionData)
+                                        {{-- La clase 'question-step' y 'active' (solo al 1ro) --}}
+                                        <div class="quiz-question-block question-step {{ $q_index === 0 ? 'active' : '' }}" 
+                                            data-index="{{ $q_index }}"
+                                            style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                                            
+                                            <span class="exam-progress">Pregunta {{ $q_index + 1 }} de {{ $totalQuestions }}</span>
+                                            
+                                            <p class="question-text" style="font-size: 1.2em; margin-bottom: 15px;">
+                                                <strong>{{ $questionData['question'] }}</strong>
+                                            </p>
+                                            
+                                            @foreach ($questionData['options'] as $opt_index => $option)
+                                                <div class="option-box" style="margin-bottom: 10px;">
+                                                    <label style="display: flex; align-items: center; cursor: pointer;">
+                                                        <input type="radio" name="answers[{{ $q_index }}][a]" 
+                                                            value="{{ $opt_index }}" data-question-index="{{ $q_index }}"
+                                                            style="margin-right: 10px;">
+                                                        {{ $option }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                            <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
+                                            
+                                            {{-- Mensaje de error --}}
+                                            <div class="step-error-msg" style="color: red; display: none; margin-top: 10px;">
+                                                Debes seleccionar una opción para continuar.
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            
-                        </form>
 
-                    {{-- CORRECCIÓN: Cerrar el if interno y abrir elseif para el siguiente tipo --}}
-                    @elseif ($activity->type == 'Cuestionario' && is_array($activity->content))
-                        <form class="quiz-form" id="quiz-form-{{ $activity->id }}" ...>
-                            {{-- ... Tu código de cuestionario simple ... --}}
-                        </form>
-                    @endif  {{-- Cierre del @if interno ($activity->type) --}}
+                                <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+                                
+                                {{-- Controles de Navegación --}}
+                                
+                                    <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                        <button type="button" class="btn-secondary btn-next-step" 
+                                                data-form-id="quiz-form-{{ $activity->id }}"
+                                                style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
+                                            Siguiente Pregunta &rarr;
+                                        </button>
 
+                                        <button type="submit" class="btn-success btn-finish-exam" 
+                                                style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
+                                            Finalizar y Calificar
+                                        </button>
+                                    </div>
+                                
+                            </form>
+
+                        {{-- CORRECCIÓN: Cerrar el if interno y abrir elseif para el siguiente tipo --}}
+                        @elseif ($activity->type == 'Cuestionario' && is_array($activity->content))
+                            <form class="quiz-form" id="quiz-form-{{ $activity->id }}" ...>
+                                {{-- ... Tu código de cuestionario simple ... --}}
+                            </form>
+                        @endif  {{-- Cierre del @if interno ($activity->type) --}}
+
+                    @endif
                 </div>
-            @endif {{-- Cierre del @if principal ($finalExamActivity) --}}
+            @endif
+                    
+                </div>
             
         </div>
     </div>
@@ -638,12 +660,19 @@
                 }
                 window.axios.post(this.action, formData)
                     .then(response => {
+                        
                         feedbackEl.style.color = 'green';
                         feedbackEl.innerText = response.data.message;
                         this.querySelectorAll('input, button').forEach(el => el.disabled = true);
                         const syllabusLink = document.querySelector(`.syllabus-link[data-completable-id="${activityId}"][data-completable-type="Activities"]`);
                         if (syllabusLink) syllabusLink.classList.add('completed');
                         if (response.data.created) updateProgressBar();
+                        if (syllabusLink && syllabusLink.closest('#final-exam-syllabus-link')) {
+                            // Esperar 1.5 segundos para que el usuario lea "Examen enviado" y luego recargar
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        }
                     })
                     .catch(error => {
                         feedbackEl.style.color = 'red';
