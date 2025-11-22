@@ -24,7 +24,12 @@ return new class extends Migration
             $table->date('fecha_nacimiento')->nullable();
             $table->integer('edad')->nullable();
 
+            $table->foreignId('role_id')->nullable()->constrained('roles');
+
             $table->foreignId('address_id')->nullable()->constrained('addresses')->onDelete('set null');
+            $table->foreignId('institution_id')->constrained('institutions')->onDelete('cascade');
+            $table->foreignId('department_id')->nullable()->constrained('departments');
+            $table->foreignId('workstation_id')->nullable()->constrained('workstations');
 
             $table->rememberToken();
             $table->timestamps();

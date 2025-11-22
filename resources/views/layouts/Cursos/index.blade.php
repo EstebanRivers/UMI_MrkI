@@ -19,7 +19,7 @@
             </p>
         </div>
         
-        @if(Auth::user()->hasAnyRole(['master', 'docente']))
+        @if(Auth::user()->hasAnyRole(['master', 'docente', 'gerente_capacitacion']))
             <button onclick="window.navigateTo('{{ route('courses.create') }}')" class="btn-create">
                 + Crear Curso
             </button>

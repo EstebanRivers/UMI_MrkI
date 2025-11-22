@@ -9,9 +9,8 @@ use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\Cursos\CompletionController;
 use App\Http\Controllers\Ajustes\AjustesController;
-use App\Http\Controllers\AdmonCont\store\careerController;
-use App\Http\Controllers\AdmonCont\UserController;
-use App\Http\Controllers\AdmonCont\generalController;
+use App\Http\Controllers\Control_admin\ControlAdministrativoController;
+
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -98,6 +97,14 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
         Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
         Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
+        Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
+         ->name('users.toggleStatus'); 
+
+        Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
+            ->name('users.toggleStatus');
+            
+        Route::post('periods/{id}/toggle-status', [AjustesController::class, 'togglePeriodStatus'])
+            ->name('periods.toggleStatus');
     });
 
     // Facturación 
@@ -105,31 +112,27 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     })->name('Facturacion.index');
     
     
-    // Control Administrativo
-    
-    Route::middleware(['role:master'])->group(function () {
-    //Listas
-    Route::get('/lista-estudiantes', [UserController::class, 'index'])->name('Listas.students.index');
-    Route::get('/lista-docentes', [UserController::class, 'index'])->name('Listas.members.index');
-    Route::get('/lista-usuarios', [UserController::class, 'index'])->name('Listas.users.index');
-    Route::get('/lista-materias', [UserController::class, 'index'])->name('Listas.materias.index');
-    //Horarios
-    Route::get('/horarios', [generalController::class, 'index'])->name('Horarios.index');
-    Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
-    //Carreras
-    Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');
-    Route::post('/carreras', [careerController::class, 'store'])->name('career.store');
-    Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');
-    
-    
+    // Control Administrativo - roles especificos
+    Route::middleware(['role:master,control_administrativo'])
+        ->prefix('control-administrativo')
+        ->name('control.') // Esto crea nombres como 'control.academico'
+        ->group(function () {
+
+            // Ruta para "Control Académico"
+            Route::get('/academico', [ControlAdministrativoController::class, 'showAcademico'])
+                 ->name('academico');
+
+            // Ruta para "Control Escolar"
+            Route::get('/escolar', [ControlAdministrativoController::class, 'showEscolar'])
+                 ->name('escolar');
+
+            // Ruta para "Planeación y Vinculación"
+            Route::get('/planeacion', [ControlAdministrativoController::class, 'showPlaneacion'])
+                 ->name('planeacion');
 
 
     });
 
-    //V1-DEPRECATED
-    Route::middleware(['role:master'])->group(function () {
-        Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
-        })->name('ControlAdmin.index');
-    });
+   
 
 });

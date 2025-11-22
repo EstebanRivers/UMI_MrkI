@@ -42,13 +42,13 @@ class AcademicProfile extends Model
         'status',
         'carrera',
         'departamento',
-        'modulos',
+        'modules',
         'documentos',
         'rol',
     ];
 
     protected $casts = [
-        'modulos' => 'array',
+        'modules' => 'array',
         'documentos' => 'array',
     ];
 

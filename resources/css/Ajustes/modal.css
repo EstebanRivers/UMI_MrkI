@@ -1,39 +1,39 @@
 /* resources/css/modal.css */
 
 .modal {
-    display: none; /* Oculto por defecto */
-    position: fixed; /* Se queda fijo en la pantalla */
-    z-index: 1050; /* Encima de otros elementos */
+    display: none; 
+    position: fixed; 
+    z-index: 1050; 
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Permite scroll si el contenido es largo */
-    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
-    backdrop-filter: blur(3px); /* Efecto blur */
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.5); 
+    backdrop-filter: blur(3px);
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 10% auto; /* Centrado vertical y horizontal */
+    margin: 10% auto; 
     padding: 25px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    width: 80%; /* Ancho del modal */
-    max-width: 600px; /* Ancho máximo */
+    width: 80%; 
+    max-width: 600px; 
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     position: relative;
     animation: slideDown 0.3s ease-out;
 }
 
-/* Animación para aparecer */
+
 @keyframes slideDown {
     from {
         top: -100px;
         opacity: 0;
     }
     to {
-        top: 0; /* Ajusta si el margin: 10% auto no centra bien */
+        top: 0; 
         opacity: 1;
     }
 }
@@ -93,7 +93,7 @@
  }
 
 #modalForm button[type="submit"] {
-    background-color: #223F70; /* Color principal */
+    background-color: #223F70; 
     color: white;
     padding: 12px 20px;
     border: none;
@@ -105,5 +105,25 @@
 }
 
 #modalForm button[type="submit"]:hover {
-    background-color: #1a3258; /* Color más oscuro al pasar el ratón */
+    background-color: #1a3258; 
+}
+
+
+.checkbox-line {
+    display: flex;         
+    align-items: center;   
+    margin-bottom: 10px; 
+}
+
+
+.checkbox-line input[type="checkbox"] {
+    margin-right: 8px;   
+    display: inline-block; 
+    width: auto;           
+}
+
+.checkbox-line label {
+    display: inline;       
+    width: auto;           
+    margin-bottom: 0;   
 }
