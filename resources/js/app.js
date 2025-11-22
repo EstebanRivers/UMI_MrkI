@@ -84,6 +84,7 @@ class SimpleSPANavigation {
             if (e.state && e.state.page) {
                 this.loadPage(e.state.page, false);
             }
+            this.navigate(window.location.href);
         });
 
         // Precargar al hacer hover (optimizado)

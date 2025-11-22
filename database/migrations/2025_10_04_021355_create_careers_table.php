@@ -14,12 +14,12 @@ return new class extends Migration
         //Tabla de carreras
         Schema::create('careers', function (Blueprint $table) {
             $table->id();
-            $table->string('official_id');//RVOE
+            $table->string('official_id')->nullable();//RVOE
             $table->string('name');//Nombre de Carrera
-            $table->string('description1');//
-            $table->string('description2');//Descripciones
-            $table->string('description3');//
-            $table->string('type');//Radiobox: Tipo de carrera (Escolar, sabatino)
+            $table->string('description1')->nullable();//;//
+            $table->string('description2')->nullable();//Descripciones
+            $table->string('description3')->nullable();//
+            $table->string('type')->nullable();//Radiobox: Tipo de carrera (Escolar, sabatino)
             $table->integer('semesters')->default(1);//Select:numero de Semestre
             $table->integer('credits')->default(0);//Esta opcion, solo es para uso en otro formulario no se usara
             $table->timestamps();
