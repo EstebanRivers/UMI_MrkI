@@ -9,13 +9,16 @@ use App\Models\Users\User;
 use App\Models\Users\Role;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
-// !!! VERIFICA ESTAS RUTAS !!! Asegúrate que coincidan con la ubicación REAL de tus modelos
-use App\Models\Users\Department; // ¿Está aquí o en /Departments?
-use App\Models\Users\Workstation; // ¿Está aquí o en /Workstations?
-use App\Models\Users\Career; // ¿Está aquí o en /Careers?
-// !!! FIN DE VERIFICACIÓN !!!
+use App\Models\Users\Department;
+use App\Models\Users\Workstation; 
+use App\Models\Users\Career; 
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+<<<<<<< Updated upstream
+=======
+use Illuminate\Database\Eloquent\ModelNotFoundException; 
+>>>>>>> Stashed changes
 use App\Models\Facturacion\Billing;
 use Illuminate\Support\Facades\Log;
 
@@ -145,21 +148,57 @@ class UserSeeder extends Seeder
                     'workstation_id' => $reclutadorWorkstation->id,
                 ]
             );
+<<<<<<< Updated upstream
         } else {
              $this->command->warn("Could not create Corporate Profile for Tribilin as Department/Workstation was missing.");
+=======
+            
+            $this->command->info('UserSeeder ejecutado exitosamente!');
+
+
+
+        } catch (ModelNotFoundException $e) {
+            $this->command->error("Error en UserSeeder: No se encontró un modelo necesario (Rol, Institución, Carrera, etc.). Verifica los nombres y que los Seeders anteriores se hayan ejecutado.");
+            $this->command->error($e->getMessage());
+        } catch (\Exception $e) {
+            $this->command->error("Error inesperado en UserSeeder:");
+            $this->command->error($e->getMessage());
+             // Añade esto para más detalles si el error persiste
+             \Log::error("Error en UserSeeder: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+>>>>>>> Stashed changes
         }
         $this->command->info("Multi-role user 'Tribilin' created/updated and configured for UMI (Academic) and Palacio MI (Corporate).");
+        $this->command->info('Generando 20 estudiantes aleatorios...');
 
+            User::factory()
+                ->count(20)
+                // Crea facturas aleatorias para probar el módulo de facturación
+                ->has(Billing::factory()->count(rand(1, 3))->estudiante(), 'billings')
+                ->create([
+                    // IMPORTANTE: Forzamos el ID de UMI para evitar el error "Field institution_id doesn't have a default value"
+                    'institution_id' => $universidadMI->id 
+                ])
+                ->each(function ($user) use ($alumnoRole, $universidadMI) {
+                    
+                    // 1. Asignar Rol en tabla pivote
+                    $user->roles()->attach($alumnoRole->id, ['institution_id' => $universidadMI->id]);
+                    
+                    // 2. Sincronizar Institución
+                    $user->institutions()->syncWithoutDetaching($universidadMI->id);
+                    
+                    // 3. Crear Perfil Académico (Asigna una carrera al azar para que no de error al ver detalles)
+                    $carreraRandom = Career::where('institution_id', $universidadMI->id)->inRandomOrder()->first();
+                    
+                    if($carreraRandom) {
+                        AcademicProfile::create([
+                            'user_id' => $user->id,
+                            'career_id' => $carreraRandom->id,
+                        ]);
+                    }
+                });
 
-        // --- USUARIOS FICTICIOS PARA VOLUMEN ---
+            $this->command->info('20 Estudiantes creados exitosamente.');
 
-        // 7. Creamos 20 Estudiantes genéricos, con facturas de ESTUDIANTE aleatorias
-        User::factory()->count(20)->has(Billing::factory()->count(rand(1, 5))->estudiante(), 'billings')
-            ->create()->each(function ($user) use ($alumnoRole, $umi) { // Usar $alumnoRole
-                if ($alumnoRole && $umi) {
-                    $user->roles()->attach([$alumnoRole->id => ['institution_id' => $umi->id]]);
-                } else { Log::warning("UserSeeder: Skip role assign estudiante"); }
-            });
 
         $this->command->info('UserSeeder completado exitosamente.');
     }
