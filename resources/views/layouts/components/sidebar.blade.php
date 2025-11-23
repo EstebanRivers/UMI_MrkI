@@ -96,12 +96,36 @@
                     {{-- SEGUNDO NIVEL DE SUBMENÚ (HIJOS) --}}
                     <ul class="submenu">
                        
-                         <li class="{{ request()->is('control/academico/carreras') ? 'active-submenu' : '' }}"><a href="#">Carreras</a></li>
-                        <li class="{{ request()->is('control/academico/materias') ? 'active-submenu' : '' }}"><a href="#">Materias</a></li>
-                        <li class="{{ request()->is('control/academico/docentes') ? 'active-submenu' : '' }}"><a href="#">Lista de docentes</a></li>
-                        <li class="{{ request()->is('control/academico/horarios') ? 'active-submenu' : '' }}"><a href="#">Horarios</a></li>
-                        <li class="{{ request()->is('control/academico/clases') ? 'active-submenu' : '' }}"><a href="#">Clases</a></li>
-                        <li class="{{ request()->is('control/academico/alumnos') ? 'active-submenu' : '' }}"><a href="#">Lista de alumnos</a></li>
+                        {{-- RUTA: control.careers.index --}}
+                        <li class="{{ request()->routeIs('control.careers.*') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('control.careers.index') }}">Carreras</a>
+                        </li>
+
+                        {{-- RUTA: control.Listas.materias.index --}}
+                        <li class="{{ request()->routeIs('control.subjects.*') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('control.subjects.index') }}">Materias</a>
+                        </li>
+
+                        {{-- RUTA: control.Listas.members.index --}}
+                        <li class="{{ request()->routeIs('control.teachers.*') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('control.teachers.index') }}">Lista de docentes</a>
+                        </li>
+
+                        {{-- RUTA: control.Horarios.index --}}
+                        <li class="{{ request()->routeIs('control.schedules.*') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('control.schedules.index') }}">Horarios</a>
+                        </li>
+
+                        {{-- RUTA: control.Clases.index --}}
+                        <li class="{{ request()->routeIs('control.classes.*') ? 'active-submenu' : '' }}">
+                            {{-- <a href="{{ route('control.classes.index') }}">Clases</a> --}}
+                        </li>
+
+                        {{-- REUTILIZADA: control.Listas.students.index --}}
+                        <li class="{{ request()->routeIs('control.students.*') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('control.students.index') }}">Lista de alumnos</a>
+                        </li>
+                        
                         <li class="{{ request()->is('control/academico/planeacion') ? 'active-submenu' : '' }}"><a href="#">Planeación escolar</a></li>
                     </ul>
                 </li>

@@ -53,7 +53,7 @@
                         </td>
                         <td data-label="Acciones" class="data-actions-cell">
                             <a href="#" class="data-action-btn data-btn-view"><img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
-                            <a href="{{ route('Listas.students.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <a href="{{ route('control.students.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
                             <form action="#" method="POST" class="data-action-form">
                                 @csrf
                                 @method('DELETE')

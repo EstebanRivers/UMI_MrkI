@@ -5,7 +5,7 @@ namespace App\Http\Controllers\AdmonCont;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\AdmonCont\Career;
+use App\Models\Users\Career;
 use App\Models\Users\User;
 use App\Models\AdmonCont\Materia;
 use App\Models\AdmonCont\HorarioClase;

@@ -9,6 +9,16 @@ use App\Models\Users\Career;
 
 class careerController extends Controller
 {
+    public function index()
+    {
+        // 1. Obtener todas las carreras
+        $careers = Career::all();
+
+        // 2. Retornar la vista pasando los datos
+        // Nota: Usamos 'careers' porque es probable que tu vista index.blade.php
+        // esté esperando esa variable (basado en como lo hacía generalController)
+        return view('layouts.ControlAdmin.Carreras.index', compact('careers'));
+    }
     public function create()
     {
         return view('layouts.ControlAdmin.Carreras.create'); // Aquí se llama/renderiza create.blade.php

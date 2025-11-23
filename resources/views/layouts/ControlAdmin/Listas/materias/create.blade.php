@@ -7,7 +7,7 @@
         
         <div class="modal-body-custom" id="modalBodyContent">
             
-            <form method="post" action="{{ route('Listas.materias.store') }}">
+            <form method="post" action="{{ route('control.subjects.store') }}">
                 @csrf 
 
                 <div class="form-field lists">

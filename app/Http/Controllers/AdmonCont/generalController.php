@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 // use App\Models\Course; // Asumiendo que existe
 use App\Models\AdmonCont\Horario;
 use App\Models\AdmonCont\HorarioClase;
-use App\Models\AdmonCont\Career;
+use App\Models\Users\Career;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;

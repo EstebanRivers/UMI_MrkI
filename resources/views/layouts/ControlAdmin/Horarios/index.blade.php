@@ -19,7 +19,7 @@
     </div>
     <div class = "creator-container">
         <div class = "schedule-lists">
-            <form id="schedule_form" method="POST" action="{{ $modoEdicion ? route('horarios.update', $horario->id) : route('Horarios.store') }}">
+            <form id="schedule_form" method="POST" action="{{ $modoEdicion ? route('control.schedules.update', $horario->id) : route('control.schedules.store') }}">
                 @csrf
                 @if ($modoEdicion)
                     @method('PUT') 
@@ -138,7 +138,7 @@
         </div>
         <div class = "schedule-table">
             <div class="toolbar__search">
-                <form action="{{ route('Horarios.index') }}" method="GET" id="search-form" class="d-flex mb-4">
+                <form action="{{ route('control.schedules.index') }}" method="GET" id="search-form" class="d-flex mb-4">
                     <input type="text" 
                         name="search_query" 
                         id="search-input" 

@@ -7,7 +7,7 @@
         
         <div class="modal-body-custom" id="modalBodyContent">
             
-            <form method="post" action="{{ route('career.store') }}">
+            <form method="post" action="{{ route('control.careers.store') }}">
                 @csrf 
                 
                 <div class="form-field">

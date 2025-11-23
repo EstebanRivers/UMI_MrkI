@@ -39,7 +39,7 @@ class studentController extends Controller
         $academicColumns = [
             'user_id', // ¡CRUCIAL para la relación!
             'status', 
-            'carrera_id'
+            'career_id'
         ];
 
         $careerColumns=[

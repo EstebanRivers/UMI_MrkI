@@ -18,7 +18,7 @@ return new class extends Migration
             // Llave foránea a id de carrera (Career)
             // Nota: Aunque la carrera se puede obtener desde la materia,
             // mantenerla aquí puede acelerar ciertos filtros.
-            $table->foreignId('carrera_id')->constrained('carrers')->onDelete('cascade');
+            $table->foreignId('career_id')->constrained('careers')->onDelete('cascade');
             
             // Llave foránea a id de usuario (Docente)
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');

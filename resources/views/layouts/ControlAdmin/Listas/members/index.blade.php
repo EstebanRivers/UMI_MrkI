@@ -28,7 +28,7 @@
                 <div class="toolbar__actions">
                     @if(Auth::user()->hasAnyRole(['master']))
                         {{-- Se cambia <button> por <a> y se usa la directiva route() de Blade --}}
-                        <a href="{{ route('Listas.members.form') }}" class="action-button">
+                        <a href="{{ route('control.teachers.form') }}" class="action-button">
                             Agregar Docente
                         </a>
                     @endif

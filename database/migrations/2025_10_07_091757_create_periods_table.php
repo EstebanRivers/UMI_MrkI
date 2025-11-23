@@ -16,7 +16,7 @@ return new class extends Migration
         $table->string('name')->unique();
         $table->date('start_date');
         $table->date('end_date');
-        $table->date('re_enrollment_deadline'); // 
+        $table->date('re_enrollment_deadline')->nullable(); // 
         $table->boolean('is_active')->default(false);
         $table->foreignId('institution_id')->constrained('institutions')->onDelete('cascade');
         $table->timestamps();

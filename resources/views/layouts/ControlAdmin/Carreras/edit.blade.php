@@ -7,7 +7,7 @@
         
         <div class="modal-body-custom" id="modalBodyContentEdit">
             
-            <form method="post" action="{{ route('career.update', $career->id) }}">
+            <form method="post" action="{{ route('control.careers.update', $career->id) }}">
                 @csrf 
                 @method('PUT') 
                 

@@ -52,7 +52,7 @@
                         @include('layouts.ControlAdmin.Carreras.edit', ['career' => $carrera])
                         @endif
                         {{-- Eliminar --}}
-                        <form action="{{ route('career.destroy', $carrera->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta carrera?');">
+                        <form action="{{ route('control.careers.destroy', $carrera->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta carrera?');">
                             @csrf
                             @method('DELETE')
                             <button class="btn-delete">

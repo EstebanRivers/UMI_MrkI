@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\AdmonCont;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdmonCont\Career;
+use App\Models\Users\Career;
 use App\Models\AdmonCont\Materia;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -78,10 +78,10 @@ class MateriaController extends Controller
         
         // 3. CREACIÓN DEL REGISTRO
         // Asegúrate de que el modelo Materia tenga 'career_id' en $fillable
-        \App\Models\AdmonCont\Materia::create($dataToSave); 
+        Materia::create($dataToSave); 
 
         // 4. REDIRECCIÓN
-        return \Illuminate\Support\Facades\Redirect::route('Listas.materias.index') 
+        return Redirect::route('Listas.materias.index') 
             ->with('success', '¡Materia creada exitosamente!');
     }
     public function update(Request $request, Materia $registro)
