@@ -23,90 +23,45 @@ class UserController extends Controller
     use AuthorizesRequests;
     public function index(Request $request): View
     {
-        $routeName = $request->route()->getName();
-        $listType = match ($routeName) {
-        'Listas.students.index' => 'students',
-        'Listas.members.index' => 'members',
-        'Listas.users.index' => 'users',
-        'Listas.materias.index' => 'materias',
-        default => null, // Si la ruta no coincide con nada
-    };
+        // 1. Configuración para estudiantes
+        $roleName = 'estudiante';
+        $listType = 'students'; // Definimos el tipo de lista directamente
 
-    if (is_null($listType)) {
-        abort(404); // Detener si la ruta no está definida en la lista
-    }
-
-    // Inicializamos la variable que contendrá la lista de resultados
-    $dataList = null;
-
-    if($listType === 'students' || $listType === 'members'){
-
-        // Determinar el rol a filtrar
-        $roleName = ($listType === 'students') ? 'estudiante' : 'docente';
-            
-        // 1. Columnas a seleccionar de la tabla 'users'
+        // 2. Columnas a seleccionar de la tabla 'users'
         $userColumns = [
             'id',
-            'nombre', 
-            'apellido_paterno', 
+            'nombre',
+            'apellido_paterno',
             'apellido_materno',
             'created_at',
         ];
-        // 2. Columnas a seleccionar de la tabla 'datos_academicos' (¡incluye user_id!)
-        // Nota: Aquí se seleccionan todos los campos relevantes, Laravel los manejará.
+
+        // 3. Columnas a seleccionar de la relación 'academicProfile' (datos_academicos)
         $academicColumns = [
-            'user_id',
-            //'status', 
-            'career_id'
+            'user_id', // ¡CRUCIAL! Debe incluirse la clave foránea
+            'status',
+            'carrera_id',
         ];
+
+        // 4. Ejecución de la consulta
         $dataList = User::query()
+            // Filtra por el rol 'estudiante' usando whereHas
             ->whereHas('roles', function (Builder $query) use ($roleName) {
-                $query->where('name', $roleName); 
+                $query->where('name', $roleName);
             })
+            // Selecciona las columnas de la tabla 'users'
             ->select($userColumns)
+            // Carga la relación 'academicProfile' con columnas específicas
             ->with(['academicProfile' => function (Relation $query) use ($academicColumns) {
                 $query->select($academicColumns);
             }])
-            ->get();
-    }elseif ($listType === 'materias') {
-    
-        // NOTA: $roleName no se usa aquí. Puedes omitir o eliminar la línea: $roleName = ($listType === 'materias');
+            ->get(); // Ejecutar la consulta
 
-        // 1. Columnas a seleccionar del modelo Materia
-        $materiaColums = [
-            'id',
-            'nombre',
-            'creditos',
-            'type',
-            'semestre',
-            'career_id', // <-- ¡IMPORTANTE! Incluye la clave foránea para la relación
-        ];
+        // 5. Devolver la vista
+        $viewPath = 'layouts.ControlAdmin.Listas.' . $listType . '.index';
 
-        // 2. Columnas a seleccionar del modelo Career (asumo que se relaciona con Materia)
-        $careerColums = [
-            'id', // <-- ¡IMPORTANTE! Incluye la clave primaria para la relación
-            'name'
-        ];
-        
-        // 3. Ejecución de la consulta
-        $dataList = Materia::query()
-            ->select($materiaColums)
-            
-            // Cargar la relación 'career' con columnas específicas
-            // ¡Usamos $careerColums para la clausura, NO $materiaColums!
-            ->with(['career' => function (Relation $query) use ($careerColums) {
-                $query->select($careerColums);
-            }])
-            
-            ->get(); // <-- ¡CRUCIAL! Ejecutar la consulta para obtener los datos
-    }
-
-    $viewPath = 'layouts.ControlAdmin.Listas.' . $listType . '.index';
-    
-    return view($viewPath, [
-        
-        'dataList' => $dataList,
-    ]);
-        
+        return view($viewPath, [
+            'dataList' => $dataList,
+        ]);
     }
 }

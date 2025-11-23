@@ -6,17 +6,30 @@
 
 @section('content')
 <div class ="container">
+    <!-- Header -->
     <div class ="content-header">
         <div class="content-title">
-            <h1>Lista de alumnos</h1>
-        </div>
-        <div class="option-carrer">
-            <button id="openCreateCarrer">Agregar Carrera</button>
+            <h1>Lista de Alumnos</h1>
         </div>
     </div>
+    <div class="list-header-toolbar">
+        <div class="toolbar__section toolbar__section--left">
+            <div class="toolbar__search">
+                <input type="text" placeholder="Buscar...">
+            </div>
+
+            <div class="toolbar__actions">
+                    <button class="btn btn--secondary">Exportar</button>
+                    <button class="btn btn--secondary">Importar</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <!-- Tablas-->
     <div class="Table-view">
-        <table class="table table-striped table-bordered">
-            <thead class="thead">
+        <table class="tabla-base tabla-rayas tabla-bordes">
+            <thead class="encabezado-tabla">
                 <tr>
                     <th>Carrera</th>
                     <th>Nombre</th>
@@ -26,22 +39,28 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody class="tbody">
+            <tbody class="data-table-body">
                 @foreach ($dataList as $user)
-                    <td>{{ $user->academicProfile?->carrera ?? 'Sin datos' }}</td>
-                    <td>{{ $user->nombre }}</td>
-                    <td>{{ $user->apellido_paterno }}</td>
-                    <td>{{ $user->apellido_materno }}</td>
-                    <td>{{ $user->academicProfile?->status ?? 'Sin datos' }}</td>
-                    <td>
-                        <a href="{{-- {{ route('ruta.ver', $registro->id) }} --}}" class="btn btn-sm btn-info">Ver</a>
-                        <a href="{{-- {{ route('ruta.editar', $registro->id) }} --}}" class="btn btn-sm btn-warning">Editar</a>
-                        <form action="{{-- {{ route('ruta.eliminar', $registro->id) }} --}}" method="POST" style="display: inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</button>
-                        </form>
-                    </td>
+                    <tr> 
+                        <td data-label="Carrera">{{ $user->academicProfile?->career?->name ?? 'Sin datos' }}</td>
+                        <td data-label="Nombre">{{ $user->nombre }}</td>
+                        <td data-label="Paterno">{{ $user->apellido_paterno }}</td>
+                        <td data-label="Materno">{{ $user->apellido_materno }}</td>
+                        <td data-label="Status">
+                            <span class="data-status-badge data-status-{{ strtolower($user->academicProfile?->status ?? 'sin-datos') }}">
+                                {{ $user->academicProfile?->status ?? 'Sin datos' }}
+                            </span>
+                        </td>
+                        <td data-label="Acciones" class="data-actions-cell">
+                            <a href="#" class="data-action-btn data-btn-view"><img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <a href="{{ route('Listas.students.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <form action="#" method="POST" class="data-action-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="data-action-btn data-btn-delete" onclick="return confirm('¿Estás seguro de eliminar este registro?')"><img src="{{asset('images/icons/Vector.svg')}}" alt="" style="width:38;height:25px" loading="lazy"></button>
+                            </form>
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>

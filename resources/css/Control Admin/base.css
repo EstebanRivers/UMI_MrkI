@@ -3,6 +3,22 @@
     padding: 20px;
 }
 
+/*Botones*/
+.header-option button{
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.header-option button:hover {
+    transform: translateY(-1px);
+    color: var(--accent);
+}
+
 .content-header{
     display: flex;
     justify-content: space-between;
@@ -12,6 +28,100 @@
 .content-title{
     font-size: 28px;
     font-weight: bold;
+}
+
+/* 1. Estilos del Layout (Flexbox) */
+.list-header-toolbar {
+    /* Define un contenedor flexible */
+    display: flex;
+    /* Distribuye el espacio entre las secciones izquierda y derecha */
+    justify-content: space-between;
+    /* Centra verticalmente los elementos */
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee; /* Línea separadora sutil */
+}
+
+.toolbar__section {
+    /* Las secciones también pueden ser flexibles para alinear sus elementos internos */
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espacio entre los grupos de elementos (búsqueda y botones) */
+}
+
+/* Espacio entre el campo de búsqueda y los botones de acción */
+.toolbar__search {
+    margin-right: 15px;
+}
+
+/* Espacio entre botones */
+.toolbar__actions button{
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.toolbar__actions button:hover{
+    transform: translateY(-1px);
+    color: var(--accent);
+}
+
+.toolbar__actions .action-button {
+    background-color: #223f70;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    
+    /* Importante para enlaces estilizados como botones */
+    text-decoration: none; 
+    display: inline-block; /* Asegura que el padding se aplique correctamente */
+}
+
+/* (Opcional) Estilo al pasar el ratón */
+.toolbar__actions .action-button:hover {
+    background-color: #315a9e; /* Un tono ligeramente más claro */
+}
+
+/* Estilo del campo de búsqueda */
+.toolbar__search input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* 2. Estilos de Botón (Apariencia y Efecto) */
+
+/* Estilo Base: Todos los botones son azules */
+.btn-styled {
+    /* Colores */
+    background-color: #007bff; /* Azul primario */
+    color: white; /* Texto blanco por defecto */
+    
+    /* Forma y Espaciado */
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    
+    /* Transición para el efecto hover suave */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Efecto Hover: El color del texto cambia a café */
+.btn-styled:hover {
+    /* El fondo puede volverse un poco más oscuro si se desea, por ejemplo: */
+    background-color: #0056b3; 
+    
+    /* CAMBIO REQUERIDO: El color del texto se vuelve café */
+    color: #8b4513; /* Código de color para el café */
 }
 
 .option-carrer button{
@@ -25,8 +135,8 @@
 }
 
 .option-carrer button:hover {
-  transform: translateY(-1px);
-  color: var(--accent);
+    transform: translateY(-1px);
+    color: var(--accent);
 }
 
 .empty-carrers{
@@ -96,28 +206,571 @@
     margin: 10px 0;
 }
 
-.table{
-    width: 100%;
-    border-collapse: separate; 
-    border-spacing: 0;
-    background-color: #efefef;
+/* --- Contenedor Principal de la Tabla --- */
+.data-table-container {
+    overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
+    padding: 1rem;
+    font-family: var(--font-family);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     border-radius: 8px;
-    overflow: hidden;
+    background-color: #fff;
 }
-.thead{
+
+/* =========================================
+   ESTILOS DE TABLA PERSONALIZADOS
+   ========================================= */
+
+/* 0. Contenedor de la Vista (Table-view) */
+.Table-view {
+    /* Fondo Gris */
+    background-color: #f8f9fa; 
+    padding: 1rem;
+    /* Borde redondeado */
+    border-radius: 0.5rem; 
+    overflow-x: auto; 
+}
+
+/* 1. Estilos Base de la Tabla */
+.tabla-base {
+    width: 100%;
+    border-collapse: collapse; 
+    margin-bottom: 0; /* Quitar margen inferior si está dentro de Table-view con padding */
+    color: #212529; 
+    /* Borde redondeado */
+    border-radius: 0.5rem;
+    overflow: hidden; /* Asegura que los bordes redondeados se apliquen a los contenidos */
+}
+
+.tabla-base th, .tabla-base td {
+    padding: 0.75rem; 
+    vertical-align: top;
+    /* Borde horizontal estándar */
+    border-top: 1px solid #dee2e6; 
+}
+
+/* 2. Estilos para Bordes de Tabla (tabla-bordes) */
+.tabla-bordes, .tabla-bordes th, .tabla-bordes td {
+    /* Borde exterior e interior horizontal estándar */
+    border: 1px solid #dee2e6;
+}
+
+/* -----------------------------------------
+   ENCABEZADO, CUERPO Y BORDES VERTICALES
+   ----------------------------------------- */
+
+/* Estilo para Encabezado (thead) - Color Azul y texto blanco */
+.tabla-base thead, .tabla-base th {
+    background-color: #223f70; /* Azul de Bootstrap */
+    color: #ffffff; /* Texto Blanco */
+    border-color: #223f70; /* Borde del encabezado del mismo color */
+}
+
+/* Estilo para el Cuerpo (tbody) - Color Blanco y bordes verticales rojos */
+.tabla-base tbody {
+    background-color: #ffffff; /* Fondo blanco */
+}
+
+.tabla-base tbody td {
+    /* Bordes verticales interiores Rojos */
+    border-left: 1px solid #dc3545; /* Rojo */
+    border-right: 1px solid #dc3545; /* Rojo */
+    /* Asegurar que el borde superior (horizontal) no sea rojo */
+    border-top: 1px solid #dee2e6;
+    text-align: center; 
+}
+
+/* Opcional: Eliminar el borde vertical en la primera y última celda si no se desea */
+.tabla-base tbody tr td:first-child {
+    border-left: none; 
+}
+.tabla-base tbody tr td:last-child {
+    border-right: none;
+}
+
+
+/* 3. Estilos para Filas Rayadas (equivalente a table-striped) */
+.tabla-rayas > .cuerpo-tabla > tr:nth-of-type(odd) {
+    /* Mantener las rayas pero sobre el fondo blanco */
+    background-color: rgba(0, 0, 0, 0.05); /* Gris muy claro para filas impares */
+}
+
+/* =========================================
+   ESTILOS DE BOTONES (SIN CAMBIOS)
+   ========================================= */
+
+/* 4. Estilos para Botones (btn) */
+.btn-accion {
+    display: inline-block;
+    font-weight: 400;
+    color: #212529;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem; 
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem; 
+    text-decoration: none; 
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+/* 5. Estilos para Botones Pequeños (btn-sm) */
+.btn-sm-base {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* 6. Colores Semánticos */
+.btn-info-base { /* VER */
+    color: #fff;
+    background-color: #17a2b8; 
+    border-color: #17a2b8;
+}
+
+.btn-advertencia-base { /* EDITAR */
+    color: #212529;
+    background-color: #ffc107; 
+    border-color: #ffc107;
+}
+
+.btn-peligro-base { /* ELIMINAR */
+    color: #fff;
+    background-color: #dc3545; 
+    border-color: #dc3545;
+}
+
+/* --- Estilo Base de la Tabla --- */
+.data-table {
+    width: 100%;
+    border-collapse: collapse; /* Elimina doble borde */
+    margin-bottom: 1rem;
+}
+
+/* --- Encabezado de la Tabla (Thead) --- */
+.data-table-header {
+    background-color: var(--header-bg);
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+/* --- Cuerpo de la Tabla (Tbody) y Filas --- */
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: #343a40;
+}
+
+/* Estilo de fila rayada (striped) */
+.data-table-body tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.data-table-body tr:hover {
+    background-color: #e9ecef;
+    transition: background-color 0.3s ease;
+}
+
+/* --- Insignia de Status (Badge) --- */
+.data-status-badge {
+    display: inline-block;
+    padding: 0.3em 0.6em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    /*color: #fff;*/
+}
+
+.data-status-activo {
+    background-color: var(--success-color);
+}
+.data-status-inactivo {
+    background-color: var(--danger-color);
+}
+.data-status-pendiente, .data-status-sin-datos {
+    background-color: var(--inactive-color);
+}
+
+
+/* --- Botones de Acción --- */
+.data-actions-cell {
+    white-space: nowrap; /* Mantiene los botones en una sola línea */
+}
+
+.data-action-form {
+    display: inline;
+    margin-left: 0.5rem;
+}
+
+.data-action-btn {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.data-btn-view {
+    color: #fff;
+    background-color: var(--primary-color);
+}
+.data-btn-view:hover {
+    background-color: #0056b3;
+}
+
+.data-btn-edit {
+    color: #212529;
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+.data-btn-edit:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+.data-btn-delete {
+    color: #fff;
+    background-color: var(--danger-color);
+}
+.data-btn-delete:hover {
+    background-color: #bd2130;
+}
+
+.creator-container {
+    /* 1. ABARCAR TODA LA PANTALLA */
+    width: 100%;
+    min-height: 100vh; /* Asegura que abarque al menos la altura visible de la pantalla */
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box; /* Incluye el padding en el ancho/alto */
+
+    /* 2. DISTRIBUCIÓN EN DOS COLUMNAS (Flexbox) */
+    display: flex;
+    gap: 30px; /* Espacio entre las dos columnas */
+    
+    /* Nota: Si ya estás usando .schedule-container, podrías renombrarlo a .creator-container */
+}
+
+.schedule-list-select{
+    /* Mantiene el apilamiento vertical (label sobre select) */
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px; 
+}
+
+.schedule-list-select label {
+    /* 1. Color de letra azul para el Label */
+    color: #e69a37; /* Azul vibrante */
+    font-weight: bold;
+    display: block; 
+    margin-bottom: 5px;
+}
+
+.schedule-list-select select {
+    /* 1. Bordes Redondeados */
+    border-radius: 20px; 
+    /* 2. Padding para dar espacio y forma redondeada */
+    padding: 8px 15px; 
+    /* 3. Centrar el texto seleccionado (funciona en muchos navegadores) */
+    text-align: center; 
+    
+    /* Borde azul para destacar el select */
+    width: 100%;
+    border: none;
+    box-sizing: border-box;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+.schedule-settings {
+    display: flex;
+    flex-direction: column; /* Apila los elementos internos (botones, time-inputs) verticalmente */
+    align-items: center; /* 💡 Alinea los elementos hijos al centro horizontal */
+    /* Fondo de color gris claro */
+    background-color: #f5f5f5; 
+    
+    /* Relleno interno para dar espacio entre el contenido y el borde */
+    padding: 15px; 
+    
+    /* Bordes suaves */
+    border-radius: 8px; 
+    
+    /* Pequeña sombra para destacar el cuadro del fondo */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
+    
+    margin-bottom: 20px; /* Mantiene la separación con la sección siguiente */
+}
+
+.day-selection-buttons {
+    /* 1. ALINEACIÓN EN UNA LÍNEA (Flexbox) */
+    display: flex;
+    justify-content: space-between; /* Distribuye el espacio uniformemente */
+    flex-wrap: nowrap; /* Fuerza a que se mantengan en una sola línea (idealmente) */
+    gap: 5px; /* Pequeño espacio entre los botones */
+    margin: 10px 0;
+    overflow-x: auto; /* Permite scroll horizontal si no caben en móviles */
+    padding-bottom: 5px; /* Añade un pequeño espacio si el scroll aparece */
+}
+
+.day-selection-buttons button {
+    /* 2. DISEÑO REDONDEADO Y BASE GRIS */
+    flex-grow: 1; /* Permite que los botones se expandan para llenar el espacio */
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    background-color: #e0e0e0; /* Fondo gris claro (estado normal) */
+    color: #333;
+    border-radius: 25px; /* Forma redondeada (alto valor para simular pastilla) */
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Transición suave */
+    font-size: 0.9em;
+    min-width: 40px; /* Ancho mínimo para letras cortas (Ej: 'L') */
+    white-space: nowrap;
+}
+
+/* 3. ESTADO SELECCIONADO (CLASE '.selected') */
+.day-selection-buttons button.selected {
+    background-color: #0b2b3b; /* Azul fuerte para el estado seleccionado */
+    color: white;
+    border-color: #0b2b3b; /* Borde del mismo color */
+}
+
+/* Estilo al pasar el mouse (hover) para dar feedback */
+.day-selection-buttons button:hover:not(.selected) {
+    background-color: #d0d0d0; /* Gris ligeramente más oscuro al pasar el mouse */
+}
+
+.time-inputs {
+    /* Mantenemos la alineación horizontal */
+    width: fit-content;
+    display: flex;
+    align-items: center; 
+    gap: 5px; 
+    margin: 0px;
+    padding: 5px;
+}
+
+.time-inputs label {
+    font-weight: bold;
+    color: #555;
+    white-space: nowrap; 
+}
+
+.time-inputs input[type="time"] {
+    /* 1. CONTROL DE ANCHO */
+    flex-grow: 0; /* Desactiva el crecimiento para que no llenen el espacio */
+    width: 120px; /* Asignamos un ancho fijo o máximo reducido (puedes ajustar este valor) */
+    
+    /* 2. DISEÑO BASE (Mantenemos la reducción de tamaño) */
+    padding: 6px 12px; 
+    font-size: 0.9em; 
+    background-color: #ffffff; 
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 25px; 
+    box-sizing: border-box; 
+    
+    /* Mantenemos la eliminación de la apariencia nativa */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.time-inputs input[type="time"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
+
+.schedule-resume {
+    /* 1. DISEÑO DE TARJETA (FONDO BLANCO, REDONDEADO) */
+    background-color: #ffffff;
+    padding: 15px; /* Relleno interno */
+    margin: 20px 0; /* Separación de las otras secciones */
+    border-radius: 12px; /* Bordes redondeados */
+    
+    /* 2. SOMBRA INFERIOR SUTIL */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra enfocada en la parte inferior */
+}
+/* Estilos para la tabla dentro del contenedor */
+#time-slots-table {
+    width: 100%;
+    border-collapse: collapse; /* Bordes unidos */
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+#time-slots-table tbody tr:last-child td {
+    border-bottom: none; /* Quitamos el borde inferior de la última fila */
+}
+
+/* Estilo del Overlay/Fondo */
+.modal-overlay {
+    position: fixed; /* Fijo en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo negro semitransparente */
+    display: none; /* **IMPORTANTE: Oculto por defecto** */
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+/* Estilo del Contenido del Modal (Global)*/
+.modal-content-container {
+    background-color: #fff;
+    margin: 10% auto; /* Centrarlo verticalmente y horizontalmente */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 70%; /* Ancho deseado del modal */
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Clases para mostrar/ocultar con JavaScript */
+.modal-overlay.is-visible {
+    display: block; /* Muestra el modal */
+}
+
+.modal-header-custom {
+    /* Usa Flexbox para controlar la alineación de los elementos internos */
+    display: flex;
+    
+    /* Alinear elementos a lo largo del eje vertical (centro) */
+    align-items: center; 
+    
+    /* Distribuir el espacio: empuja el botón de cerrar (right) y el título (center) */
+    justify-content: space-between; 
+    
+    padding: 15px; /* Ejemplo de padding */
+
+}
+
+/* 1. Centrar el título (H5) */
+/* El 'margin-right: auto' en el H5 empuja el botón de cierre a la derecha */
+.modal-header-custom h5 {
+    /* Ocupa el espacio necesario, pero se centra por el truco del flexbox */
+    flex-grow: 1; 
+    /* Alinea el texto del título en el centro de su propio espacio */
+    text-align: center; 
+    /* Hace que las letras sean bold (negrita) */
+    font-weight: bold; 
+    /* Necesitas forzar el título a no crecer más allá del centro */
+    margin: 0; 
+    /* Esta regla asegura que el botón no se pegue al título */
+    margin-right: 20px; 
+
+    font-size: 1.5rem;
+}
+
+/* 2. Posicionar el botón de cerrar a la derecha */
+.close-custom {
+    /* Asegura que el botón no crezca y se mantenga a la derecha */
+    flex-shrink: 0; 
+    font-size: 1.5rem; /* Ejemplo de tamaño para el 'x' */
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* 1. Las etiquetas (labels) encima de los inputs */
+.form-field {
+    /* Establece el contenedor de campo como un contenedor flexible */
+    display: flex;
+    /* Apila la etiqueta y el input verticalmente */
+    flex-direction: column; 
+    /* Agrega un poco de espacio entre campos */
+    margin-bottom: 15px; 
+}
+
+/* 2. Disposición de las opciones (Modalidad y Semestres) */
+.options {
+    /* Convierte el contenedor de 'options' en una fila flexible */
+    display: flex;
+    /* Distribuye el espacio entre los dos elementos */
+    justify-content: space-between; 
+    /* Asegura que los campos llenen el ancho disponible */
+    width: 100%;
+    /* Agrega un pequeño margen superior para separarlo de los campos anteriores */
+    margin-top: 15px;
+}
+
+/* 3. Ajuste de ancho para Checkboxes y Lists */
+.options .form-field {
+    /* Permite que cada campo ocupe el espacio disponible, asegurando igualdad */
+    flex-grow: 1; 
+    /* Define un ancho base para evitar que uno sea demasiado pequeño */
+    flex-basis: 48%; 
+}
+
+/* 4. Estilos básicos para inputs y selects (para una mejor apariencia) */
+.form-field input[type="text"],
+.form-field select {
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 2px solid red;
+    border-radius: 4px;
+    /* Asegura que ocupen todo el ancho de su contenedor */
+    width: 100%; 
+    box-sizing: border-box; /* Importante para incluir padding en el ancho total */
+}
+
+/* Estilos para los botones (opcional, para que se vean decentes) */
+.cancel-button,
+.submit-button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.submit-button {
     background-color: #223f70;
     color: white;
+    border: none;
     border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
 }
 
-.thead th:first-child {
-    border-top-left-radius: 8px; /* Esquina superior izquierda */
+.submit-button:hover {
+    transform: translateY(-1px);
+    color: var(--accent);
+}
+/* Estilo para centrar los botones en el footer */
+.modal-footer-custom {
+    /* Convierte el footer en un contenedor flexible */
+    display: flex;
+    /* Centra los elementos flexibles (los botones) horizontalmente */
+    justify-content: center;
+    /* Agrega el margen superior que tenías en el HTML */
+    margin-top: 15px; 
+    /* Si tienes más estilos para el footer, agrégalos aquí */
+    padding: 15px 0; /* Opcional: añade padding interno */
 }
 
-.thead th:last-child {
-    border-top-right-radius: 8px; /* Esquina superior derecha */
-}
-
-.tbody td{
-    background-color: #fafafa;
-}
+/* ... Mantener el resto de los estilos .cancel-button, .submit-button, etc. ... */

@@ -2,6 +2,7 @@
 
 namespace App\Models\Users;
 
+use App\Models\AdmonCont\Career;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,7 +41,7 @@ class AcademicProfile extends Model
         'campus',
         'semestre',
         'status',
-        'carrera',
+        'carrera_id',
         'departamento',
         'modules',
         'documentos',
@@ -59,9 +60,13 @@ class AcademicProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function career()
+    public function carreraDetails(): BelongsTo
     {
         return $this->belongsTo(Career::class);
+    }
+
+    public function career(): BelongsTo
+    {
+        return $this->belongsTo(Career::class,'carrera_id', 'id');
     }
 }

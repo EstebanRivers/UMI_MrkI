@@ -7,10 +7,17 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
+//Control Administrativo
 use App\Http\Controllers\Cursos\CompletionController;
 use App\Http\Controllers\Ajustes\AjustesController;
 use App\Http\Controllers\Control_admin\ControlAdministrativoController;
-
+use App\Http\Controllers\AdmonCont\HorarioController;
+use App\Http\Controllers\AdmonCont\FacilityController;
+use App\Http\Controllers\AdmonCont\store\ListsControler;
+use App\Http\Controllers\AdmonCont\store\studentController;
+use App\Http\Controllers\AdmonCont\MateriaController;
+use App\Http\Controllers\AdmonCont\store\teacherController;
+use App\Http\Controllers\SchoolarCont\InscripcionController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -35,7 +42,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         ->name('context.switch');
 
     // Dashboard - accesible para todos los usuarios autenticados
-    Route::get('/bienvenido', function () {return view('dashboard.index');
+    Route::get('/bienvenido', function () {return view('Dashboard.index');
     })->name('dashboard');
 
     // Mi Informacion
@@ -130,9 +137,83 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::get('/planeacion', [ControlAdministrativoController::class, 'showPlaneacion'])
                  ->name('planeacion');
 
+        Route::get('/lista-estudiantes', [studentController::class, 'index'])->name('Listas.students.index');
+    //Editar Alumno
+    Route::get('/lista-estudiantes/{id}/edit',[InscripcionController::class, 'edit'])->name('Listas.students.edit');
+    Route::put('/lista-estudiantes/{id}',[InscripcionController::class, 'update'])->name('Listas.students.update');
+    
+    Route::get('/lista-docentes', [teacherController::class, 'index'])->name('Listas.members.index');
 
+    Route::get('/lista-docentes/registro', [teacherController::class, 'form'])->name('Listas.members.form');
+
+    Route::post('/lista-docentes/create', [teacherController::class, 'store'])->name('Listas.members.create');
+    //Editar Alumno
+    Route::get('/lista-docentes/{id}/edit',[teacherController::class, 'edit'])->name('Listas.members.edit');
+    Route::put('/lista-docentes/{id}',[teacherController::class, 'update'])->name('Listas.members.update');
+
+
+    //Materias
+
+    Route::get('/listas/materias', [MateriaController::class, 'index'])->name('Listas.materias.index');
+    Route::post('/listas/materias/create', [MateriaController::class, 'store'])->name('Listas.materias.store');
+    Route::put('/listas/materias/{registro}', [MateriaController::class, 'update'])->name('Listas.materias.update');
+
+
+    //Aulas
+    Route::get('/aulas',[FacilityController::class, 'index'])->name('Facilities.index');
+        //Crear
+    Route::get('/aulas/crear',[FacilityController::class, 'createForm'])->name('Facilities.create.form');
+        //Guardar
+    Route::post('/aulas', [FacilityController::class, 'store'])->name('Facilities.store');
+
+    Route::delete('/aulas/{facility}', [FacilityController::class, 'destroy'])->name('Facilities.destroy');
+
+
+    //Horarios
+    Route::get('/horarios', [HorarioController::class, 'index'])->name('Horarios.index');
+        //Guardar
+    Route::post('/horarios', [HorarioController::class, 'store'])->name('Horarios.store');
+        //Eliminar
+    Route::delete('/horarios/{horario}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
+        //Editar
+    Route::get('/horarios/{horario}/edit', [HorarioController::class, 'edit'])->name('horarios.edit');
+    Route::put('/horarios/{horario}', [HorarioController::class, 'update'])->name('horarios.update');
+    
+    //Clases
+    Route::get('/clases', [generalController::class, 'index'])->name('Clases.index');
+    
+    //Carreras
+    Route::get('/carreras', [generalController::class, 'index'])->name('Carreras.index');//Mostrar Carreras
+    Route::get('/carreras/create',[careerController::class,'create'])->name('career.create');//Mostrar Formulario de Creación
+    Route::post('/carreras', [careerController::class, 'store'])->name('career.store');//Crear Carrera
+    Route::put('/carreras/{carrera}', [careerController::class, 'update'])->name('career.update');
+    Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('career.destroy');//Eliminar Carrera
+    
     });
+
+    //Control Escolar
+
+    //Inscripción
+    Route::middleware(['role:master'])->group(function () {
+        Route::get('/inscripcion',[InscripcionController::class, 'index'])->name('Inscripción.index');//Formulario de inscripción
+        Route::post('/inscripcion/create',[InscripcionController::class, 'store'])->name('Inscripcion.store');//Registrar Alumno
+    });
+    
+
+    //V1-DEPRECATED
+    Route::middleware(['role:master'])->group(function () {
+        Route::get('/control-administrativo', function () { return view('layouts.ControlAdmin.index'); 
+        })->name('ControlAdmin.index');
+    });
+
+    Route::middleware(['role:master'])->group(function () {
+        Route::get('/ajustes', function () { return view('layouts.Ajustes.index'); 
+        })->name('Ajustes.index');
+    });
+
+
+
+});
 
    
 
-});

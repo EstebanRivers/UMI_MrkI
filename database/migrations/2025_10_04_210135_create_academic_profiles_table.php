@@ -17,7 +17,10 @@ return new class extends Migration
 
             $table->foreignId('career_id')->nullable()->constrained('careers')->onDelete('set null');
             $table->integer('semestre')->nullable();
+            $table->string('departamento')->nullable();
+            $table->string('status')->nullable();
             $table->json('rol')->nullable();
+            
 
             $table->json('documentos')->nullable();
             $table->timestamps();

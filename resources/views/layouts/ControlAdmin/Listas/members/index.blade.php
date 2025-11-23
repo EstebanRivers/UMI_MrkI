@@ -6,64 +6,72 @@
 
 @section('content')
 <div class ="container">
+    <!-- Header -->
     <div class ="content-header">
         <div class="content-title">
             <h1>Lista de Docentes</h1>
         </div>
-        <div class="option-carrer">
-             <button id="openCreateCarrer">Agregar Carrera</button>
+    </div>
+    <div class="list-header-toolbar">
+        <div class="toolbar__section toolbar__section--left">
+            <div class="toolbar__search">
+                <input type="text" placeholder="Buscar...">
+            </div>
+
+            <div class="toolbar__actions">
+                    <button class="btn btn--secondary">Exportar</button>
+                    <button class="btn btn--secondary">Importar</button>
+                </div>
+            </div>
+
+            <div class="toolbar__section toolbar__section--right">
+                <div class="toolbar__actions">
+                    @if(Auth::user()->hasAnyRole(['master']))
+                        {{-- Se cambia <button> por <a> y se usa la directiva route() de Blade --}}
+                        <a href="{{ route('Listas.members.form') }}" class="action-button">
+                            Agregar Docente
+                        </a>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
+    <!-- Tablas-->
     <div class="Table-view">
-        <table class="table table-striped table-bordered">
-            <thead class="thead">
+        <table class="tabla-base tabla-rayas tabla-bordes">
+            <thead class="encabezado-tabla">
                 <tr>
                     <th>Carrera</th>
                     <th>Nombre</th>
                     <th>Apellido Paterno</th>
                     <th>Apellido Materno</th>
-                    <th>Años Activo</th>
+                    <th>Status</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody class="tbody">
+            <tbody class="cuerpo-tabla">
                 @foreach ($dataList as $user)
-                    <td>{{ $user->academicProfile?->carrera ?? 'Sin datos' }}</td>
-                    <td>{{ $user->nombre }}</td>
-                    <td>{{ $user->apellido_paterno }}</td>
-                    <td>{{ $user->apellido_materno }}</td>
-                    <td>{{ $user->created_at->diffForHumans() }}</td>
-                    <td>
-                        <a href="{{-- {{ route('ruta.ver', $registro->id) }} --}}" class="btn btn-sm btn-info">Ver</a>
-                        <a href="{{-- {{ route('ruta.editar', $registro->id) }} --}}" class="btn btn-sm btn-warning">Editar</a>
-                        <form action="{{-- {{ route('ruta.eliminar', $registro->id) }} --}}" method="POST" style="display: inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este registro?')">Eliminar</button>
-                        </form>
-                    </td>
+                    <tr> 
+                        <td data-label="Carrera">{{ $user->academicProfile?->carrera_id ?? 'Sin datos' }}</td>
+                        <td data-label="Nombre">{{ $user->nombre }}</td>
+                        <td data-label="Paterno">{{ $user->apellido_paterno }}</td>
+                        <td data-label="Materno">{{ $user->apellido_materno }}</td>
+                        <td data-label="Status">
+                            <span class="data-status-badge data-status-{{ strtolower($user->academicProfile?->status ?? 'sin-datos') }}">
+                                {{ $user->academicProfile?->status ?? 'Sin datos' }}
+                            </span>
+                        </td>
+                        <td data-label="Acciones" class="data-actions-cell">
+                            <a href="#" class="data-action-btn data-btn-view"><img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <a href="{{ route('Listas.members.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <form action="#" method="POST" class="data-action-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="data-action-btn data-btn-delete" onclick="return confirm('¿Estás seguro de eliminar este registro?')"><img src="{{asset('images/icons/Vector.svg')}}" alt="" style="width:38;height:25px" loading="lazy"></button>
+                            </form>
+                        </td>
+                    </tr>
                 @endforeach
-                {{-- INICIO DEL BUCLE: Aquí es donde Laravel iteraría sobre los datos de tu base de datos --}}
-                {{-- @foreach ($dataList as $user) --}}
-                    <tr>
-                        {{-- INSERCIÓN DE DATOS: Muestra los datos de la base de datos para cada columna --}}
-                        {{-- <td>{{ $user->columna1_db }}</td> Reemplaza 'columna1_db' con el nombre real de tu campo --}}
-                        {{-- <td>{{ $registro->columna2_db }}</td> Reemplaza 'columna2_db' con el nombre real de tu campo --}}
-                        {{-- <td>{{ $registro->columna3_db }}</td> Reemplaza 'columna3_db' con el nombre real de tu campo --}}
-                        {{-- <td>{{ $registro->columna4_db }}</td> Reemplaza 'columna4_db' con el nombre real de tu campo --}}
-                        {{-- <td>{{ $registro->columna5_db }}</td> Reemplaza 'columna5_db' con el nombre real de tu campo --}}
-                        {{-- COLUMNA DE ACCIONES: Contiene los 3 botones --}}
-                    </tr>
-                {{--  @endforeach --}}
-                {{-- FIN DEL BUCLE --}}
-
-                {{-- COMENTARIO IMPORTANTE: Si no tienes datos, puedes poner una fila con un mensaje --}}
-                @empty($dataList)
-                    <tr>
-                        <td colspan="7" class="text-center">No hay registros disponibles.</td>
-                    </tr>
-                @endempty
-
             </tbody>
         </table>
     </div>

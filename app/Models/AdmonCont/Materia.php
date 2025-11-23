@@ -27,4 +27,5 @@ class Materia extends Model
     {
         return $this->belongsTo(Career::class);
     }
+    
 }
