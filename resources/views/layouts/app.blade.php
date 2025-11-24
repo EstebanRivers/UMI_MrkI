@@ -206,10 +206,8 @@
         }
     });
   </script>
-<<<<<<< Updated upstream
   @stack('scripts')
-=======
-  
->>>>>>> Stashed changes
+
+
 </body>
 </html>

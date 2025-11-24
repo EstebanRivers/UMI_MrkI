@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
+
 class ContextController extends Controller
 {
     /**
@@ -17,28 +18,32 @@ class ContextController extends Controller
     {
         $user = Auth::user();
         
-        // 1. Obtener todos los contextos disponibles para el usuario
+       
         $availableContexts = $user->getAvailableRoles();
 
-        if (empty($availableContexts)) {
-            Log::warning('Usuario sin roles asignados intentó acceder', [
-                'user_id' => $user->id,
-                'email' => $user->email
-            ]);
-            Auth::logout();
-            return redirect('/login')->withErrors(['error' => 'No tienes roles asignados.']);
-        }
+       if (empty($availableContexts)) {
+        Log::warning('Usuario sin roles asignados o activos intentó acceder', [
+            'user_id' => $user->id,
+            'email' => $user->email
+        ]);
+        Auth::logout();
+
+        // Lo patea de vuelta al login con tu mensaje
+        return redirect('/login')->withErrors([
+            'email' => 'Usuario sin accesos a la plataforma. Contacte al administrador.'
+        ]);
+    }
         
         $activeContext = null;
 
-         // 2. Si se proporcionaron institutionId y roleId, validar que el usuario tenga acceso
+        
         if ($institutionId && $roleId) {
-            // Buscar el contexto EXACTO solicitado
+            
             $activeContext = collect($availableContexts)->first(function ($context) use ($institutionId, $roleId) {
                 return $context['institution_id'] == $institutionId && $context['role_id'] == $roleId;
             });
 
-            // VALIDACIÓN DE SEGURIDAD: Si no existe, es un intento de acceso no autorizado
+            
             if (!$activeContext) {
                 Log::warning('Intento de acceso no autorizado a contexto', [
                     'user_id' => $user->id,
@@ -51,13 +56,29 @@ class ContextController extends Controller
                 return redirect()->route('dashboard')->withErrors([
                     'error' => 'No tienes autorización para acceder a ese rol/institución.'
                 ]);
+
+            if (!$activeContext['is_active']) {
+                Log::warning('Intento de acceso a contexto deshabilitado', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'institution_id' => $institutionId,
+                    'role_id' => $roleId,
+                ]);
+
+                
+                Auth::logout();
+                return redirect('/login')->withErrors([
+                    'email' => 'Tu acceso a esta institución ha sido deshabilitado.'
+                ]);
+            }
+
             }
         } 
-        // 3. Si solo se proporcionó roleId (compatibilidad con código antiguo)
+       
         elseif ($roleId) {
             $activeContext = collect($availableContexts)->firstWhere('role_id', $roleId);
             
-            // VALIDACIÓN: Verificar que el rol exista en contextos disponibles
+           
             if (!$activeContext) {
                 Log::warning('Intento de acceso a rol no autorizado', [
                     'user_id' => $user->id,
@@ -71,12 +92,12 @@ class ContextController extends Controller
                 ]);
             }
         }
-        // 4. Si no se especificó contexto, usar el primero disponible (login inicial)
+        
         else {
             $activeContext = $availableContexts[0];
         }
 
-        // 5. Validación final: Verificar que se seleccionó un contexto válido
+        
         if (!$activeContext) {
             Log::error('Error al establecer contexto - contexto nulo', [
                 'user_id' => $user->id,
@@ -88,13 +109,13 @@ class ContextController extends Controller
             ]);
         }
 
-        // 4. Guardar el contexto activo en la sesión
+       
         $request->session()->put('active_institution_id', $activeContext['institution_id']);
         $request->session()->put('active_role_id', $activeContext['role_id']);
         $request->session()->put('active_role_name', $activeContext['role_name']);
         $request->session()->put('active_institution_name', $activeContext['institution_name']);
         $request->session()->put('active_role_display_name', $activeContext['display_name']);
-        
+        $request->session()->put('active_institution_logo', $activeContext['logo_path']);
         Log::info('Cambio de contexto exitoso', [
             'user_id' => $user->id,
             'email' => $user->email,
@@ -106,7 +127,7 @@ class ContextController extends Controller
             'user_agent' => $request->userAgent()
         ]);
         
-        // 5. Redirigir al dashboard
+        
         return redirect()->route('dashboard');
     }
 }

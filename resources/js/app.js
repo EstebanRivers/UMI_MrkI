@@ -1,11 +1,10 @@
-
 // Navegación SPA optimizada y simplificada
-
 class SimpleSPANavigation {
     constructor() {
         this.cache = new Map();
         this.currentPage = window.location.pathname;
         this.isLoading = false;
+        this.menuTimeouts = new Map(); // Para manejar los delays del hover
         this.init();
     }
 
@@ -13,11 +12,14 @@ class SimpleSPANavigation {
         this.setupEventListeners();
         this.updateActiveMenuItem();
         this.preloadCriticalPages();
-        this.initializePageSpecificScripts(window.location.href);
     }
 
+    // !! ========================================================== !!
+    // !! FUNCIÓN setupEventListeners REESCRITA PARA HOVER !!
+    // !! ========================================================== !!
     setupEventListeners() {
-      // --- 1. Lógica de Hover para Menús ---
+        
+        // --- 1. Lógica de Hover para Menús ---
         const menuItems = document.querySelectorAll('.menu li.has-submenu');
         
         menuItems.forEach(item => {
@@ -50,107 +52,84 @@ class SimpleSPANavigation {
                 this.menuTimeouts.set(item, timeoutId);
             });
         });
-    document.addEventListener('click', (e) => {
-        
-        if (!(e.target instanceof Element)) {
-            return; 
-        }
 
-        const link = e.target.closest('.menu a'); 
-        const parentLi = link ? link.closest('li') : null;
-
-        // --- Lógica para Abrir/Cerrar Submenús ---
-        if (parentLi && parentLi.classList.contains('has-submenu')) {
-            e.preventDefault(); // Prevenir navegación si es un submenú
-            parentLi.classList.toggle('open'); // Abrir/cerrar el submenú clickeado
-
-            // Cerrar OTROS submenús que pudieran estar abiertos
-            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
-                if (openSubmenu !== parentLi) {
-                    openSubmenu.classList.remove('open');
-                }
-            });
-            return; 
-        }
-        
-        // --- Lógica para CERRAR submenús al hacer clic FUERA ---
-        // Si el clic NO fue dentro de un submenú o su botón...
-        if (!e.target.closest('.has-submenu')) {
-            // Buscamos todos los submenús que estén abiertos y los cerramos
-            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
-                openSubmenu.classList.remove('open');
-            });
-        }
-
-        // --- Lógica Original de la SPA (si el clic NO fue en un submenú) ---
-        if (link && this.shouldIntercept(link)) {
-            e.preventDefault();
-            this.setImmediateActivate(link);
-            this.navigate(link.href);
-        }
-    });
-
-        // Manejar botón atrás/adelante del navegador
-        window.addEventListener('popstate', (e) => {
+        // --- 2. Lógica de Clics (Solo para Navegación y Clic-Afuera) ---
+        document.addEventListener('click', (e) => {
             if (!(e.target instanceof Element)) return;
-            if (e.state && e.state.page) {
-                this.loadPage(e.state.page, false);
+
+            // A. Clic FUERA del menú: Cierra todos los menús
+            if (!e.target.closest('.menu')) {
+                document.querySelectorAll('.menu .has-submenu.open').forEach(openSubmenu => {
+                    openSubmenu.classList.remove('open');
+                });
+            }
+            
+            // B. Clic DENTRO de un enlace (Navegación SPA)
+            const link = e.target.closest('.menu a');
+            // Solo navega si el enlace NO es el padre de un submenú (ej. no es "Ajustes")
+            const isSubmenuToggle = link && link.parentElement.classList.contains('has-submenu');
+            
+            if (link && !isSubmenuToggle && this.shouldIntercept(link)) {
+                e.preventDefault();
+                this.setImmediateActivate(link);
+                this.navigate(link.href);
             }
         });
 
-        // Precargar al hacer hover (optimizado)
-        let hoverTimeout;
-        document.addEventListener('mouseenter', (e) => {
-            if (!(e.target instanceof Element)) return;
-            const link = e.target.closest('.menu a');
-            if (link && this.shouldIntercept(link)) {
-                clearTimeout(hoverTimeout);
-                hoverTimeout = setTimeout(() => {
-                    this.preloadPage(link.href);
-                }, 200);
-            }
-        }, true);
-
-        document.addEventListener('mouseleave', (e) => {
-            if (!(e.target instanceof Element)) return;
-            const link = e.target.closest('.menu a');
-            if (link) {
-                clearTimeout(hoverTimeout);
-            }
-        }, true);
+        // --- Popstate (sin cambios) ---
+        window.addEventListener('popstate', (e) => {
+            // (Tu lógica de popstate, si tenías una, iría aquí)
+            // Por ejemplo, recargar la página si la navegación SPA no lo maneja
+            this.navigate(window.location.href);
+        });
     }
 
+    // !! ========================================================== !!
+    // !! NUEVA FUNCIÓN DE AYUDA (Pégala aquí, dentro de la clase) !!
+    // !! ========================================================== !!
+    getSiblings(elem) {
+        let siblings = [];
+        if (!elem.parentNode) return siblings;
+        let sibling = elem.parentNode.firstChild;
+        while (sibling) {
+            if (sibling.nodeType === 1 && sibling !== elem) {
+                siblings.push(sibling);
+            }
+            sibling = sibling.nextSibling;
+        }
+        return siblings;
+    }
+
+    // ==================================================
+    // EL RESTO DE TU ARCHIVO (setImmediateActivate, 
+    // shouldIntercept, navigate, loadPage, parsePageContent, 
+    // etc.) VA AQUÍ SIN CAMBIOS.
+    // ==================================================
+
     setImmediateActivate(link) {
-        
         document.querySelectorAll('.menu li').forEach(li => {
             li.classList.remove('spa-activating');
         });
-
         const li = link.closest('li');
         if (li) {
-            
             document.querySelectorAll('.menu li').forEach(other => {
                 if (other !== li) other.classList.remove('active');
             });
-
-            
             li.classList.add('active', 'spa-activating');
         }
     }
 
     shouldIntercept(link) {
         return link.hostname === window.location.hostname && 
-               !link.hasAttribute('data-no-intercept') &&
-               !link.href.includes('logout') &&
-               !link.href.includes('#') &&
-               !link.closest('.brand'); 
+                !link.hasAttribute('data-no-intercept') &&
+                !link.href.includes('logout') &&
+                !link.href.includes('#') &&
+                !link.closest('.brand'); 
     }
 
     async navigate(url) {
         if (this.isLoading || url === window.location.href) return;
-        
         this.isLoading = true;
-        
         try {
             const content = await this.loadPage(url, true);
             if (content) {
@@ -166,7 +145,6 @@ class SimpleSPANavigation {
     }
 
     async loadPage(url, updateHistory = true) {
-        // Verificar cache
         const cacheKey = this.getCacheKey(url);
         if (this.cache.has(cacheKey)) {
             const cached = this.cache.get(cacheKey);
@@ -177,11 +155,9 @@ class SimpleSPANavigation {
                 return cached.content;
             }
         }
-
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
-
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -193,35 +169,25 @@ class SimpleSPANavigation {
                 credentials: 'same-origin',
                 signal: controller.signal
             });
-
             clearTimeout(timeoutId);
-
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-
             const html = await response.text();
             const content = this.parsePageContent(html);
-            
             if (!content) {
                 throw new Error('Invalid page structure');
             }
-
-            // Cachear la página
             this.cache.set(cacheKey, {
                 content: content,
                 timestamp: Date.now()
             });
-
-            // Limpiar cache si es muy grande
             if (this.cache.size > 15) {
                 this.cleanupCache();
             }
-
             if (updateHistory) {
                 history.pushState({ page: url }, content.title, url);
             }
-
             return content;
         } catch (error) {
             if (error.name === 'AbortError') {
@@ -234,14 +200,11 @@ class SimpleSPANavigation {
     parsePageContent(html) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        
         const mainContent = doc.querySelector('#main-content, .main-content');
         const title = doc.querySelector('title')?.textContent || '';
-        
         if (!mainContent) {
             return null;
         }
-
         return {
             main: mainContent.innerHTML,
             title: title,
@@ -252,7 +215,6 @@ class SimpleSPANavigation {
     extractScripts(container) {
         const scripts = [];
         const scriptElements = container.querySelectorAll('script');
-        
         scriptElements.forEach(script => {
             if (script.src) {
                 scripts.push({ type: 'external', src: script.src });
@@ -260,36 +222,21 @@ class SimpleSPANavigation {
                 scripts.push({ type: 'inline', content: script.textContent });
             }
         });
-        
         return scripts;
     }
-
-    
 
     updatePage(content, url) {
         const mainElement = document.querySelector('#main-content, .main-content');
         if (mainElement) {
-            // Transición suave sin indicadores de carga
             mainElement.style.transition = 'opacity 0.2s ease';
             mainElement.style.opacity = '0.7';
-            
             setTimeout(() => {
                 mainElement.innerHTML = content.main;
                 mainElement.style.opacity = '1';
-                
-                // Ejecutar scripts si los hay
                 this.executeScripts(content.scripts);
-                
-                
-                // Scroll suave al top
                 this.scrollToTop();
-
-                this.initializePageSpecificScripts(url);
-
             }, 100);
         }
-
-        // Actualizar título
         document.title = content.title;
         this.currentPage = url;
     }
@@ -313,18 +260,11 @@ class SimpleSPANavigation {
         });
     }
 
-    initializePageSpecificScripts(url) {
-        
-        
-    }
-
     updateActiveMenuItem() {
         const currentPath = new URL(window.location.href).pathname.replace(/\/+$/, '') || '/';
-
         document.querySelectorAll('.menu a').forEach(link => {
             const li = link.closest('li');
             if (!li) return;
-
             const href = link.getAttribute('href') || '#';
             let linkPath = '/';
             try {
@@ -332,11 +272,9 @@ class SimpleSPANavigation {
             } catch (e) {
                 linkPath = href.replace(/\/+$/, '') || '/';
             }
-
             const isMatch = (linkPath === currentPath) || 
-                           (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) || 
-                           (linkPath !== '/' && currentPath === linkPath);
-
+                            (linkPath !== '/' && currentPath.startsWith(linkPath + '/')) || 
+                            (linkPath !== '/' && currentPath === linkPath);
             if (isMatch) {
                 if (!li.classList.contains('active')) {
                     li.classList.add('active');
@@ -351,8 +289,7 @@ class SimpleSPANavigation {
     }
 
     preloadCriticalPages() {
-        const criticalPages = ['/cursos', '/mi-informacion', '/ajustes'];
-        
+        const criticalPages = ['/dashboard', '/mi-informacion', '/ajustes'];
         setTimeout(() => {
             criticalPages.forEach(page => {
                 if (page !== this.currentPage) {
@@ -374,7 +311,6 @@ class SimpleSPANavigation {
 
     handleNavigationError(error, url) {
         console.error('Navigation failed:', error);
-        // Fallback: navegar normalmente
         setTimeout(() => {
             window.location.href = url;
         }, 1000);
@@ -399,14 +335,12 @@ class SimpleSPANavigation {
         const entries = Array.from(this.cache.entries())
             .sort((a, b) => b[1].timestamp - a[1].timestamp)
             .slice(0, 10);
-        
         this.cache.clear();
         entries.forEach(([key, value]) => {
             this.cache.set(key, value);
         });
     }
 
-    // Métodos públicos
     clearCache() {
         this.cache.clear();
     }
@@ -419,32 +353,7 @@ class SimpleSPANavigation {
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.spaNav = new SimpleSPANavigation();
-    
-    // Exponer método de navegación globalmente
     window.navigateTo = (url) => window.spaNav.navigateTo(url);
-
-    /**
-     * Función reutilizable para marcar una actividad como completada (vía AJAX)
-     */
-        // --- 1. Para LINKS (PDF, Texto, Quiz) ---
-        document.body.addEventListener('click', function(event) {
-            // 'event.target.closest' es la forma moderna de delegar eventos
-            const link = event.target.closest('.auto-complete-link');
-            if (link) {
-                const activityId = link.dataset.activityId;
-                markActivityAsComplete(activityId);
-                // La navegación al link (href) ocurre de forma natural
-            }
-        });
-
-        // --- 2. Para VIDEOS (al finalizar) ---
-        const videoPlayers = document.querySelectorAll('.auto-complete-video');
-        videoPlayers.forEach(video => {
-            video.addEventListener('ended', (event) => {
-                const activityId = event.currentTarget.dataset.activityId;
-                markActivityAsComplete(activityId);
-            });
-        });
 });
 
 // Limpiar al cerrar
@@ -456,15 +365,11 @@ window.addEventListener('beforeunload', () => {
 
 // --- Manejo permanente del botón context-switcher ---
 (function initializeContextSwitcher() {
-    // Evita registrar múltiples veces
     if (initializeContextSwitcher._initialized) return;
     initializeContextSwitcher._initialized = true;
-
     document.addEventListener('click', (event) => {
         const button = event.target.closest('#context-switcher-button');
         const menu = document.getElementById('context-switcher-menu');
-
-        // Si el clic es en el botón, alternar menú
         if (button) {
             event.stopPropagation();
             if (menu) {
@@ -472,12 +377,8 @@ window.addEventListener('beforeunload', () => {
             }
             return;
         }
-
-        // Si se hace clic fuera, cerrar el menú
         if (menu && menu.classList.contains('show')) {
             menu.classList.remove('show');
         }
     });
-
-    
 })();

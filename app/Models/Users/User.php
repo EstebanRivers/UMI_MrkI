@@ -134,17 +134,21 @@ class User extends Authenticatable
         ->join('roles', 'user_roles_institution.role_id', '=', 'roles.id')
         ->join('institutions', 'user_roles_institution.institution_id', '=', 'institutions.id')
         ->where('user_roles_institution.user_id', $this->id)
+        ->where('user_roles_institution.is_active', true)
+        
         ->select(
             'institutions.id as institution_id',
             'institutions.name as institution_name',
+            'institutions.logo_path',
             'roles.id as role_id',
             'roles.name as role_name',
-            'roles.display_name'
+            'roles.display_name',
+            'user_roles_institution.is_active'
         )
         ->get();
 
     foreach ($userContexts as $context) {
-        $contexts[] = (array) $context; // Convertir el objeto a array
+        $contexts[] = (array) $context; 
     }
 
         return $contexts;
@@ -173,6 +177,7 @@ class User extends Authenticatable
         'address_id',
         'department_id',
         'workstation_id',
+        'role_id',
     ];
 
     /**
@@ -199,13 +204,18 @@ class User extends Authenticatable
     }
 
     
-    //El rol que pertenece al usuario.
+    
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles_institution')->withPivot('institution_id');
+        
+        return $this->belongsToMany(Role::class, 'user_roles_institution', 'user_id', 'role_id')
+                    ->withPivot('institution_id')
+                    ->withPivot('is_active') 
+                    ->withTimestamps();
+
+        
     }
 
-    //Las instituciones a las que pertenece el usuario.
     public function institutions(): BelongsToMany
     {
         return $this->belongsToMany(Institution::class, 'institution_user');
@@ -224,14 +234,14 @@ class User extends Authenticatable
     }
 
     
-    //El perfil académico asociado al usuario.
+    
     public function academicProfile(): HasOne
     {
         return $this->hasOne(AcademicProfile::class);
     }
 
     
-    // El perfil corporativo asociado al usuario.
+   
     public function corporateProfile(): HasOne
     {
         return $this->hasOne(CorporateProfile::class);

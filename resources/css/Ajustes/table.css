@@ -168,6 +168,18 @@
   align-items: center;
 }
 
+/* --- Estilo para la miniatura del logo en la tabla --- */
+.table-logo {
+    width: 80px;  /* Ancho de la miniatura */
+    height: 40px; /* Alto de la miniatura */
+
+    /* 'contain' evita que la imagen se deforme y la ajusta */
+    object-fit: contain; 
+
+    border-radius: 4px; /* Bordes redondeados */
+    background-color: #f8f9fa; /* Fondo claro por si el logo es transparente */
+}
+
 .btn-icon {
   background: none;
   border: none;
@@ -244,4 +256,100 @@
 
 .pagination-container nav a:hover {
   background-color: #e9ecef;
+}
+
+/* --- Estilos para el Interruptor (Toggle Switch) --- */
+
+/* 1. El contenedor (la <label>) */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;  /* Ancho del interruptor */
+    height: 28px; /* Alto del interruptor */
+}
+
+/* 2. El checkbox real (lo ocultamos) */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 3. El "carril" (la parte de fondo) */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc; /* Color cuando está apagado (gris) */
+    transition: .3s;
+    border-radius: 34px; /* Lo hace redondeado */
+}
+
+/* 4. El "círculo" (el botón que se mueve) */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* Alto del círculo */
+    width: 20px;  /* Ancho del círculo */
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%; /* Lo hace un círculo */
+}
+
+/* 5. Estilos cuando está "Encendido" (checked) */
+input:checked + .slider {
+    background-color: #0d6efd; /* Color azul (como tu imagen) */
+}
+
+input:checked + .slider:before {
+    /* Mueve el círculo a la derecha */
+    transform: translateX(22px); 
+}
+
+/* Contenedor principal de la celda de estatus */
+.status-toggle-cell {
+    text-align: center; /* Centra el contenido horizontalmente */
+    vertical-align: middle; /* Centra el contenido verticalmente en la celda */
+    width: 150px; /* Dale un ancho fijo para que no se desfigure */
+    min-width: 120px; /* Asegura un ancho mínimo */
+}
+
+/* El nuevo wrapper para el switch y el texto */
+.status-content-wrapper {
+    display: flex;         /* Activa Flexbox */
+    align-items: center;   /* Alinea verticalmente los items */
+    justify-content: center; /* Centra los items horizontalmente */
+    gap: 10px;             /* Espacio entre el switch y el texto */
+    height: 100%;          /* Asegura que ocupe todo el alto de la celda */
+}
+
+/* Estilo para la etiqueta de Activo/Inactivo */
+.status-label {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 600;
+    white-space: nowrap; 
+}
+
+
+.status-active {
+    background-color: #d4edda; 
+    color: #155724;
+}
+
+.status-inactive {
+    background-color: #f8d7da; 
+    color: #721c24;
+}
+
+
+
+.switch {
+    margin-right: 0; 
 }
