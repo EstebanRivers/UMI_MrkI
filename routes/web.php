@@ -45,6 +45,28 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
 
     // --- Cursos (General) ---
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
+    // --- Gestión de Cursos (Solo Docentes y Masters) ---
+    Route::middleware(['role:master, docente'])->group(function () {
+        Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
+        Route::post('/cursos', [CourseController::class, 'store'])->name('courses.store');
+        Route::get('/cursos/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/cursos/{course}', [CourseController::class, 'update'])->name('courses.update');
+        Route::delete('/cursos/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+        
+        // Temas y Subtemas
+        Route::get('/cursos/{course}/temas/crear', [TopicsController::class, 'create'])->name('course.topic.create');
+        Route::post('/temas', [TopicsController::class, 'store'])->name('topics.store');
+        Route::get('/temas/{topic}/edit', [TopicsController::class, 'edit'])->name('topics.edit'); 
+        Route::put('/temas/{topic}', [TopicsController::class, 'update'])->name('topics.update');
+        Route::delete('/temas/{topic}', [TopicsController::class, 'destroy'])->name('topics.destroy');
+        Route::resource('topics.subtopics', SubtopicsController::class);
+        Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
+        
+        // Actividades (Gestión)
+        Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
+        Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
+    });
+
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
     Route::get('/cursos/{course}/certificado', [CourseController::class, 'showCertificate'])->name('courses.certificate');
     

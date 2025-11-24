@@ -16,6 +16,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse; // <-- Importante
 use App\Models\Cursos\Activities;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class CourseController extends Controller
 {
@@ -99,6 +101,22 @@ class CourseController extends Controller
         if ($request->hasFile('guide_material')) {
             $path = $request->file('guide_material')->store('courses/guides', 'public');
             $courseData['guide_material_path'] = $path;
+        }
+        // 2. Manejo de subida de archivos
+        if ($request->hasFile('cert_bg_image')) {
+            // Guardar en storage/app/public/certificates/backgrounds
+            $path = $request->file('cert_bg_image')->store('certificates/backgrounds', 'public');
+            $courseData['cert_bg_path'] = $path;
+        }
+
+        if ($request->hasFile('cert_sig_1_image')) {
+            $path = $request->file('cert_sig_1_image')->store('certificates/signatures', 'public');
+            $courseData['cert_sig_1_path'] = $path;
+        }
+
+        if ($request->hasFile('cert_sig_2_image')) {
+            $path = $request->file('cert_sig_2_image')->store('certificates/signatures', 'public');
+            $courseData['cert_sig_2_path'] = $path;
         }
 
         $course = Course::create($courseData);
@@ -497,13 +515,42 @@ class CourseController extends Controller
                 ->with('error', 'Debes completar el examen final para ver el certificado.');
         }
 
-        // 4. Retornar la vista del certificado
-        return view('layouts.Cursos.certificate', [
-            'course' => $course,
-            'user' => $user,
-            'score' => $completion->score,
-            'date' => $completion->created_at->format('d/m/Y')
-        ]);
+        // ---------------------------------------------------------
+        // 2. PREPARACIÓN DE DATOS
+        // ---------------------------------------------------------
+        
+        // Formatear fecha elegante: "24 de Noviembre de 2025"
+        // Si tu Laravel no está en español, esto ayuda a forzarlo.
+        $completionDate = $completion->created_at->locale('es')->isoFormat('D [de] MMMM [de] YYYY');
+
+        $data = [
+            'course'           => $course,
+            'user'             => $user,
+            'score'            => $completion->score,
+            'date'             => $completionDate,
+            // Datos de la institución (logotipo y nombre) obtenidos de la sesión actual
+            'institution_logo' => session('active_institution_logo'),
+            'institution_name' => session('active_institution_name'),
+        ];
+
+        // ---------------------------------------------------------
+        // 3. GENERACIÓN DEL PDF
+        // ---------------------------------------------------------
+        
+        // Cargamos la vista de diseño que creamos (Cursos.template_v1)
+        $pdf = Pdf::loadView('layouts.Cursos.template_v1', $data);
+
+        // Configuramos el papel A4 Horizontal
+        $pdf->setPaper('a4', 'landscape');
+
+        // ---------------------------------------------------------
+        // 4. DESCARGA
+        // ---------------------------------------------------------
+
+        // Creamos un nombre de archivo limpio para evitar caracteres raros
+        $filename = 'Certificado_' . Str::slug($course->title) . '_' . Str::slug($user->name) . '.pdf';
+
+        return $pdf->download($filename);
     }
 
 }

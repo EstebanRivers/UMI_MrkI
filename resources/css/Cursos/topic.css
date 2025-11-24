@@ -64,6 +64,12 @@
 
 }
 
+.header-topic h3,
+.topics-list-header h3{
+    margin: 0;
+    color: #333;
+}
+
 /* Layout */
 .topics-layout {
     display: grid;

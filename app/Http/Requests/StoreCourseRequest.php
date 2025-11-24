@@ -42,6 +42,11 @@ class StoreCourseRequest extends FormRequest
             'hours' => 'required|integer|min:0',
             'workstation_id' => 'nullable|exists:workstations,id',
             'guide_material' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:40960', // max 20MB
+            'cert_bg_image'    => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Máx 2MB
+            'cert_sig_1_image' => 'nullable|image|mimes:png|max:1024', // Preferible PNG para firmas transparentes
+            'cert_sig_2_image' => 'nullable|image|mimes:png|max:1024',
+            'cert_sig_1_name'  => 'nullable|string|max:100',
+            'cert_sig_2_name'  => 'nullable|string|max:100',
         ];
     }
 }

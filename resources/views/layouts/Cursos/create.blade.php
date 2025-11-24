@@ -106,6 +106,29 @@
                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
         </div>
 
+        {{-- Campos para Certificado --}}
+        <h2 style="font-size: 22px; margin-bottom: 20px; color: #333;">Configuración del Certificado</h2>
+        <div style="margin-bottom: 20px;">
+            <label for="cert_bg_image" style="display: block; margin-bottom: 8px; font-weight: 600;">Imagen de Fondo del Certificado (opcional)</label>
+            <input type="file" id="cert_bg_image" name="cert_bg_image" accept="image/*"
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label for="cert_sig_1_image" style="display: block; margin-bottom: 8px; font-weight: 600;">Firma 1 del Certificado (PNG, opcional)</label>
+            <input type="file" id="cert_sig_1_image" name="cert_sig_1_image" accept="image/png"
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <input type="text" name="cert_sig_1_name" placeholder="Nombre/Cargo de la Firma 1"
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 10px;">
+        </div>
+        <div style="margin-bottom: 30px;">
+            <label for="cert_sig_2_image" style="display: block; margin-bottom: 8px; font-weight: 600;">Firma 2 del Certificado (PNG, opcional)</label>
+            <input type="file" id="cert_sig_2_image" name="cert_sig_2_image" accept="image/png"
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <input type="text" name="cert_sig_2_name" placeholder="Nombre/Cargo de la Firma 2"
+                   style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 10px;">
+        </div>
+        
+
         {{-- Botón de Enviar --}}
         <button type="submit"
                 style="background: #e69a37; color: white; padding: 14px 28px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 16px;">

@@ -68,6 +68,11 @@ class Course extends Model
         'institution_id',
         'image',
         'guide_material_path',
+        'cert_bg_path',
+        'cert_sig_1_path',
+        'cert_sig_2_path',
+        'cert_sig_1_name',
+        'cert_sig_2_name',
 
     ];
 
