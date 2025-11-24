@@ -15,10 +15,7 @@ use App\Models\Users\Career;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-<<<<<<< Updated upstream
-=======
 use Illuminate\Database\Eloquent\ModelNotFoundException; 
->>>>>>> Stashed changes
 use App\Models\Facturacion\Billing;
 use Illuminate\Support\Facades\Log;
 

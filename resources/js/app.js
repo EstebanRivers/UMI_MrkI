@@ -17,7 +17,39 @@ class SimpleSPANavigation {
     }
 
     setupEventListeners() {
-      // Interceptar clics en cualquier parte del documento
+      // --- 1. Lógica de Hover para Menús ---
+        const menuItems = document.querySelectorAll('.menu li.has-submenu');
+        
+        menuItems.forEach(item => {
+            const timeoutDelay = 200; // Delay de 200ms antes de cerrar
+
+            item.addEventListener('mouseenter', () => {
+                // Limpia cualquier "timeout" de cierre pendiente
+                if (this.menuTimeouts.has(item)) {
+                    clearTimeout(this.menuTimeouts.get(item));
+                    this.menuTimeouts.delete(item);
+                }
+                
+                // Abre este menú
+                item.classList.add('open');
+                
+                // Cierra los hermanos (menús del mismo nivel)
+                const siblings = this.getSiblings(item);
+                siblings.forEach(sibling => {
+                    if (sibling.classList && sibling.classList.contains('has-submenu')) {
+                        sibling.classList.remove('open');
+                    }
+                });
+            });
+
+            item.addEventListener('mouseleave', () => {
+                // Inicia un "timeout" para cerrar este menú
+                const timeoutId = setTimeout(() => {
+                    item.classList.remove('open');
+                }, timeoutDelay);
+                this.menuTimeouts.set(item, timeoutId);
+            });
+        });
     document.addEventListener('click', (e) => {
         
         if (!(e.target instanceof Element)) {

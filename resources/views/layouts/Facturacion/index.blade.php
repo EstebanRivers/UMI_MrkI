@@ -76,79 +76,11 @@
                                         $userBillings = $u->billings->where('period_id', $period->id);
                                     @endphp
 
-<<<<<<< Updated upstream
-                                                            if ($estatus == 'Pendiente') {
-                                                                if ($totalPagado >= $billing->monto) { $estatus = 'Pagada'; $estatusClase = 'pagada'; } 
-                                                                elseif ($totalPagado > 0) { $estatus = 'Abonado'; $estatusClase = 'abonado'; }
-                                                            }
-
-                                                            $estatusIcono = 'circulo_rojo.png';
-                                                            if ($estatus == 'Pagada') { $estatusIcono = 'circulo_verde.png'; } 
-                                                            elseif ($estatus == 'Abonado') { $estatusIcono = 'circulo_amarillo.png'; }
-                                                        @endphp
-                                                        
-                                                        <table style="margin-bottom: 0; border-top: 1px solid #eee;">
-                                                            <thead style="display: none;"><tr><th>...</th></tr></thead>
-                                                            <tbody class="billing-item-tbody">
-                                                                <tr class="billing-main-row">
-                                                                    <td width="15%">{{ $billing->factura_uid }}</td>
-                                                                    <td width="25%">{{ $billing->concepto }}</td>
-                                                                    <td width="15%">
-                                                                        ${{ number_format($billing->monto, 2) }}
-                                                                        @if($estatus == 'Abonado') <br><small style="color: #e8a800; font-weight: 600;">(Saldo: ${{ number_format($saldo, 2) }})</small> @endif
-                                                                    </td>
-                                                                    <td width="15%">{{ \Carbon\Carbon::parse($billing->fecha_vencimiento)->format('d/m/Y') }}</td>
-                                                                    <td width="15%"><div class="estado"><img src="{{ asset('images/'.$estatusIcono) }}" alt="{{$estatus}}" class="estado-icono"><span class="{{$estatusClase}}">{{$estatus}}</span></div></td>
-                                                                    <td width="15%" class="acciones">
-                                                                        <img src="{{ asset('images/icons/eye-solid-full.svg') }}" alt="Ver Abonos" class="icono icon-toggle" title="Ver Abonos">
-                                                                        @if($billing->archivo_path)<a href="{{ Storage::url($billing->archivo_path) }}" target="_blank" title="Ver Archivo"> <img src="{{ asset('images/pdf.png') }}" alt="Ver Archivo" class="icono"> </a>@endif
-                                                                        @if($billing->xml_path)<a href="{{ Storage::url($billing->xml_path) }}" target="_blank" title="Descargar XML">  <img src="{{ asset('images/xml.png') }}" alt="Ver XML" class="icono"> </a>@endif
-                                                                        <form action="{{ route('Facturacion.destroy', $billing->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar factura {{ $billing->factura_uid }}?');"> @csrf @method('DELETE') <button type="submit" style="background:none; border:none; padding:0; cursor:pointer;" title="Eliminar Factura"> <img src="{{ asset('images/eliminar.png') }}" alt="Eliminar" class="icono"> </button> </form>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr class="payment-details-row">
-                                                                    <td colspan="6" class="payment-details-cell">
-                                                                        <div class="clearfix">
-                                                                            <div class="payment-history">
-                                                                                <h4>Historial de Abonos</h4>
-                                                                                @if($billing->payments->isNotEmpty())
-                                                                                    <ul> @foreach($billing->payments as $payment) <li> <span class="payment-date">{{ \Carbon\Carbon::parse($payment->fecha_pago)->format('d/m/Y') }} - {{ $payment->nota ?? 'Abono' }}</span> <span class="payment-amount">- ${{ number_format($payment->monto, 2) }}</span> </li> @endforeach </ul>
-                                                                                @else
-                                                                                    <p>No se han registrado abonos para esta factura.</p>
-                                                                                @endif
-                                                                            </div>
-                                                                            @if($estatus !== 'Pagada')
-                                                                            <div class="add-payment-form">
-                                                                                <h4>Añadir Abono</h4>
-                                                                                <form action="{{ route('payments.store') }}" method="POST">
-                                                                                    @csrf
-                                                                                    <input type="hidden" name="billing_id" value="{{ $billing->id }}">
-                                                                                    <label for="monto_abono_{{ $billing->id }}">Monto a abonar:</label>
-                                                                                    <input type="number" id="monto_abono_{{ $billing->id }}" name="monto_abono" step="0.01" max="{{ $saldo }}" placeholder="Máx: ${{ number_format($saldo, 2) }}" required>
-                                                                                    <label for="fecha_pago_{{ $billing->id }}">Fecha del pago:</label>
-                                                                                    <input type="date" id="fecha_pago_{{ $billing->id }}" name="fecha_pago" value="{{ date('Y-m-d') }}" required>
-                                                                                    <label for="nota_abono_{{ $billing->id }}">Nota (Opcional):</label>
-                                                                                    <textarea id="nota_abono_{{ $billing->id }}" name="nota_abono" rows="2" placeholder="Ej. Transferencia"></textarea>
-                                                                                    <button type="submit" class="guardar-abono">Guardar Abono</button>
-                                                                                </form>
-                                                                            </div>
-                                                                            @endif
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    @empty
-                                                        <p style="text-align: center; padding: 15px; color: #777;">No hay facturas que coincidan con los filtros seleccionados.</p>
-                                                    @endforelse
-                                                </div>
-=======
                                     <details id="target-user-{{ $u->id }}-period-{{ $period->id }}">
                                         <summary>
                                             <div>
                                                 <span class="user-name">{{ $u->nombre }} {{ $u->apellido_paterno }}</span>
                                                 <span class="user-email">{{ $u->email }}</span>
->>>>>>> Stashed changes
                                             </div>
                                             <div>
                                                 <span class="user-role">{{ $u->roles->pluck('display_name')->join(', ') }}</span>
