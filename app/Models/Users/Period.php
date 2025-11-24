@@ -22,6 +22,7 @@ class Period extends Model
         'is_active',
         'institution_id',
         'monthly_payments_count',
+        'payment_dates',
     ];
 
     /**
@@ -33,6 +34,7 @@ class Period extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'is_active' => 'boolean',
+        'payment_dates' => 'array',
     ];
 
     

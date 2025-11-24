@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Facturacion\Billing;
 use App\Models\Users\User;
-use App\Models\Periods\Period;
+use App\Models\Users\Period; // Asegúrate de que este sea el modelo correcto
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
@@ -27,6 +26,9 @@ class BillingController extends Controller
         // LÓGICA FUNCIONAL: CALCULAR MESES DINÁMICAMENTE
         // ======================================================
         $periods->map(function ($period) {
+            // 1. Obtenemos las fechas configuradas (Laravel ya lo trae como array gracias al modelo)
+            $fechasConfiguradas = $period->payment_dates ?? [];
+
             if ($period->start_date && $period->end_date) {
                 $start = Carbon::parse($period->start_date)->startOfMonth();
                 $end = Carbon::parse($period->end_date)->endOfMonth();
@@ -34,12 +36,28 @@ class BillingController extends Controller
                 $monthRange = CarbonPeriod::create($start, '1 month', $end);
                 
                 $months = [];
+                $index = 0; // Contador para buscar en el array de configuración
+
                 foreach ($monthRange as $date) {
+                    
+                    // 2. LÓGICA MAESTRA:
+                    // ¿Existe una fecha configurada para el mes número $index?
+                    if (isset($fechasConfiguradas[$index])) {
+                        $fechaVencimiento = $fechasConfiguradas[$index]; 
+                    } else {
+                        // Fallback: Si no hay configuración, usamos el mismo día
+                        $fechaVencimiento = $date->format('Y-m-d'); 
+                    }
+
                     $months[] = [
                         'label' => ucfirst($date->translatedFormat('F Y')), 
                         'key'   => $date->format('Y-m'),
-                        'date'  => $date->format('Y-m-d')
+                        
+                        // 3. Enviamos la fecha REAL configurada a la vista
+                        'date'  => $fechaVencimiento 
                     ];
+
+                    $index++;
                 }
                 $period->setAttribute('meses_calculados', $months);
             } else {
@@ -70,7 +88,7 @@ class BillingController extends Controller
 
             $usersWithBillings = $query->with(['billings.payments', 'roles'])->orderBy('nombre')->get();
 
-            // Filtro de Status (Lógica manual sobre la colección)
+            // Filtro de Status
             if ($request->filled('status')) {
                 $statusFilter = $request->input('status');
                 $usersWithBillings = $usersWithBillings->filter(function($user) use ($statusFilter) {
@@ -89,12 +107,9 @@ class BillingController extends Controller
             $viewData['usersWithBillings'] = $usersWithBillings;
 
         } else {
-            // =========================================================
             // LÓGICA PARA ALUMNOS
-            // =========================================================
             $query = Billing::where('user_id', $user->id)->with('payments');
 
-            // Filtro de Búsqueda
             if ($request->filled('search')) {
                 $searchTerm = $request->input('search');
                 $query->where(function ($q) use ($searchTerm) {
@@ -103,14 +118,12 @@ class BillingController extends Controller
                 });
             }
             
-            // Filtro de Periodo
             if ($request->filled('period_id')) {
                 $query->where('period_id', $request->input('period_id'));
             }
 
             $billings = $query->orderBy('fecha_vencimiento', 'desc')->get();
 
-            // Filtro de Status (Igual que en admin)
             if ($request->filled('status')) {
                 $statusFilter = $request->input('status');
                 $billings = $billings->filter(function($billing) use ($statusFilter) {
@@ -129,7 +142,8 @@ class BillingController extends Controller
 
         return view('layouts.Facturacion.index', $viewData);
     }
-public function store(Request $request)
+
+    public function store(Request $request)
     {
         $loggedInUser = Auth::user();
         
@@ -148,7 +162,7 @@ public function store(Request $request)
             'archivo_xml' => 'nullable|file|mimes:xml|max:2048' 
         ]);
 
-        // --- VALIDACIÓN DE FECHAS ---
+        // Validación de Fechas
         $periodo = Period::find($validated['period_id']);
         $fechaFactura = Carbon::parse($validated['fecha']);
         
@@ -157,7 +171,6 @@ public function store(Request $request)
             $fin = Carbon::parse($periodo->end_date)->endOfDay();
 
             if (!$fechaFactura->between($inicio, $fin)) {
-                // FIX: Si falla la fecha, volvemos atrás con error, no intentamos hacer scroll
                 return redirect()->back()
                     ->withErrors(['fecha' => "La fecha ({$validated['fecha']}) no coincide con el periodo seleccionado."])
                     ->withInput();
@@ -186,12 +199,9 @@ public function store(Request $request)
             'status' => $validated['status'],
         ]);
 
-        // --- REDIRECCIÓN BLINDADA (Store) ---
+        // Redirección Blindada
         $url = route('Facturacion.index');
-    
-        // 2. Construimos el ancla MANUALMENTE (concatenando string)
-        // Esto obliga al navegador a recibirlo como un #hash real
-        $anchor = '#target-user-' . $validated['user_id'] . '-period-' . $validated['period_id'];
+        $anchor = '#factura-target-user-' . $validated['user_id'] . '-period-' . $validated['period_id'];
 
         return redirect()->to($url . $anchor)->with('success', 'Factura creada exitosamente.');
     }
@@ -203,6 +213,7 @@ public function store(Request $request)
             abort(403, 'ACCIÓN NO AUTORIZADA.');
         }
 
+        // Borrar archivos físicos
         if ($billing->archivo_path && $billing->archivo_path !== 'facturas/placeholder.pdf') { 
             Storage::disk('public')->delete($billing->archivo_path);
         }
@@ -210,22 +221,20 @@ public function store(Request $request)
             Storage::disk('public')->delete($billing->xml_path);
         }
 
-        // Guardamos los IDs antes de borrar para poder redirigir
+        // 1. RESCATAR DATOS ANTES DE BORRAR
+        // Usamos el objeto $billing directamente, NO $validated
         $userId = $billing->user_id;
         $periodId = $billing->period_id;
 
         $billing->delete();
         
-        // --- REDIRECCIÓN BLINDADA (Destroy) ---
-        // ... guardado ...
+        // 2. REDIRECCIÓN BLINDADA
+        $url = route('Facturacion.index');
+        
+        // Usamos las variables $userId y $periodId que rescatamos arriba
+        // Y usamos el prefijo correcto 'factura-target-' que ya pusiste en tu vista
+        $anchor = '#factura-target-user-' . $userId . '-period-' . $periodId;
 
-    // 1. Generamos la URL base
-    $url = route('Facturacion.index');
-    
-    // 2. Construimos el ancla MANUALMENTE (concatenando string)
-    // Esto obliga al navegador a recibirlo como un #hash real
-    $anchor = '#target-user-' . $validated['user_id'] . '-period-' . $validated['period_id'];
-
-    return redirect()->to($url . $anchor)->with('success', 'Factura creada exitosamente.');
+        return redirect()->to($url . $anchor)->with('success', 'Factura eliminada exitosamente.');
     }
 }

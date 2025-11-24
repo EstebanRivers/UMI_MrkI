@@ -139,7 +139,7 @@
             }
 
             // Filtro de seguridad (Solo actuamos si es target de factura)
-            if (!hash || !hash.startsWith('#target-')) return;
+            if (!hash || !hash.startsWith('#factura-target-')) return;
 
             try {
                 const targetElement = document.querySelector(hash);

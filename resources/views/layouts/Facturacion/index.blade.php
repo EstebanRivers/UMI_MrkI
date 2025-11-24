@@ -76,7 +76,7 @@
                                         $userBillings = $u->billings->where('period_id', $period->id);
                                     @endphp
 
-                                    <details id="target-user-{{ $u->id }}-period-{{ $period->id }}">
+                                    <details id="factura-target-user-{{ $u->id }}-period-{{ $period->id }}">
                                         <summary>
                                             <div>
                                                 <span class="user-name">{{ $u->nombre }} {{ $u->apellido_paterno }}</span>
