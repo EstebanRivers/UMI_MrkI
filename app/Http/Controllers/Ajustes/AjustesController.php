@@ -173,25 +173,34 @@ class AjustesController extends Controller
                     'start_date' => 'required|date_format:Y-m',
                     'end_date' => 'required|date_format:Y-m|after_or_equal:start_date',
                     'institution_id' => 'required|exists:institutions,id',
-                    'monthly_payments_count' => 'nullable|integer|min:1' 
+                    'monthly_payments_count' => 'nullable|integer|min:1', 
+                    'payment_dates' => 'nullable|array',
+                    'payment_dates.*' => 'date',
                 ]);
                 
                
                 $data = [];
+                $data['institution_id'] = $validatedData['institution_id'];
                 $data['start_date'] = Carbon::parse($validatedData['start_date'])->startOfMonth();
                 $data['end_date'] = Carbon::parse($validatedData['end_date'])->endOfMonth();
-                $data['institution_id'] = $validatedData['institution_id'];
                 $data['name'] = strtoupper($data['start_date']->format('M Y') . ' - ' . $data['end_date']->format('M Y'));
                 $data['is_active'] = true;
 
-                
-                $data['monthly_payments_count'] = $validatedData['monthly_payments_count'] ?? null;
+                // LÓGICA DE CONTEO Y FECHAS
+                if ($request->has('payment_dates')) {
+                    // Guardamos el array (el modelo lo convierte a JSON solo)
+                    $data['payment_dates'] = $request->payment_dates;
+                    // El conteo es exacto a la cantidad de fechas enviadas
+                    $data['monthly_payments_count'] = count($request->payment_dates);
+                } else {
+                    // Fallback por si acaso
+                    $data['monthly_payments_count'] = $data['start_date']->diffInMonths($data['end_date']) + 1;
+                }
 
+                // Desactivar otros periodos de la misma institución
                 Period::where('institution_id', $data['institution_id'])->update(['is_active' => false]);
                 
                 Period::create($data);
-
-               $message = 'Periodo guardado exitosamente.';
                 break;
 
             case 'users':
@@ -298,7 +307,7 @@ class AjustesController extends Controller
     /**
      * Actualiza un registro existente desde el modal.
      */
-    public function update(Request $request, $seccion, $id)
+public function update(Request $request, $seccion, $id)
     {
         $item = $this->findItem($seccion, $id);
         if (!$item) return back()->with('error', 'Registro no encontrado.');
@@ -315,18 +324,16 @@ class AjustesController extends Controller
                 break;
             
             case 'departments':
-                $data = $request->all();
-                $request->validate([
-                    'name' => 'required|string|max:255',
-                    'institution_id' => 'required|exists:institutions,id'
-                ]);
-                $item->update($data);
+                $item->update($request->validate([
+                    'name' => 'required', 
+                    'institution_id' => 'required'
+                ]));
                 break;
             
             case 'workstations':
                 $validatedData = $request->validate([
-                    'name' => 'required|string|max:255',
-                    'department_id' => 'required|exists:departments,id'
+                    'name' => 'required', 
+                    'department_id' => 'required'
                 ]);
                 $department = Department::find($validatedData['department_id']);
                 $validatedData['institution_id'] = $department ? $department->institution_id : $item->institution_id;
@@ -337,17 +344,33 @@ class AjustesController extends Controller
                 $validatedData = $request->validate([
                     'start_date' => 'required|date_format:Y-m',
                     'end_date' => 'required|date_format:Y-m|after_or_equal:start_date',
-                    'institution_id' => 'required|exists:institutions,id',
-                    'monthly_payments_count' => 'nullable|integer|min:1' 
+                    // Validamos que payment_dates sea un array si existe
+                    'payment_dates' => 'nullable|array',
+                    'payment_dates.*' => 'date',
                 ]);
 
-                
-                $validatedData['start_date'] = Carbon::parse($validatedData['start_date'])->startOfMonth();
-                $validatedData['end_date'] = Carbon::parse($validatedData['end_date'])->endOfMonth();
-                $validatedData['name'] = strtoupper($validatedData['start_date']->format('M Y') . ' - ' . $validatedData['end_date']->format('M Y'));
+                $updateData = [];
+                $startDate = Carbon::parse($validatedData['start_date'])->startOfMonth();
+                $endDate = Carbon::parse($validatedData['end_date'])->endOfMonth();
 
-                $item->update($validatedData);
+                $updateData['start_date'] = $startDate;
+                $updateData['end_date'] = $endDate;
+                $updateData['name'] = strtoupper($startDate->format('M Y') . ' - ' . $endDate->format('M Y'));
+
+                // LÓGICA DE FECHAS Y CONTEO
+                if ($request->has('payment_dates')) {
+                    // Guardamos el array de fechas
+                    $updateData['payment_dates'] = $request->payment_dates;
+                    // El conteo es igual a la cantidad de fechas recibidas
+                    $updateData['monthly_payments_count'] = count($request->payment_dates);
+                } else {
+                    // Fallback por si no se enviaron fechas
+                    $updateData['monthly_payments_count'] = $startDate->diffInMonths($endDate) + 1;
+                }
+
+                $item->update($updateData);
                 break;
+            // ====================================================
             
             case 'users':
              $item = $this->findItem($seccion, $id); 
@@ -419,6 +442,11 @@ class AjustesController extends Controller
 
         return redirect()->route('ajustes.show', ['seccion' => $seccion])
                          ->with('success', 'Registro actualizado exitosamente.');
+    }
+    
+    // Helper temporal si no tienes el método updateUserLogic, pega tu código de users dentro del case.
+    private function updateUserLogic($request, $item) {
+         // ... Pega aquí tu lógica de actualización de usuarios del código anterior ...
     }
 
     /**

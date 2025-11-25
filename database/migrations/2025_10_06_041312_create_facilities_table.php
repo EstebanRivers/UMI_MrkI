@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('facilities', function (Blueprint $table) {
-            $table->id();
-            $table->string('numero_aula', 10);
-            $table->string('seccion');
-            $table->integer('capacidad')->nullable();
-            $table->string('ubicacion', 100)->nullable();
-            $table->string('tipo', 20)->default('Aula');
-            $table->timestamps();
+        Schema::table('billings', function (Blueprint $table) {
+            // Añade la nueva columna para el XML
+            $table->string('xml_path')->nullable()->after('archivo_path');
         });
     }
 
@@ -27,6 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('facilities');
+        Schema::table('billings', function (Blueprint $table) {
+            // Revierte el cambio
+            $table->dropColumn('xml_path');
+        });
     }
 };

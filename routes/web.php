@@ -7,13 +7,14 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
-use App\Http\Controllers\Cursos\CompletionController;
 use App\Http\Controllers\Ajustes\AjustesController;
-// Control Administrativo
+// Control Administrativo & Facturación (Fusionado)
+use App\Http\Controllers\Facturacion\BillingController;
+use App\Http\Controllers\Facturacion\PaymentController; 
 use App\Http\Controllers\Control_admin\ControlAdministrativoController;
 use App\Http\Controllers\AdmonCont\HorarioController;
 use App\Http\Controllers\AdmonCont\FacilityController;
-use App\Http\Controllers\AdmonCont\store\ListsControler; // Ojo: Revisa si es 'Controller' o 'Controler'
+use App\Http\Controllers\AdmonCont\store\ListsControler; 
 use App\Http\Controllers\AdmonCont\store\studentController;
 use App\Http\Controllers\AdmonCont\store\careerController;
 use App\Http\Controllers\AdmonCont\generalController;
@@ -41,41 +42,23 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // --- Dashboard General ---
     Route::get('/bienvenido', function () { return view('Dashboard.index'); })->name('dashboard');
     Route::get('/mi-informacion', function () { return view('layouts.MiInformacion.index'); })->name('MiInformacion.index');
-    Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); })->name('Facturacion.index');
+    
+    // --- Módulo de Facturación (Integrado desde rama Facturacion) ---
+    // NOTA: He eliminado la ruta que retornaba solo la vista 'view' para usar el Controlador
+    Route::get('/facturacion', [BillingController::class, 'index'])->name('Facturacion.index');
+    Route::post('/facturacion', [BillingController::class, 'store'])->name('Facturacion.store'); 
+    Route::delete('/facturacion/{billing}', [BillingController::class, 'destroy'])->name('Facturacion.destroy');
+    Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
 
-    // --- Cursos (General) ---
+    // --- Cursos (General - Alumnos y todos) ---
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
-    // --- Gestión de Cursos (Solo Docentes y Masters) ---
-    Route::middleware(['role:master, docente'])->group(function () {
-        Route::get('/cursos/crear', [CourseController::class, 'create'])->name('courses.create');
-        Route::post('/cursos', [CourseController::class, 'store'])->name('courses.store');
-        Route::get('/cursos/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
-        Route::put('/cursos/{course}', [CourseController::class, 'update'])->name('courses.update');
-        Route::delete('/cursos/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
-        
-        // Temas y Subtemas
-        Route::get('/cursos/{course}/temas/crear', [TopicsController::class, 'create'])->name('course.topic.create');
-        Route::post('/temas', [TopicsController::class, 'store'])->name('topics.store');
-        Route::get('/temas/{topic}/edit', [TopicsController::class, 'edit'])->name('topics.edit'); 
-        Route::put('/temas/{topic}', [TopicsController::class, 'update'])->name('topics.update');
-        Route::delete('/temas/{topic}', [TopicsController::class, 'destroy'])->name('topics.destroy');
-        Route::resource('topics.subtopics', SubtopicsController::class);
-        Route::delete('/subtopics/{subtopic}', [SubtopicsController::class, 'destroy'])->name('subtopics.destroy');
-        
-        // Actividades (Gestión)
-        Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
-        Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
-    });
-
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
     Route::get('/cursos/{course}/certificado', [CourseController::class, 'showCertificate'])->name('courses.certificate');
     
-    // Inscripción AJAX
+    // Inscripción y Actividades (Alumnos)
     Route::post('/cursos/{course}/inscribir', [CourseController::class, 'enroll'])->name('courses.enroll');
     Route::post('/cursos/{course}/desinscribir', [CourseController::class, 'unenroll'])->name('courses.unenroll');
-    
-    // Progreso y Actividades
-    Route::post('/completions/mark', [CompletionController::class, 'mark'])->name('completions.mark');
+    // Route::post('/completions/mark', [CompletionController::class, 'mark'])->name('completions.mark'); // Descomentar si tienes el controlador
     Route::post('/actividades/{activity}/submit', [ActivitiesController::class, 'submit'])->name('activities.submit');
 
     // --- Gestión de Cursos (Solo Docentes y Masters) ---
@@ -103,13 +86,13 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // --- Módulo de Ajustes (Master y Admin) ---
     Route::middleware(['role:master,control_administrativo']) 
         ->prefix('ajustes')
-        ->name('ajustes.') // Prefijo de nombre: 'ajustes.'
+        ->name('ajustes.')
         ->group(function () {
-            // Acciones Específicas (Deben ir ANTES de las rutas con comodines {seccion})
+            // Acciones Específicas
             Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])->name('users.toggleStatus');
             Route::post('periods/{id}/toggle-status', [AjustesController::class, 'togglePeriodStatus'])->name('periods.toggleStatus');
 
-            // Rutas CRUD Dinámicas por Sección
+            // Rutas CRUD Dinámicas
             Route::get('/{seccion}/create-form', [AjustesController::class, 'getCreateForm'])->name('getCreateForm');
             Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
             Route::get('/{seccion}', [AjustesController::class, 'show'])->name('show');
@@ -121,7 +104,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // --- Módulo Control Administrativo ---
     Route::middleware(['role:master,control_administrativo'])
         ->prefix('control-administrativo')
-        ->name('control.') // Prefijo de nombre: 'control.'
+        ->name('control.') 
         ->group(function () {
 
             // Dashboards
@@ -145,14 +128,13 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::post('/listas/materias/create', [MateriaController::class, 'store'])->name('subjects.store');
             Route::put('/listas/materias/{registro}', [MateriaController::class, 'update'])->name('subjects.update');
 
-            // Aulas (Facilities)
+            // Aulas
             Route::get('/aulas',[FacilityController::class, 'index'])->name('facilities.index');
             Route::get('/aulas/crear',[FacilityController::class, 'createForm'])->name('facilities.create');
             Route::post('/aulas', [FacilityController::class, 'store'])->name('facilities.store');
             Route::delete('/aulas/{facility}', [FacilityController::class, 'destroy'])->name('facilities.destroy');
 
-            // Horarios (Resource)
-            // Genera: control.schedules.index, control.schedules.store, etc.
+            // Horarios
             Route::resource('horarios', HorarioController::class)->names('schedules');
 
             // Carreras
@@ -164,14 +146,12 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         });
 
     // --- Inscripción (Control Escolar) ---
-    // Ubicado aquí para aprovechar el auth group, pero con middleware específico
     Route::middleware(['role:master,control_escolar'])->group(function () {
         Route::get('/inscripcion',[InscripcionController::class, 'index'])->name('inscripcion.index');
         Route::post('/inscripcion/create',[InscripcionController::class, 'store'])->name('inscripcion.store');
     });
 
     // --- Rutas Deprecadas (V1) ---
-    // Mantener solo si hay enlaces viejos que no has migrado
     Route::get('/control-administrativo-v1', function () { return view('layouts.ControlAdmin.index'); })->middleware('role:master');
     Route::get('/ajustes-v1', function () { return view('layouts.Ajustes.index'); })->middleware('role:master');
 
