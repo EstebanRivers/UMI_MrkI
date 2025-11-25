@@ -144,17 +144,25 @@ class SimpleSPANavigation {
         }
     }
 
-    async loadPage(url, updateHistory = true) {
+async loadPage(url, updateHistory = true) {
         const cacheKey = this.getCacheKey(url);
-        if (this.cache.has(cacheKey)) {
+        
+        // LISTA NEGRA: Estas páginas NUNCA se guardan en memoria
+        const noCachePaths = ['/facturacion']; 
+        const currentPath = new URL(url, window.location.origin).pathname;
+        
+        // Si la URL contiene algo de la lista negra, NO usamos caché
+        const shouldUseCache = !noCachePaths.some(path => currentPath.includes(path));
+
+        if (shouldUseCache && this.cache.has(cacheKey)) {
             const cached = this.cache.get(cacheKey);
-            if (Date.now() - cached.timestamp < 300000) { // 5 minutos
-                if (updateHistory) {
-                    history.pushState({ page: url }, '', url);
-                }
+            if (Date.now() - cached.timestamp < 300000) { 
+                if (updateHistory) history.pushState({ page: url }, '', url);
                 return cached.content;
             }
         }
+        
+        // Si es facturación, esto pedirá datos frescos al servidor
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -164,35 +172,25 @@ class SimpleSPANavigation {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'text/html',
                     'X-CSRF-TOKEN': this.getCSRFToken(),
-                    'Cache-Control': 'no-cache'
+                    'Cache-Control': 'no-cache' // Forzar al servidor
                 },
-                credentials: 'same-origin',
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
             const html = await response.text();
             const content = this.parsePageContent(html);
-            if (!content) {
-                throw new Error('Invalid page structure');
-            }
-            this.cache.set(cacheKey, {
-                content: content,
-                timestamp: Date.now()
-            });
-            if (this.cache.size > 15) {
-                this.cleanupCache();
-            }
-            if (updateHistory) {
-                history.pushState({ page: url }, content.title, url);
-            }
+            if (!content) throw new Error('Invalid structure');
+
+            // Guardamos en caché (pero la próxima vez el 'shouldUseCache' lo ignorará si es necesario)
+            this.cache.set(cacheKey, { content: content, timestamp: Date.now() });
+            if (this.cache.size > 15) this.cleanupCache();
+
+            if (updateHistory) history.pushState({ page: url }, content.title, url);
             return content;
         } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout');
-            }
+            if (error.name === 'AbortError') throw new Error('Timeout');
             throw error;
         }
     }

@@ -4,11 +4,13 @@ namespace App\Models\Facturacion;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User; // It's good practice to import the User model
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Users\User;
+use App\Models\Users\Period; 
 
 class Billing extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes; 
 
     protected $table = 'billings';
 
@@ -24,20 +26,10 @@ class Billing extends Model
         'xml_path',
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-    
-    protected static function newFactory()
-    {
-    return \Database\Factories\BillingFactory::new();
-    }
+    protected $dates = ['deleted_at']; 
 
-    public function payments()
-    {
-        return $this->hasMany(\App\Models\Facturacion\Payment::class);
-    }
-
-    
+    public function user() { return $this->belongsTo(User::class); }
+    public function period() { return $this->belongsTo(Period::class); }
+    public function payments() { return $this->hasMany(Payment::class); }
+    protected static function newFactory() { return \Database\Factories\BillingFactory::new(); }
 }

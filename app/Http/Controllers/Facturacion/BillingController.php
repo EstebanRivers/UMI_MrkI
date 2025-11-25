@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Facturacion\Billing;
 use App\Models\Users\User;
-use App\Models\Users\Period; // Asegúrate de que este sea el modelo correcto
+use App\Models\Users\Period; 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -26,7 +26,7 @@ class BillingController extends Controller
         // LÓGICA FUNCIONAL: CALCULAR MESES DINÁMICAMENTE
         // ======================================================
         $periods->map(function ($period) {
-            // 1. Obtenemos las fechas configuradas (Laravel ya lo trae como array gracias al modelo)
+            // 1. Obtenemos las fechas configuradas
             $fechasConfiguradas = $period->payment_dates ?? [];
 
             if ($period->start_date && $period->end_date) {
@@ -36,24 +36,22 @@ class BillingController extends Controller
                 $monthRange = CarbonPeriod::create($start, '1 month', $end);
                 
                 $months = [];
-                $index = 0; // Contador para buscar en el array de configuración
+                $index = 0; 
 
                 foreach ($monthRange as $date) {
                     
-                    // 2. LÓGICA MAESTRA:
-                    // ¿Existe una fecha configurada para el mes número $index?
+                    // 2. LÓGICA MAESTRA DE FECHAS (SOLO FECHAS)
+                    // (Aquí NO va nada de facturas ni pagos)
+                    
                     if (isset($fechasConfiguradas[$index])) {
                         $fechaVencimiento = $fechasConfiguradas[$index]; 
                     } else {
-                        // Fallback: Si no hay configuración, usamos el mismo día
                         $fechaVencimiento = $date->format('Y-m-d'); 
                     }
 
                     $months[] = [
                         'label' => ucfirst($date->translatedFormat('F Y')), 
                         'key'   => $date->format('Y-m'),
-                        
-                        // 3. Enviamos la fecha REAL configurada a la vista
                         'date'  => $fechaVencimiento 
                     ];
 
@@ -70,9 +68,9 @@ class BillingController extends Controller
         $isAdmin = $user->hasActiveRole('master') || $user->hasActiveRole('control_administrativo');
 
         if ($isAdmin) {
+            // --- LÓGICA ADMIN ---
             $query = User::query();
             
-            // Filtro de búsqueda de usuarios
             if ($request->filled('search')) {
                 $searchTerm = strtolower($request->input('search'));
                 $query->where(function($q) use ($searchTerm) {
@@ -88,7 +86,6 @@ class BillingController extends Controller
 
             $usersWithBillings = $query->with(['billings.payments', 'roles'])->orderBy('nombre')->get();
 
-            // Filtro de Status
             if ($request->filled('status')) {
                 $statusFilter = $request->input('status');
                 $usersWithBillings = $usersWithBillings->filter(function($user) use ($statusFilter) {
@@ -107,7 +104,7 @@ class BillingController extends Controller
             $viewData['usersWithBillings'] = $usersWithBillings;
 
         } else {
-            // LÓGICA PARA ALUMNOS
+            // --- LÓGICA ALUMNO ---
             $query = Billing::where('user_id', $user->id)->with('payments');
 
             if ($request->filled('search')) {
@@ -140,6 +137,94 @@ class BillingController extends Controller
             $viewData['billings'] = $billings;
         }
 
+        // ==========================================================
+        // 🚦 SISTEMA DE ALERTAS (Aquí SÍ usamos $factura)
+        // ==========================================================
+        $alertasVencimiento = [];
+
+        if (!$isAdmin) {
+            // Buscamos facturas vivas
+            $facturasPorVencer = Billing::with('payments') 
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['Pendiente', 'Abonado'])
+                ->whereDate('fecha_vencimiento', '>=', Carbon::today())
+                ->whereDate('fecha_vencimiento', '<=', Carbon::today()->addDays(7))
+                ->get();
+
+            foreach ($facturasPorVencer as $factura) {
+                
+                // 1. CHEQUEO DE PAGOS (Aquí sí va)
+                $totalPagado = $factura->payments->sum('monto');
+                if ($totalPagado >= $factura->monto) {
+                    continue; // Si ya pagó, saltamos
+                }
+
+                $fechaVencimiento = Carbon::parse($factura->fecha_vencimiento)->startOfDay();
+                $diasRestantes = Carbon::today()->diffInDays($fechaVencimiento, false);
+
+                $mensaje = '';
+                $titulo = '';
+                $tipo = 'info';
+                $agregarAlerta = false;
+
+                // Niveles de alerta
+                // 🔵 NIVEL 1: RELAJADO (7 a 3 días antes)
+                if ($diasRestantes <= 7 && $diasRestantes >= 3) {
+                    $titulo = "📅 Recordatorio Amigable";
+                    $mensaje = "Hola {$user->nombre}, te recordamos que tu factura '{$factura->concepto}' vence en {$diasRestantes} " . ($diasRestantes === 1 ? "día." : "días.");
+                    $tipo = 'info';
+                    $agregarAlerta = true;
+                }
+
+                // 🟡 NIVEL 2: ATENCIÓN (2 días antes hasta 2 días después) — mismo rango,
+                // pero con mensaje adaptado a antes/hoy/ya venció
+                elseif ($diasRestantes <= 2 && $diasRestantes >= -2) {
+
+                    $tipo = 'warning';
+                    $agregarAlerta = true;
+
+                    if ($diasRestantes > 1) {
+                        // 2 o más días antes
+                        $titulo = "⚠️ Atención: Pago Próximo";
+                        $mensaje = "Hola {$user->nombre}, faltan {$diasRestantes} días para que venza tu factura '{$factura->concepto}'.";
+                    } elseif ($diasRestantes === 1) {
+                        $titulo = "⚠️ Atención: Pago Próximo";
+                        $mensaje = "Hola {$user->nombre}, falta 1 día para que venza tu factura '{$factura->concepto}'.";
+                    } elseif ($diasRestantes === 0) {
+                        $titulo = "⚠️ Atención: Vence Hoy";
+                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' vence HOY. Por favor realiza el pago.";
+                    } elseif ($diasRestantes === -1) {
+                        $titulo = "⚠️ Atención: Su Pago Venció";
+                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' venció ayer (hace 1 día). Por favor regulariza el pago.";
+                    } else { // $diasRestantes === -2
+                        $titulo = "⚠️ Atención: Su Pago Venció";
+                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' venció hace 2 días. Por favor regulariza el pago.";
+                    }
+                }
+
+                // 🔴 NIVEL 3: URGENTE (3 a 7 días después del vencimiento)
+                elseif ($diasRestantes <= -3 && $diasRestantes >= -7) {
+                    $titulo = "⛔ AVISO URGENTE DE BAJA";
+                    $abs = abs($diasRestantes);
+                    $mensaje = "Tu factura '{$factura->concepto}' venció hace {$abs} " . ($abs === 1 ? "día. " : "días. ") .
+                            "Si no se recibe el pago pronto, se procederá a la baja.";
+                    $tipo = 'error';
+                    $agregarAlerta = true;
+                }
+
+
+                if ($agregarAlerta) {
+                    $alertasVencimiento[] = [
+                        'titulo' => $titulo,
+                        'mensaje' => $mensaje,
+                        'tipo' => $tipo
+                    ];
+                }
+            }
+        }
+
+        $viewData['alertasVencimiento'] = $alertasVencimiento;
+
         return view('layouts.Facturacion.index', $viewData);
     }
 
@@ -162,7 +247,6 @@ class BillingController extends Controller
             'archivo_xml' => 'nullable|file|mimes:xml|max:2048' 
         ]);
 
-        // Validación de Fechas
         $periodo = Period::find($validated['period_id']);
         $fechaFactura = Carbon::parse($validated['fecha']);
         
@@ -172,7 +256,7 @@ class BillingController extends Controller
 
             if (!$fechaFactura->between($inicio, $fin)) {
                 return redirect()->back()
-                    ->withErrors(['fecha' => "La fecha ({$validated['fecha']}) no coincide con el periodo seleccionado."])
+                    ->withErrors(['fecha' => "La fecha no coincide con el periodo."])
                     ->withInput();
             }
         } 
@@ -184,7 +268,7 @@ class BillingController extends Controller
             $xmlPath = $request->file('archivo_xml')->store('facturas_xml', 'public');
         }
         
-        $lastId = Billing::max('id') ?? 0;
+        $lastId = Billing::withTrashed()->max('id') ?? 0;
         $newUid = "FAC-" . str_pad($lastId + 1, 3, "0", STR_PAD_LEFT);
 
         Billing::create([
@@ -199,7 +283,6 @@ class BillingController extends Controller
             'status' => $validated['status'],
         ]);
 
-        // Redirección Blindada
         $url = route('Facturacion.index');
         $anchor = '#factura-target-user-' . $validated['user_id'] . '-period-' . $validated['period_id'];
 
@@ -213,7 +296,6 @@ class BillingController extends Controller
             abort(403, 'ACCIÓN NO AUTORIZADA.');
         }
 
-        // Borrar archivos físicos
         if ($billing->archivo_path && $billing->archivo_path !== 'facturas/placeholder.pdf') { 
             Storage::disk('public')->delete($billing->archivo_path);
         }
@@ -221,18 +303,12 @@ class BillingController extends Controller
             Storage::disk('public')->delete($billing->xml_path);
         }
 
-        // 1. RESCATAR DATOS ANTES DE BORRAR
-        // Usamos el objeto $billing directamente, NO $validated
         $userId = $billing->user_id;
         $periodId = $billing->period_id;
 
         $billing->delete();
         
-        // 2. REDIRECCIÓN BLINDADA
         $url = route('Facturacion.index');
-        
-        // Usamos las variables $userId y $periodId que rescatamos arriba
-        // Y usamos el prefijo correcto 'factura-target-' que ya pusiste en tu vista
         $anchor = '#factura-target-user-' . $userId . '-period-' . $periodId;
 
         return redirect()->to($url . $anchor)->with('success', 'Factura eliminada exitosamente.');

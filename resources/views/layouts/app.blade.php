@@ -66,33 +66,56 @@
     </main>
   </div>
 
-{{-- Script 2: LÓGICA FACTURACIÓN (SCROLL, LIMPIEZA Y MODAL) --}}
+{{-- Script 2: LÓGICA MAESTRA (FACTURACIÓN + ALERTAS + SPA) --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
   <script>
     document.addEventListener('DOMContentLoaded', () => {
         
-        // 1. INICIALIZACIÓN
+        // ============================================================
+        // 1. INICIALIZACIÓN (Ejecutar al cargar F5)
+        // ============================================================
         executeScrollLogic();
-        setTimeout(executeScrollLogic, 500); 
+        checkAndShowAlerts();
         
-        // 2. OBSERVADOR SPA
+        // Reintento por si la carga es lenta
+        setTimeout(() => {
+            executeScrollLogic();
+        }, 500);
+
+        // ============================================================
+        // 2. OBSERVADOR SPA (Detectar navegación sin recarga)
+        // ============================================================
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
-            const observer = new MutationObserver(() => setTimeout(executeScrollLogic, 300));
+            const observer = new MutationObserver(() => {
+                // Esperamos un poco a que el HTML nuevo se pinte
+                setTimeout(() => {
+                    executeScrollLogic();
+                    checkAndShowAlerts();
+                }, 300);
+            });
             observer.observe(mainContent, { childList: true, subtree: true });
         }
 
-        // 3. DELEGACIÓN DE EVENTOS
+        // ============================================================
+        // 3. DELEGACIÓN DE EVENTOS (Clicks Globales)
+        // ============================================================
         document.addEventListener('click', (e) => {
-            // A. ABRIR MODAL (Solo botones con la clase NUEVA)
+            
+            // --- A. ABRIR MODAL (Solo botones de Facturación) ---
             const addBtn = e.target.closest('.js-trigger-factura');
             if (addBtn) {
                 e.preventDefault();
+                
+                // Buscamos el modal en el contenido nuevo
                 let newModal = document.querySelector('#main-content #modalFactura');
+                // Buscamos si quedó un modal viejo en el body
                 const zombieModal = document.querySelector('body > #modalFactura');
 
                 if (newModal) {
-                    if (zombieModal) zombieModal.remove();
-                    document.body.appendChild(newModal);
+                    if (zombieModal) zombieModal.remove(); // Matar zombi
+                    document.body.appendChild(newModal);   // Mover nuevo al body (fix scroll)
                 } else if (zombieModal) {
                     newModal = zombieModal;
                 }
@@ -101,25 +124,26 @@
                 return;
             }
 
-            // B. CERRAR MODAL
+            // --- B. CERRAR MODAL ---
             if (e.target.closest('.close') || e.target.classList.contains('modal')) {
                 const modal = e.target.closest('.modal');
+                // Candado: Solo cerrar si es el de facturación
                 if (modal && modal.id === 'modalFactura') closeFacturaModal(modal);
             }
 
-            // C. TOGGLE DETALLES
+            // --- C. TOGGLE DETALLES (Ver Abonos) ---
             const toggleBtn = e.target.closest('.icon-toggle');
             if (toggleBtn) {
                 const row = toggleBtn.closest('tr');
                 const detailsRow = row.nextElementSibling;
-                if (detailsRow) {
+                if (detailsRow && detailsRow.classList.contains('payment-details-row')) {
                     const isHidden = window.getComputedStyle(detailsRow).display === 'none';
                     detailsRow.style.display = isHidden ? 'table-row' : 'none';
                 }
             }
         });
 
-        // ESCAPE
+        // ESCAPE para cerrar
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const modal = document.querySelector('body > #modalFactura[style*="flex"]');
@@ -127,36 +151,66 @@
             }
         });
 
-        // === 4. LÓGICA MAESTRA DE SCROLL Y LIMPIEZA ===
+
+        // ============================================================
+        // 4. FUNCIONES LÓGICAS
+        // ============================================================
+
+        // --- Función de Alertas (Semáforo) ---
+        function checkAndShowAlerts() {
+            const dataDiv = document.getElementById('billing-alerts-data');
+            
+            if (dataDiv && !dataDiv.dataset.shown) {
+                try {
+                    const alertas = JSON.parse(dataDiv.dataset.alerts);
+                    
+                    if (alertas.length > 0) {
+                        // Prioridad: Error > Warning > Info
+                        let alerta = alertas.find(a => a.tipo === 'error');
+                        if (!alerta) alerta = alertas.find(a => a.tipo === 'warning');
+                        if (!alerta) alerta = alertas[0];
+
+                        Swal.fire({
+                            title: alerta.titulo,
+                            text: alerta.mensaje,
+                            icon: alerta.tipo,
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#223F70',
+                            backdrop: `rgba(0,0,0,0.5) left top no-repeat`
+                        });
+                    }
+                    // Marcar como mostrado
+                    dataDiv.dataset.shown = "true"; 
+                } catch (e) { console.error('Error alertas:', e); }
+            }
+        }
+
+        // --- Función de Scroll y Limpieza URL ---
         function executeScrollLogic() {
             let hash = window.location.hash;
             
-            // PLAN B: Si la URL llegó sucia (?_fragment=...), la convertimos a hash
+            // Compatibilidad con ?_fragment=
             if (!hash) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const fragment = urlParams.get('_fragment');
                 if (fragment) hash = '#' + fragment;
             }
 
-            // Filtro de seguridad (Solo actuamos si es target de factura)
+            // Candado: Solo actuar si es un target de factura
             if (!hash || !hash.startsWith('#factura-target-')) return;
 
             try {
                 const targetElement = document.querySelector(hash);
-                
                 if (targetElement) {
-                    console.log('📍 Objetivo encontrado:', hash);
-
-                    // 1. Abrir Acordeones
+                    // Abrir acordeones (Recursivo hacia arriba)
                     if (targetElement.tagName === 'DETAILS') targetElement.open = true;
-
                     let parent = targetElement.parentElement;
                     while (parent) {
                         if (parent.tagName === 'DETAILS') parent.open = true;
                         parent = parent.parentElement;
                     }
 
-                    // 2. Scroll y Resalte
+                    // Scroll, Resalte y Limpieza
                     setTimeout(() => {
                         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
@@ -167,17 +221,15 @@
                             setTimeout(() => { summary.style.backgroundColor = ""; }, 2000);
                         }
 
-                        // === 3. LIMPIEZA DE URL (MÁGICO) ===
-                        // Esto borra el #target de la barra de direcciones para que quede limpia
+                        // Limpiar URL
                         const cleanUrl = window.location.pathname + window.location.search.replace(/[\?&]_fragment=[^&]+/, '').replace(/^&/, '?');
                         history.replaceState(null, null, cleanUrl);
-
                     }, 150);
                 }
             } catch (e) { console.error(e); }
         }
 
-        // --- FUNCIONES AUXILIARES ---
+        // --- Funciones del Modal ---
         function fillAndOpenModal(modal, btn) {
             const form = modal.querySelector('form');
             if (form) {

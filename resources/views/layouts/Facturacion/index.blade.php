@@ -471,5 +471,9 @@
         </div>
     </div>
     @endif
+    <div id="billing-alerts-data" 
+         data-alerts="{{ json_encode($alertasVencimiento ?? []) }}" 
+         style="display: none;">
+    </div>
         
 @endsection
