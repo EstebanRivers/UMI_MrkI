@@ -50,7 +50,7 @@
         }
         .subtitle {
             font-size: 16pt;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
         
         .presented-to {
@@ -71,7 +71,7 @@
 
         .course-text {
             font-size: 16pt;
-            margin-top: 20px;
+            margin-top: 10px;
             line-height: 1.5;
         }
         .course-name {
@@ -80,7 +80,7 @@
         }
 
         .date-text {
-            margin-top: 40px;
+            margin-top: 20px;
             font-size: 14pt;
             color: #666;
         }
@@ -88,7 +88,7 @@
         /* Sección de Firmas (Usando tablas para DomPDF es más seguro que flexbox) */
         .signatures-table {
             width: 100%;
-            margin-top: 80px;
+            margin-top: 60px;
             border-collapse: collapse;
         }
         .signatures-table td {
@@ -106,10 +106,6 @@
         .signature-image {
             height: 60px; /* Ajusta altura de la firma */
             margin-bottom: -10px; /* Para que se "pose" sobre la línea */
-        }
-        .signee-title {
-            font-size: 10pt;
-            font-weight: normal;
         }
 
     </style>
@@ -134,7 +130,7 @@
 
         {{-- 3. Nombre del Estudiante --}}
         <div class="student-name">
-            {{ $user->name }} {{ $user->last_name }}
+            {{ $user->nombre }} {{ $user->apellido_paterno }} {{ $user->apellido_materno }}
         </div>
 
         {{-- 4. Detalles del Curso --}}
@@ -142,8 +138,7 @@
             ha completado satisfactoriamente el curso de:
             <br>
             <span class="course-name">{{ $course->title }}</span>
-            {{-- Aquí podrías agregar la calificación si la tienes --}}
-            <br> con una calificación final de: {{ $score }}
+            <br> con una calificación final de: <strong>{{ $score }}%</strong>
         </div>
 
         {{-- 5. Fecha --}}
@@ -162,7 +157,6 @@
                     <div class="signature-line">
                         {{ $course->cert_sig_1_name ?? 'Firma Autorizada' }}
                         <br>
-                        <span class="signee-title">Instructor / Director</span>
                     </div>
                 </td>
                 
@@ -174,7 +168,6 @@
                      <div class="signature-line">
                          {{ $course->cert_sig_2_name ?? 'Validación Académica' }}
                         <br>
-                        <span class="signee-title">Control Escolar</span>
                      </div>
                 </td>
             </tr>

@@ -393,56 +393,50 @@
                 @php $activity = $finalExamActivity; @endphp
 
                 <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none;">
-                    <h2 style="color: #e69a37;"> Examen Final</h2>
-                    <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
-
-                    {{-- CASO 1: YA COMPLETÓ EL EXAMEN --}}
-                    @if ($finalExamData) 
-                        <div class="exam-completed-container" style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 10px;">
-                            <h3 style="color: #28a745; font-size: 2em; margin-bottom: 10px;">¡Felicidades!</h3>
-                            <p style="font-size: 1.2em; margin-bottom: 30px;">Has completado el examen final.</p>
-                            
-                            <div style="font-size: 3em; font-weight: bold; color: #e69a37; margin-bottom: 30px;">
-                                {{ $finalExamData->score }} / 100
-                            </div>
-
-                            <a href="{{ route('courses.certificate', $course) }}" target="_blank" class="btn-success" style="padding: 15px 30px; font-size: 1.1em; text-decoration: none;">
-                                 Ver mi Certificado
-                            </a>
+                    <h2 style="color: #e69a37;">Examen Final</h2>
+                    
+                    {{-- CONTENEDOR 1: TARJETA DE ÉXITO (Se muestra si ya hay datos O si JS lo activa) --}}
+                    <div id="exam-success-card" 
+                        class="exam-completed-container" 
+                        style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 10px; display: {{ $finalExamData ? 'block' : 'none' }};">
+                        
+                        <h3 style="color: #28a745; font-size: 2em; margin-bottom: 10px;">¡Felicidades!</h3>
+                        <p style="font-size: 1.2em; margin-bottom: 30px;">Has completado el examen final.</p>
+                        
+                        {{-- El puntaje se llenará con PHP si existe, o JS lo actualizará --}}
+                        <div style="font-size: 3em; font-weight: bold; color: #e69a37; margin-bottom: 30px;">
+                            <span id="dynamic-score">{{ $finalExamData ? $finalExamData->score : '0' }}</span> / 100
                         </div>
 
-                    {{-- CASO 2: AÚN NO LO COMPLETA (Muestra el formulario) --}}
-                    @else
-                        
+                        <a href="{{ route('courses.certificate', $course) }}" target="_blank" class="btn-success" style="padding: 15px 30px; font-size: 1.1em; text-decoration: none;">
+                            Ver mi Certificado
+                        </a>
+                    </div>
+
+                    {{-- CONTENEDOR 2: FORMULARIO (Se muestra solo si NO hay datos) --}}
+                    <div id="exam-form-container" style="display: {{ $finalExamData ? 'none' : 'block' }};">
                         <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
 
                         @if ($activity->type == 'Examen' && is_array($activity->content))
-
+                            {{-- Tu formulario existente (sin cambios en la estructura interna, solo el wrapper) --}}
                             <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
                                 action="{{ route('activities.submit', $activity) }}" 
                                 method="POST" data-activity-id="{{ $activity->id }}">
                                 @csrf
-                                
+                                {{-- ... (MANTÉN EL CONTENIDO DE TU WIZARD DE PREGUNTAS AQUÍ IGUAL QUE ANTES) ... --}}
                                 @php
                                     $questions = $activity->content['questions'];
                                     $totalQuestions = count($questions);
                                 @endphp
-
-                                {{-- Contenedor de Preguntas (Wizard) --}}
                                 <div class="questions-wrapper" id="questions-wrapper-{{ $activity->id }}">
-                                    
                                     @foreach ($questions as $q_index => $questionData)
-                                        {{-- La clase 'question-step' y 'active' (solo al 1ro) --}}
                                         <div class="quiz-question-block question-step {{ $q_index === 0 ? 'active' : '' }}" 
                                             data-index="{{ $q_index }}"
                                             style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
-                                            
                                             <span class="exam-progress">Pregunta {{ $q_index + 1 }} de {{ $totalQuestions }}</span>
-                                            
                                             <p class="question-text" style="font-size: 1.2em; margin-bottom: 15px;">
                                                 <strong>{{ $questionData['question'] }}</strong>
                                             </p>
-                                            
                                             @foreach ($questionData['options'] as $opt_index => $option)
                                                 <div class="option-box" style="margin-bottom: 10px;">
                                                     <label style="display: flex; align-items: center; cursor: pointer;">
@@ -454,47 +448,52 @@
                                                 </div>
                                             @endforeach
                                             <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
-                                            
-                                            {{-- Mensaje de error --}}
                                             <div class="step-error-msg" style="color: red; display: none; margin-top: 10px;">
                                                 Debes seleccionar una opción para continuar.
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
-
                                 <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                                
-                                {{-- Controles de Navegación --}}
-                                
-                                    <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
-                                        <button type="button" class="btn-secondary btn-next-step" 
-                                                data-form-id="quiz-form-{{ $activity->id }}"
-                                                style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
-                                            Siguiente Pregunta &rarr;
-                                        </button>
-
-                                        <button type="submit" class="btn-success btn-finish-exam" 
-                                                style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
-                                            Finalizar y Calificar
-                                        </button>
-                                    </div>
-                                
+                                <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                    <button type="button" class="btn-secondary btn-next-step" 
+                                            data-form-id="quiz-form-{{ $activity->id }}"
+                                            style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
+                                        Siguiente Pregunta &rarr;
+                                    </button>
+                                    <button type="submit" class="btn-success btn-finish-exam" 
+                                            style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
+                                        Finalizar y Calificar
+                                    </button>
+                                </div>
                             </form>
-
-                        {{-- CORRECCIÓN: Cerrar el if interno y abrir elseif para el siguiente tipo --}}
-                        @elseif ($activity->type == 'Cuestionario' && is_array($activity->content))
-                            <form class="quiz-form" id="quiz-form-{{ $activity->id }}" ...>
-                                {{-- ... Tu código de cuestionario simple ... --}}
-                            </form>
-                        @endif  {{-- Cierre del @if interno ($activity->type) --}}
-
-                    @endif
+                        @endif
+                    </div>
                 </div>
             @endif
                     
-                </div>
+            </div>
             
+        </div>
+    </div>
+</div>
+{{-- MODAL DE EXAMEN DESBLOQUEADO --}}
+<div id="examUnlockedModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content-container" style="max-width: 500px; text-align: center;">
+        <div class="modal-header-custom" style="justify-content: center;">
+            <h3 style="margin: 0; color: #e69a37;">¡Felicidades!</h3>
+        </div>
+        <div class="modal-body-custom" style="padding: 30px;">
+            <p style="font-size: 1.2em; color: #333; margin-bottom: 20px;">
+                Has completado todos los temas del curso. <br>
+                El <strong>Examen Final</strong> ha sido desbloqueado.
+            </p>
+            
+            <div style="margin-top: 20px;">
+                <button type="button" id="btnCloseUnlockModal" class="submit-button" style="width: 100%;">
+                    Ir al Examen
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -541,15 +540,26 @@
            ================================================================== */
         // --- Referencia al enlace del examen ---
         const finalExamSyllabusLink = document.getElementById('final-exam-syllabus-link');
+        const unlockModal = document.getElementById('examUnlockedModal');
+        const btnCloseUnlockModal = document.getElementById('btnCloseUnlockModal');
 
-        // --- Función para comprobar y mostrar el examen ---
+        // Cerrar modal y navegar al examen
+        if (btnCloseUnlockModal) {
+            btnCloseUnlockModal.addEventListener('click', function() {
+                unlockModal.style.display = 'none';
+                // Simular clic en el enlace del temario para abrir el panel del examen
+                const linkToClick = finalExamSyllabusLink.querySelector('.syllabus-link');
+                if (linkToClick) linkToClick.click();
+            });
+        }
+
         function checkAndShowFinalExam(progressValue) {
             if (progressValue >= 100 && finalExamSyllabusLink) {
-                // Comprobar si ya se mostró para no repetir alertas
                 if (finalExamSyllabusLink.style.display === 'none') {
+                    // Mostrar enlace en el menú
                     finalExamSyllabusLink.style.display = 'block';
-                    // Opcional: Mostrar un mensaje
-                    alert('¡Felicidades! Has completado el curso y desbloqueado el Examen Final.');
+                    // MOSTRAR MODAL EN LUGAR DE ALERT
+                    if (unlockModal) unlockModal.style.display = 'flex';
                 }
             }
         }
@@ -664,14 +674,38 @@
                         feedbackEl.style.color = 'green';
                         feedbackEl.innerText = response.data.message;
                         this.querySelectorAll('input, button').forEach(el => el.disabled = true);
+                        // 1. Actualizar barra de progreso y menú
                         const syllabusLink = document.querySelector(`.syllabus-link[data-completable-id="${activityId}"][data-completable-type="Activities"]`);
                         if (syllabusLink) syllabusLink.classList.add('completed');
                         if (response.data.created) updateProgressBar();
+
+                        // 2. Si es el examen final, hacer el cambio de interfaz
                         if (syllabusLink && syllabusLink.closest('#final-exam-syllabus-link')) {
-                            // Esperar 1.5 segundos para que el usuario lea "Examen enviado" y luego recargar
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
+                            
+                            // A. Ocultar el formulario con una transición suave (opcional)
+                            const formContainer = document.getElementById('exam-form-container');
+                            if(formContainer) formContainer.style.display = 'none';
+
+                            // B. Actualizar el puntaje en la tarjeta de éxito
+                            // El controlador ahora devuelve response.data.score
+                            const scoreSpan = document.getElementById('dynamic-score');
+                            if(scoreSpan && response.data.score !== undefined) {
+                                scoreSpan.innerText = response.data.score;
+                            }
+
+                            // C. Mostrar la tarjeta de éxito
+                            const successCard = document.getElementById('exam-success-card');
+                            if(successCard) {
+                                successCard.style.display = 'block';
+                                // Scroll suave hacia el mensaje de éxito
+                                successCard.scrollIntoView({ behavior: 'smooth' });
+                            }
+
+                        } else {
+                            // Si es un cuestionario normal, solo mostrar feedback
+                            feedbackEl.style.color = 'green';
+                            feedbackEl.innerText = response.data.message;
+                            this.querySelectorAll('input, button').forEach(el => el.disabled = true);
                         }
                     })
                     .catch(error => {

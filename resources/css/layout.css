@@ -9,7 +9,7 @@
 
 /* Sidebar - flex item fijo */
 .sidebar {
-  flex: 0 0 260px;
+  flex: 0 0 270px;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -21,7 +21,7 @@
   z-index: 100;
   overflow: visible;
   min-width: 260px;
-  max-width: 260px;
+  max-width: 270px;
 }
 /* Header - barra superior */
 .header {

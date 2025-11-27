@@ -176,14 +176,21 @@ class ActivitiesController extends Controller
         }
 
         // 2. Marcar como completado usando el sistema polimórfico
-        $completion = $user->completions()->firstOrCreate([
-            'completable_type' => Activities::class, // Usar el FQCN del modelo
-            'completable_id'   => $activity->id
-        ]);
+        $completion = $user->completions()->firstOrCreate(
+            [
+                'completable_type' => Activities::class, // Usar el FQCN del modelo
+                'completable_id'   => $activity->id
+            ],
+
+            [
+                'score' => $score
+            ]
+        );
 
         return response()->json([
             'success' => true,
             'created' => $completion->wasRecentlyCreated, // Para que el JS sepa si debe actualizar la barra
+            'score'   => $score,
             'message' => '¡Actividad completada exitosamente!'
         ]);
     }

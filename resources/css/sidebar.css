@@ -159,6 +159,7 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
   background: linear-gradient(135deg, #0b2b3b, #1a4a5c);
   display: flex;
   justify-content: center;
+  width: 112%;
   align-items: center;
   padding: var(--spacing-md);
   margin: 0 calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg));

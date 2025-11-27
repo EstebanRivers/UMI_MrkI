@@ -1,7 +1,7 @@
 /* Variables globales del sistema */
 :root {
   /* Layout */
-  --sidebar-width: 290px;
+  --sidebar-width: 300px;
   --sidebar-width-collapsed: 70px;
   
   /* Colores principales */
