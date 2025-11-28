@@ -37,7 +37,7 @@ class StoreCourseRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'institution_id' => 'required|exists:institutions,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación de imagen
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:20480', // Validación de imagen
             'credits' => $creditsRule,
             'hours' => 'required|integer|min:0',
             'workstation_id' => 'nullable|exists:workstations,id',

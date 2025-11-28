@@ -553,4 +553,26 @@ class CourseController extends Controller
         return $pdf->download($filename);
     }
 
+    /**
+     * Muestra la lista de certificados obtenidos por el usuario.
+     */
+    public function myCertificates()
+    {
+        $user = Auth::user();
+
+        // 1. Obtener todas las 'completions' del usuario que sean Actividades
+        // 2. Filtrar solo aquellas que sean 'is_final_exam' = true
+        // 3. Cargar la relación del curso para mostrar el título
+        $certificates = $user->completions()
+            ->where('completable_type', Activities::class)
+            ->with('completable.course') // Eager loading para optimizar
+            ->get()
+            ->filter(function ($completion) {
+                // Verificar que la actividad exista y sea un examen final
+                return $completion->completable && $completion->completable->is_final_exam;
+            });
+
+        return view('layouts.Cursos.certificates_list', compact('certificates'));
+    }
+
 }

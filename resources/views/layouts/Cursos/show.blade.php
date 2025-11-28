@@ -2,7 +2,7 @@
 
 @section('title', $course->title)
 
-@vite(['resources/css/courseShow.css', 'resources/js/app.js', 'resources/js/bootstrap.js'])
+@vite(['resources/css/courseShow.css', 'resources/css/Cursos/crosswords.css', 'resources/js/app.js', 'resources/js/bootstrap.js'])
 
 @section('content')
 <div class="course-viewer-container">
@@ -292,26 +292,69 @@
                                 <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}" disabled>Terminado</button>
                                 <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
                             
-                            @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
-                                
-                                <div class="cw-game-layout" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
-                                    <div class="cw-grid-container">
-                                        <div class="cw-grid"></div>
-                                    </div>
-                                    <div class="cw-clues-container">
-                                        <div class="cw-clues-list" id="cw-clues-across">
-                                            <h4>Horizontales</h4>
-                                            <ul></ul>
-                                        </div>
-                                        <div class="cw-clues-list" id="cw-clues-down">
-                                            <h4>Verticales</h4>
-                                            <ul></ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}">Comprobar y Terminar</button>
-                                <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+                            @elseif ($activity->type == 'Examen' && is_array($activity->content))
+                                {{-- INTERFAZ WIZARD PARA EXAMEN NORMAL --}}
+                                <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
+                                    action="{{ route('activities.submit', $activity) }}" 
+                                    method="POST" data-activity-id="{{ $activity->id }}">
+                                    @csrf
+                                    
+                                    @php
+                                        $questions = $activity->content['questions'] ?? [];
+                                        $totalQuestions = count($questions);
+                                    @endphp
 
+                                    <div class="questions-wrapper" id="questions-wrapper-{{ $activity->id }}">
+                                        @foreach ($questions as $q_index => $questionData)
+                                            {{-- Paso de pregunta --}}
+                                            <div class="quiz-question-block question-step {{ $q_index === 0 ? 'active' : '' }}" 
+                                                data-index="{{ $q_index }}"
+                                                style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                                                
+                                                <span class="exam-progress">Pregunta {{ $q_index + 1 }} de {{ $totalQuestions }}</span>
+                                                
+                                                <p class="question-text" style="font-size: 1.2em; margin-bottom: 15px;">
+                                                    <strong>{{ $questionData['question'] }}</strong>
+                                                </p>
+                                                
+                                                @foreach ($questionData['options'] as $opt_index => $option)
+                                                    <div class="option-box" style="margin-bottom: 10px;">
+                                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                                            <input type="radio" name="answers[{{ $q_index }}][a]" 
+                                                                value="{{ $opt_index }}" data-question-index="{{ $q_index }}"
+                                                                style="margin-right: 10px;">
+                                                            {{ $option }}
+                                                        </label>
+                                                    </div>
+                                                @endforeach
+                                                
+                                                {{-- Input oculto para índice de pregunta --}}
+                                                <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
+                                                
+                                                {{-- Mensaje de validación JS --}}
+                                                <div class="step-error-msg" style="color: red; display: none; margin-top: 10px;">
+                                                    Debes seleccionar una opción para continuar.
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px; font-weight: bold;"></div>
+                                    
+                                    {{-- Controles Siguiente / Finalizar --}}
+                                    <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                        <button type="button" class="btn-secondary btn-next-step" 
+                                                data-form-id="quiz-form-{{ $activity->id }}"
+                                                style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
+                                            Siguiente Pregunta &rarr;
+                                        </button>
+
+                                        <button type="submit" class="btn-success btn-finish-exam" 
+                                                style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
+                                            Finalizar y Calificar
+                                        </button>
+                                    </div>
+                                </form>
                             @else
                                 {{-- Fallback para tipos desconocidos o contenido simple --}}
                                 <p>{{ is_array($activity->content) ? json_encode($activity->content) : $activity->content }}</p>
@@ -340,17 +383,13 @@
                                 @foreach ($activity->content['options'] as $index => $option)
                                     <div class="option-box">
                                         <label>
-                                            <input type="radio" name="answer" value="{{ $index }}" {{ Auth::id() == $course->instructor_id ? 'disabled' : '' }}>
+                                            <input type="radio" name="answer" value="{{ $index }}" >
                                             {{ $option }}
                                         </label>
                                     </div>
                                 @endforeach
                                 <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                                @if (Auth::id() != $course->instructor_id)
                                     <button type="submit" class="btn-success">Enviar Respuesta</button>
-                                @else
-                                    <p class="instructor-note">(Vista de previsualización para el instructor)</p>
-                                @endif
                             </form>
                         
                         @elseif ($activity->type == 'SopaDeLetras' && is_array($activity->content))
@@ -364,25 +403,69 @@
                             <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}" disabled>Terminado</button>
                             <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
 
-                        @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
-                            <div class="cw-game-container" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
-                                <div class="cw-grid-container">
-                                    <div class="cw-grid"></div>
+                        @elseif ($activity->type == 'Examen' && is_array($activity->content))
+                            {{-- INTERFAZ WIZARD PARA EXAMEN NORMAL --}}
+                            <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
+                                action="{{ route('activities.submit', $activity) }}" 
+                                method="POST" data-activity-id="{{ $activity->id }}">
+                                @csrf
+                                
+                                @php
+                                    $questions = $activity->content['questions'] ?? [];
+                                    $totalQuestions = count($questions);
+                                @endphp
+
+                                <div class="questions-wrapper" id="questions-wrapper-{{ $activity->id }}">
+                                    @foreach ($questions as $q_index => $questionData)
+                                        {{-- Paso de pregunta --}}
+                                        <div class="quiz-question-block question-step {{ $q_index === 0 ? 'active' : '' }}" 
+                                            data-index="{{ $q_index }}"
+                                            style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                                            
+                                            <span class="exam-progress">Pregunta {{ $q_index + 1 }} de {{ $totalQuestions }}</span>
+                                            
+                                            <p class="question-text" style="font-size: 1.2em; margin-bottom: 15px;">
+                                                <strong>{{ $questionData['question'] }}</strong>
+                                            </p>
+                                            
+                                            @foreach ($questionData['options'] as $opt_index => $option)
+                                                <div class="option-box" style="margin-bottom: 10px;">
+                                                    <label style="display: flex; align-items: center; cursor: pointer;">
+                                                        <input type="radio" name="answers[{{ $q_index }}][a]" 
+                                                            value="{{ $opt_index }}" data-question-index="{{ $q_index }}"
+                                                            style="margin-right: 10px;">
+                                                        {{ $option }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                            
+                                            {{-- Input oculto para índice de pregunta --}}
+                                            <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
+                                            
+                                            {{-- Mensaje de validación JS --}}
+                                            <div class="step-error-msg" style="color: red; display: none; margin-top: 10px;">
+                                                Debes seleccionar una opción para continuar.
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                                <div class="cw-clues-container">
-                                    <div class="cw-clues-list" id="cw-clues-across">
-                                        <h4>Horizontales</h4>
-                                        <ul></ul>
-                                    </div>
-                                    <div class="cw-clues-list" id="cw-clues-down">
-                                        <h4>Verticales</h4>
-                                        <ul></ul>
-                                    </div>
+
+                                <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px; font-weight: bold;"></div>
+                                
+                                {{-- Controles Siguiente / Finalizar --}}
+                                <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                    <button type="button" class="btn-secondary btn-next-step" 
+                                            data-form-id="quiz-form-{{ $activity->id }}"
+                                            style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
+                                        Siguiente Pregunta &rarr;
+                                    </button>
+
+                                    <button type="submit" class="btn-success btn-finish-exam" 
+                                            style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
+                                        Finalizar y Calificar
+                                    </button>
                                 </div>
-                            </div>
-                            <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}">Comprobar y Terminar</button>
-                            <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                        @else
+                            </form>
                             {{-- Fallback --}}
                             <p>{{ is_array($activity->content) ? json_encode($activity->content) : $activity->content }}</p>
                         @endif
@@ -499,6 +582,7 @@
 </div>
 
 
+<script src="{{ asset('js/crosswords.js') }}"></script>
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -939,120 +1023,6 @@
                 }
             }
         }
-        
-        /* ==================================================================
-           5. LÓGICA NATIVA DE CRUCIGRAMA (NUEVA)
-           ================================================================== */
-        class CrosswordGame {
-            constructor(containerId) {
-                this.container = document.getElementById(containerId);
-                if (!this.container) return;
-                this.activityId = this.container.dataset.activityId;
-                this.clues = JSON.parse(this.container.dataset.clues);
-                this.gridSize = parseInt(this.container.dataset.gridSize, 10);
-                this.gridElement = this.container.querySelector('.cw-grid');
-                this.cluesAcrossUl = this.container.querySelector('#cw-clues-across ul');
-                this.cluesDownUl = this.container.querySelector('#cw-clues-down ul');
-                this.gridMatrix = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(null));
-                this.inputs = []; 
-                this.init();
-            }
-            init() {
-                this.buildGridMatrix();
-                this.renderGrid();
-                this.renderClues();
-                this.addInputListeners();
-            }
-            buildGridMatrix() {
-                const allClues = [
-                    ...(this.clues.across || []).map(c => ({...c, dir: 'across'})),
-                    ...(this.clues.down || []).map(c => ({...c, dir: 'down'}))
-                ];
-                allClues.forEach(clue => {
-                    let { answer, x, y, dir } = clue;
-                    for (let i = 0; i < answer.length; i++) {
-                        let currentX = x + (dir === 'across' ? i : 0);
-                        let currentY = y + (dir === 'down' ? i : 0);
-                        if (currentY < this.gridSize && currentX < this.gridSize) {
-                            this.gridMatrix[currentY][currentX] = answer[i].toUpperCase();
-                        }
-                    }
-                });
-            }
-            renderGrid() {
-                this.gridElement.innerHTML = '';
-                this.gridElement.style.setProperty('--cw-grid-size', this.gridSize);
-                const clueNumbers = new Map();
-                (this.clues.across || []).forEach(c => clueNumbers.set(`${c.x},${c.y}`, c.number));
-                (this.clues.down || []).forEach(c => clueNumbers.set(`${c.x},${c.y}`, c.number));
-                for (let y = 0; y < this.gridSize; y++) {
-                    for (let x = 0; x < this.gridSize; x++) {
-                        const cell = document.createElement('div');
-                        cell.classList.add('cw-cell');
-                        const correctLetter = this.gridMatrix[y][x];
-                        if (correctLetter) {
-                            cell.classList.add('white');
-                            const number = clueNumbers.get(`${x},${y}`);
-                            if (number) cell.innerHTML = `<span class="cw-number">${number}</span>`;
-                            const input = document.createElement('input');
-                            input.type = 'text';
-                            input.maxLength = 1;
-                            input.dataset.x = x;
-                            input.dataset.y = y;
-                            input.dataset.correct = correctLetter;
-                            cell.appendChild(input);
-                            this.inputs.push(input);
-                        }
-                        this.gridElement.appendChild(cell);
-                    }
-                }
-            }
-            renderClues() {
-                (this.clues.across || []).forEach(c => {
-                    const li = document.createElement('li');
-                    li.textContent = `${c.number}. ${c.clue}`;
-                    this.cluesAcrossUl.appendChild(li);
-                });
-                (this.clues.down || []).forEach(c => {
-                    const li = document.createElement('li');
-                    li.textContent = `${c.number}. ${c.clue}`;
-                    this.cluesDownUl.appendChild(li);
-                });
-            }
-            addInputListeners() {
-                this.inputs.forEach(input => {
-                    input.addEventListener('keyup', (e) => {
-                        // Mover foco al siguiente input al escribir una letra
-                        if (e.key.length === 1 && e.key.match(/[a-zA-ZñÑ]/)) {
-                            const nextInput = this.findNextInput(input);
-                            if (nextInput) nextInput.focus();
-                        }
-                    });
-                    input.addEventListener('keydown', (e) => {
-                        let x = parseInt(input.dataset.x);
-                        let y = parseInt(input.dataset.y);
-                        switch(e.key) {
-                            case 'ArrowRight': e.preventDefault(); this.findNextInput(input, x + 1, y)?.focus(); break;
-                            case 'ArrowLeft': e.preventDefault(); this.findNextInput(input, x - 1, y, true)?.focus(); break;
-                            case 'ArrowDown': e.preventDefault(); this.findNextInput(input, x, y + 1)?.focus(); break;
-                            case 'ArrowUp': e.preventDefault(); this.findNextInput(input, x, y - 1, true)?.focus(); break;
-                        }
-                    });
-                });
-            }
-            findNextInput(currentInput, startX, startY, reverse = false) {
-                const currentIndex = this.inputs.indexOf(currentInput);
-                let nextInput = null;
-                // Lógica simple (solo mueve al siguiente/anterior en el array)
-                if (reverse) {
-                    if (currentIndex > 0) nextInput = this.inputs[currentIndex - 1];
-                } else {
-                    if (currentIndex < this.inputs.length - 1) nextInput = this.inputs[currentIndex + 1];
-                }
-                return nextInput;
-            }
-        }
-        
         /* ==================================================================
            6. INICIALIZACIÓN DE JUEGOS Y BOTONES (CORREGIDO Y LIMPIO)
            ================================================================== */
@@ -1060,9 +1030,6 @@
         // --- INICIALIZAR TODOS LOS JUEGOS ---
         document.querySelectorAll('.ws-game-container').forEach(container => {
             new WordSearchGame(container.id);
-        });
-        document.querySelectorAll('.cw-game-container').forEach(container => { 
-            new CrosswordGame(container.id);
         });
         
         // --- LISTENER ÚNICO PARA TODOS LOS BOTONES DE JUEGO ---
@@ -1080,14 +1047,6 @@
                     activityType = 'Crucigrama';
                 }
 
-                // --- VALIDACIÓN ANTES DE ENVIAR ---
-                if (activityType === 'Crucigrama') {
-                    if (!checkCrosswordWin(gameContainer)) {
-                        feedbackEl.style.color = 'red';
-                        feedbackEl.innerText = 'Respuestas incorrectas. Revisa las celdas rojas.';
-                        return; 
-                    }
-                }
                 // (La Sopa de Letras no necesita validación aquí porque el botón está 'disabled')
                 
                 this.disabled = true; 
@@ -1107,22 +1066,7 @@
             });
         });
 
-        // --- FUNCIÓN DE AYUDA PARA VALIDAR CRUCIGRAMA ---
-        function checkCrosswordWin(container) {
-            let allCorrect = true;
-            container.querySelectorAll('.cw-cell input').forEach(input => {
-                const correct = input.dataset.correct.toUpperCase();
-                const answer = input.value.toUpperCase();
-                if (correct !== answer) {
-                    input.style.backgroundColor = '#f8d7da'; 
-                    allCorrect = false;
-                } else {
-                    input.style.backgroundColor = '#d4edda'; 
-                    input.disabled = true; 
-                }
-            });
-            return allCorrect;
-        }
+        
 
     }); // Cierre del DOMContentLoaded
     

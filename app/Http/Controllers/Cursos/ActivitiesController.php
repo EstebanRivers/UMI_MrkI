@@ -175,6 +175,16 @@ class ActivitiesController extends Controller
             }
         }
 
+        elseif ($activity->type === 'Crucigrama' ) {
+            // $validated = $request->validate(['completed' => 'required|boolean']);
+            // $completed = $validated['completed'];
+
+            // if (!$completed) {
+            //     return response()->json(['success' => false, 'message' => 'El juego no se completó correctamente.'], 422);
+            // }
+            $score = 100.00; // Completado correctamente
+        }
+
         // 2. Marcar como completado usando el sistema polimórfico
         $completion = $user->completions()->updateOrCreate(
             [

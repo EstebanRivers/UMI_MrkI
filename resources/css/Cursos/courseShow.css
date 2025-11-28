@@ -394,7 +394,7 @@
 }
 
 .cw-cell.white {
-    background-color: #fff;
+    background-color: #fff !important;
 }
 
 .cw-cell input {
@@ -409,6 +409,8 @@
     padding: 0;
     margin: 0;
     outline: none; 
+    color: #000;
+    z-index: 10;
 }
 
 .cw-cell input:focus {
