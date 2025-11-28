@@ -176,7 +176,7 @@ class ActivitiesController extends Controller
         }
 
         // 2. Marcar como completado usando el sistema polimórfico
-        $completion = $user->completions()->firstOrCreate(
+        $completion = $user->completions()->updateOrCreate(
             [
                 'completable_type' => Activities::class, // Usar el FQCN del modelo
                 'completable_id'   => $activity->id

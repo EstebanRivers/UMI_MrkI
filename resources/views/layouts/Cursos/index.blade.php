@@ -47,11 +47,6 @@
                 </a>
 
                     <div class="btn-display">
-                        <button type="submit" class="btn-view">
-                            {{-- <a href="{{ route('course.show', $courses)}}"> --}}
-                                <img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy">
-                            {{-- </a> --}}
-                        </button>
 
                         {{-- EDITAR --}}
                         @can('update', $courses)
@@ -64,7 +59,7 @@
                         
                         {{-- ELIMINAR --}}
                         @can('delete', $courses)
-                            <form action="{{ route('courses.destroy', $courses) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este curso?');">
+                            <form action="{{ route('courses.destroy', $courses) }}" method="POST" data-confirm="¿Eliminar el Curso? Esto no se puede deshacer.">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-delete">
