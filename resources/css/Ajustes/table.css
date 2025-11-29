@@ -1,10 +1,10 @@
-/* resources/css/Ajustes/table.css */
+
 
 /* --- Contenedor Principal --- */
 .main-content-area {
   padding: 20px;
-  background-color: #f8f9fa; /* Un fondo gris claro para la página */
-  border-radius: 8px; /* Bordes redondeados */
+  background-color: #f8f9fa; 
+  border-radius: 8px; 
 }
 
 /* --- Cabecera (Título, Buscador, Botón Agregar) --- */
@@ -21,12 +21,12 @@
   margin: 0;
   font-size: 1.8em;
   font-weight: 600;
-  color: #333; /* Color de texto oscuro */
+  color: #333; 
 }
 
 .header-actions {
   display: flex;
-  gap: 15px; /* Espacio entre buscador y botón */
+  gap: 15px; 
   align-items: center;
 }
 
@@ -36,84 +36,84 @@
 }
 
 .search-form input[type="text"] {
-  padding: 8px 15px; /* Más padding */
-  border: 1px solid #ced4da; /* Borde gris claro */
-  border-radius: 20px 0 0 20px; /* Bordes redondeados solo a la izquierda */
+  padding: 8px 15px; 
+  border: 1px solid #ced4da; 
+  border-radius: 20px 0 0 20px; 
   outline: none;
   font-size: 0.9em;
-  min-width: 250px; /* Ancho mínimo */
+  min-width: 250px; 
 }
 
 .search-form button {
   padding: 8px 15px;
   border: none;
-  background-color: #223F70; /* Azul oscuro */
+  background-color: #223F70; 
   color: white;
-  border-radius: 0 20px 20px 0; /* Bordes redondeados solo a la derecha */
+  border-radius: 0 20px 20px 0; 
   cursor: pointer;
   font-size: 0.9em;
   transition: background-color 0.2s ease;
 }
 
 .search-form button:hover {
-  background-color: #1a3258; /* Azul más oscuro */
+  background-color: #1a3258; 
 }
 
 /* --- Botón Principal (Agregar) --- */
 .btn-primary {
-  background-color: #223F70; /* Azul oscuro */
+  background-color: #223F70; 
   color: white;
-  padding: 10px 20px; /* Padding */
+  padding: 10px 20px; 
   border: none;
-  border-radius: 20px; /* Bordes redondeados */
+  border-radius: 20px; 
   cursor: pointer;
-  font-weight: 500; /* Semi-negrita */
+  font-weight: 500; 
   font-size: 0.9em;
   transition: background-color 0.2s ease, transform 0.1s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
 }
 
 .btn-primary:hover {
-  background-color: #1a3258; /* Azul más oscuro */
-  transform: translateY(-1px); /* Efecto levantar */
+  background-color: #1a3258; 
+  transform: translateY(-1px); 
 }
 
 /* --- Contenedor de la Tabla --- */
 .table-container {
   width: 100%;
-  overflow-x: auto; /* Scroll horizontal si es necesario */
-  background-color: #ffffff; /* Fondo blanco */
-  border-radius: 12px; /* Bordes redondeados más grandes */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada */
-  border: 1px solid #dee2e6; /* Borde sutil */
+  overflow-x: auto; 
+  background-color: #ffffff; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+  border: 1px solid #dee2e6; 
 }
 
 /* --- Tabla Principal --- */
 .main-table {
   width: 100%;
-  border-collapse: separate; /* Separar bordes */
-  border-spacing: 0; /* Sin espacio entre celdas */
-  color: #495057; /* Color de texto gris oscuro */
+  border-collapse: separate; 
+  border-spacing: 0; 
+  color: #495057; 
 }
 
 .main-table th,
 .main-table td {
-  padding: 12px 15px; /* Padding en celdas */
+  padding: 12px 15px; 
   text-align: left;
-  border-bottom: 1px solid #dee2e6; /* Línea divisoria */
-  vertical-align: middle; /* Centrado vertical */
+  border-bottom: 1px solid #dee2e6; 
+  vertical-align: middle; 
 }
 
 /* --- Cabecera de la Tabla (th) --- */
 .main-table thead th {
-  background-color: #223F70; /* Fondo azul oscuro */
-  color: white; /* Texto blanco */
-  font-weight: 600; /* Negrita */
+  background-color: #223F70; 
+  color: white; 
+  font-weight: 600; 
   font-size: 0.85em;
-  text-transform: uppercase; /* Mayúsculas */
+  text-transform: uppercase; 
   letter-spacing: 0.5px;
-  border-bottom: 2px solid #1a3258; /* Borde inferior más grueso */
-  position: sticky; /* Cabecera fija al hacer scroll */
+  border-bottom: 2px solid #1a3258; 
+  position: sticky; 
   top: 0;
   z-index: 10;
 }
@@ -128,7 +128,7 @@
 
 /* --- Cuerpo de la Tabla (tbody) --- */
 .main-table tbody tr:hover {
-  background-color: #f1f3f5; /* Color gris muy claro al pasar el ratón */
+  background-color: #f1f3f5; 
 }
 
 .main-table tbody td {
@@ -137,25 +137,25 @@
 
 /* --- Celdas Específicas --- */
 .main-table .table-logo {
-  width: 50px; /* Tamaño del logo */
+  width: 50px; 
   height: auto;
   border-radius: 4px;
   vertical-align: middle;
 }
 
 .main-table .status-active {
-  color: #198754; /* Verde */
+  color: #198754; 
   font-weight: 500;
-  background-color: #d1e7dd; /* Fondo verde claro */
+  background-color: #d1e7dd; 
   padding: 3px 8px;
   border-radius: 10px;
   font-size: 0.8em;
 }
 
 .main-table .status-inactive {
-  color: #dc3545; /* Rojo */
+  color: #dc3545; 
   font-weight: 500;
-  background-color: #f8d7da; /* Fondo rojo claro */
+  background-color: #f8d7da; 
   padding: 3px 8px;
   border-radius: 10px;
   font-size: 0.8em;
@@ -164,28 +164,28 @@
 /* --- Columna de Acciones --- */
 .main-table .actions {
   display: flex;
-  gap: 8px; /* Espacio entre botones */
+  gap: 8px; 
   align-items: center;
 }
 
 /* --- Estilo para la miniatura del logo en la tabla --- */
 .table-logo {
-    width: 80px;  /* Ancho de la miniatura */
-    height: 40px; /* Alto de la miniatura */
+    width: 80px;  
+    height: 40px; 
 
-    /* 'contain' evita que la imagen se deforme y la ajusta */
+    
     object-fit: contain; 
 
-    border-radius: 4px; /* Bordes redondeados */
-    background-color: #f8f9fa; /* Fondo claro por si el logo es transparente */
+    border-radius: 4px; 
+    background-color: #f8f9fa; 
 }
 
 .btn-icon {
   background: none;
   border: none;
-  padding: 5px; /* Un poco de espacio alrededor del icono */
+  padding: 5px; 
   cursor: pointer;
-  border-radius: 50%; /* Hacerlos circulares */
+  border-radius: 50%; 
   transition: background-color 0.2s ease;
   display: inline-flex;
   align-items: center;
@@ -193,16 +193,16 @@
 }
 
 .btn-icon img {
-  width: 16px; /* Tamaño iconos */
-  height: 16px;
+  width: 20px; 
+  height: 20px;
 }
 
 /* Hover de botones de acción */
 .btn-icon[title="Editar"]:hover {
-  background-color: #fff3cd; /* Amarillo claro */
+  background-color: #fff3cd; 
 }
 .btn-icon[title="Eliminar"]:hover {
-  background-color: #f8d7da; /* Rojo claro */
+  background-color: #f8d7da; 
 }
 
 .inline-form {
@@ -214,7 +214,7 @@
 /* --- Mensaje "Sin datos" --- */
 .text-center {
   text-align: center;
-  color: #6c757d; /* Gris */
+  color: #6c757d; 
   font-style: italic;
 }
 
@@ -224,12 +224,12 @@
   display: flex;
   justify-content: center;
   border-top: 1px solid #dee2e6;
-  background-color: #f8f9fa; /* Fondo gris claro */
-  border-bottom-left-radius: 11px; /* Redondear esquinas inferiores */
+  background-color: #f8f9fa; 
+  border-bottom-left-radius: 11px; 
   border-bottom-right-radius: 11px;
 }
 
-/* Estilos básicos para los enlaces de paginación (ajusta según tu framework) */
+/* Estilos básicos para los enlaces de paginación (ajusta según el framework) */
 .pagination-container nav span,
 .pagination-container nav a {
   padding: 8px 12px;
@@ -237,20 +237,20 @@
   border: 1px solid #dee2e6;
   border-radius: 4px;
   text-decoration: none;
-  color: #0d6efd; /* Azul */
+  color: #0d6efd; 
   background-color: white;
 }
 
 .pagination-container nav span[aria-disabled="true"] {
-  color: #6c757d; /* Gris */
-  background-color: #e9ecef; /* Gris claro */
+  color: #6c757d; 
+  background-color: #e9ecef; 
   cursor: default;
 }
 
 .pagination-container nav span[aria-current="page"] span {
   font-weight: bold;
   color: white;
-  background-color: #0d6efd; /* Azul */
+  background-color: #0d6efd; 
   border-color: #0d6efd;
 }
 
@@ -260,22 +260,22 @@
 
 /* --- Estilos para el Interruptor (Toggle Switch) --- */
 
-/* 1. El contenedor (la <label>) */
+
 .switch {
     position: relative;
     display: inline-block;
-    width: 50px;  /* Ancho del interruptor */
-    height: 28px; /* Alto del interruptor */
+    width: 50px;  
+    height: 28px; 
 }
 
-/* 2. El checkbox real (lo ocultamos) */
+/* El checkbox real (lo ocultamos) */
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-/* 3. El "carril" (la parte de fondo) */
+
 .slider {
     position: absolute;
     cursor: pointer;
@@ -283,49 +283,49 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc; /* Color cuando está apagado (gris) */
+    background-color: #ccc; 
     transition: .3s;
-    border-radius: 34px; /* Lo hace redondeado */
+    border-radius: 34px; 
 }
 
-/* 4. El "círculo" (el botón que se mueve) */
+
 .slider:before {
     position: absolute;
     content: "";
-    height: 20px; /* Alto del círculo */
-    width: 20px;  /* Ancho del círculo */
+    height: 20px; 
+    width: 20px;  
     left: 4px;
     bottom: 4px;
     background-color: white;
     transition: .3s;
-    border-radius: 50%; /* Lo hace un círculo */
+    border-radius: 50%; 
 }
 
-/* 5. Estilos cuando está "Encendido" (checked) */
+/*  Estilos cuando está "Encendido" (checked) */
 input:checked + .slider {
-    background-color: #0d6efd; /* Color azul (como tu imagen) */
+    background-color: #0d6efd; 
 }
 
 input:checked + .slider:before {
-    /* Mueve el círculo a la derecha */
+   
     transform: translateX(22px); 
 }
 
 /* Contenedor principal de la celda de estatus */
 .status-toggle-cell {
-    text-align: center; /* Centra el contenido horizontalmente */
-    vertical-align: middle; /* Centra el contenido verticalmente en la celda */
-    width: 150px; /* Dale un ancho fijo para que no se desfigure */
-    min-width: 120px; /* Asegura un ancho mínimo */
+    text-align: center; 
+    vertical-align: middle; 
+    width: 150px; 
+    min-width: 120px; 
 }
 
 /* El nuevo wrapper para el switch y el texto */
 .status-content-wrapper {
-    display: flex;         /* Activa Flexbox */
-    align-items: center;   /* Alinea verticalmente los items */
-    justify-content: center; /* Centra los items horizontalmente */
-    gap: 10px;             /* Espacio entre el switch y el texto */
-    height: 100%;          /* Asegura que ocupe todo el alto de la celda */
+    display: flex;         
+    align-items: center;   
+    justify-content: center; 
+    gap: 10px;             
+    height: 100%;          
 }
 
 /* Estilo para la etiqueta de Activo/Inactivo */
@@ -352,4 +352,49 @@ input:checked + .slider:before {
 
 .switch {
     margin-right: 0; 
+}
+
+/* --- Color Mostaza/Bronce para el botón de "Ver" --- */
+.btn-view img {
+
+    width: 20px;  /* <--- AUMENTADO (Antes era 16px o 18px) */
+    height: 20px; /* <--- AUMENTADO */
+    /* Este filtro da el tono exacto de tu imagen (aprox. #BC8A55) */
+    filter: invert(66%) sepia(35%) saturate(695%) hue-rotate(348deg) brightness(89%) contrast(87%);
+    
+    transition: transform 0.2s;
+}
+
+/* --- Botón Eliminar (Icono Rojo con Filtro) --- */
+
+.btn-delete {
+    background: transparent; /* Sin fondo */
+    border: none;            /* Sin bordes */
+    box-shadow: none;        /* Sin sombras */
+    padding: 5px;
+    cursor: pointer;
+    
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Aplicamos el filtro a la imagen o svg dentro del botón */
+.btn-delete img, 
+.btn-delete svg {
+    width: 25px; /* Ajusta el tamaño si lo ves muy chico o grande */
+    height: 25px;
+    
+    /* Este filtro convierte el NEGRO a ROJO (#dc3545) */
+    filter: invert(28%) sepia(51%) saturate(2755%) hue-rotate(340deg) brightness(92%) contrast(93%);
+    
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+/* Efecto al pasar el mouse: Se hace un poco más grande y rojo más intenso */
+.btn-delete:hover img, 
+.btn-delete:hover svg {
+    transform: scale(1.2);
+    /* Rojo más oscuro/intenso al hover */
+    filter: invert(16%) sepia(98%) saturate(7431%) hue-rotate(358deg) brightness(92%) contrast(116%);
 }

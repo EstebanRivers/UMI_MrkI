@@ -2,14 +2,13 @@
     <label for="name">Nombre de Unidad</label>
     <input type="text" id="name" name="name" required
            value="{{ old('name', isset($item) ? $item->name : '') }}">
-           {{-- Añadí el value para que funcione la edición --}}
+         
 </div>
 <div class="form-group">
     <label for="logo_path">Logo</label>
     <input type="file" id="logo_path" name="logo_path" accept="image/*">
-    {{-- Añadí accept="image/*" para limitar la selección a imágenes --}}
-
-    {{-- Mostrar logo actual si estamos editando --}}
+   
+   
     @if(isset($item) && $item->logo_path)
         <div style="margin-top: 10px;">
             <img src="{{ asset('storage/' . $item->logo_path) }}" alt="Logo actual" style="max-width: 100px; max-height: 50px; border-radius: 4px;">

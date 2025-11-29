@@ -22,6 +22,7 @@ use App\Http\Controllers\AdmonCont\MateriaController;
 use App\Http\Controllers\AdmonCont\store\teacherController;
 use App\Http\Controllers\SchoolarCont\InscripcionController;
 use App\Http\Controllers\SchoolarCont\MatriculaController; 
+use App\Http\Controllers\MiInformacion\MiInformacionController;
 
 // 1. Rutas Públicas y Autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -51,7 +52,32 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::delete('/facturacion/{billing}', [BillingController::class, 'destroy'])->name('Facturacion.destroy');
     Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
 
-    // --- Cursos (General - Alumnos y todos) ---
+    // Dashboard - accesible para todos los usuarios autenticados
+    Route::get('/bienvenido', function () {return view('gi');
+    })->name('dashboard');
+
+    // Mi Informacion **********************************************************************************************
+   Route::prefix('mi-informacion')->name('MiInformacion.')->group(function () {
+
+    // 1. Perfil (Accesible para todos)
+    Route::get('/', [MiInformacionController::class, 'index'])
+         ->name('index');
+
+    // 2. Rutas exclusivas para Alumnos y Docentes
+    Route::middleware(['role:estudiante,docente,master'])->group(function () {
+
+        Route::get('/clases', [MiInformacionController::class, 'showClases'])
+             ->name('clases');
+
+        Route::get('/horario', [MiInformacionController::class, 'showHorario'])
+             ->name('horario');
+
+        Route::get('/historial', [MiInformacionController::class, 'showHistorial'])
+             ->name('historial');
+    });
+});
+
+    // Cursos ******************************************************************************************************
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
     Route::get('/cursos/{course}/certificado', [CourseController::class, 'showCertificate'])->name('courses.certificate');
@@ -83,6 +109,22 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
     });
+// Ajustes *****************************************************************************************************************
+Route::middleware(['role:master,control_administrativo'])
+    ->prefix('ajustes')->name('ajustes.')->group(function () {
+    
+    // --- Rutas existentes ---
+    Route::get('/{seccion}', [AjustesController::class, 'show'])->name('show');
+    Route::post('/{seccion}', [AjustesController::class, 'store'])->name('store');
+    
+    // --- Rutas del Modal ---
+    Route::get('/{seccion}/create-form', [AjustesController::class, 'getCreateForm'])->name('getCreateForm');
+    Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
+    Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
+    Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
+    
+    Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
+         ->name('users.toggleStatus'); 
 
     // --- Módulo de Ajustes (Master y Admin) ---
     Route::middleware(['role:master,control_administrativo']) 
@@ -104,6 +146,18 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
  // ==========================================
     // 1. MÓDULO CONTROL ACADÉMICO (Administrativo)
     // ==========================================
+});
+
+    //Vista del curso
+    Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
+
+
+    // Facturación *************************************************************************************
+    Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); 
+    })->name('Facturacion.index');
+    
+    
+    // Control Administrativo - roles especificos
     Route::middleware(['role:master,control_administrativo'])
         ->prefix('control-administrativo')
         ->name('control.') 

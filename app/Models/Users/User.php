@@ -23,6 +23,8 @@ use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
 use App\Models\Cursos\Course;
 use App\Models\Cursos\Completion;
+use App\Models\Users\Department;  
+use App\Models\Users\Workstation;
 
 /**
  * @property int $id
@@ -233,5 +235,15 @@ class User extends Authenticatable
         return $this->roles()
             ->wherePivot('institution_id', $institutionId)
             ->get();
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function workstation(): BelongsTo
+    {
+        return $this->belongsTo(Workstation::class, 'workstation_id');
     }
 }

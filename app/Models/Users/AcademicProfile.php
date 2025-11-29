@@ -30,6 +30,7 @@ class AcademicProfile extends Model
         'doc_comprobante_domicilio',
         'modules',
         'rol',
+        'matricula',
     ];
 
     protected $casts = [

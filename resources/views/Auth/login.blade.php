@@ -33,14 +33,17 @@
             <form method="POST" action="{{ route('login') }}">
                 @csrf
 
-                <!-- Campo usuario/correo -->
                 <div class="form-group">
-                    <label for="email">Usuario o correo electrónico</label>
-                    <input type="text" id="email" name="email" 
-                           placeholder="Ingrese su usuario"
-                           value="{{ old('email') }}" required autofocus
+                    <label for="login">Usuario</label>
+                    
+                    {{-- !! CAMBIO IMPORTANTE: name="login" !! --}}
+                    <input type="text" id="login" name="login" 
+                           placeholder="Ingrese su RFC o Matrícula"
+                           value="{{ old('login') }}" required autofocus
                            autocomplete="username">
-                    @error('email')
+                    
+                    {{-- !! CAMBIO IMPORTANTE: @error('login') !! --}}
+                    @error('login')
                         <span class="error">{{ $message }}</span>
                     @enderror
                 </div>
