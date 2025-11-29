@@ -4,9 +4,12 @@
 @import './sidebar.css';
 @import './components.css';
 @import './responsive.css';
-/*@import './MiInformacion/profile.css';*/
+@import './Mi_Informacion/perfil.css';
 @import './Cursos/courses.css';
 @import './Cursos/topic.css';
 @import './Cursos/courseShow.css';
 @import './Ajustes/modal.css';
 @import './Ajustes/table.css';
+@import './Mi_Informacion/clases.css';
+@import './Mi_Informacion/horario.css';
+@import './Mi_Informacion/historial_academico.css';

@@ -42,6 +42,7 @@ class AcademicProfile extends Model
         'departamento',
         'modules',
         'documentos',
+        'matricula',
     ];
 
     protected $casts = [

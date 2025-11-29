@@ -9,6 +9,7 @@ use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
 use App\Http\Controllers\Ajustes\AjustesController;
 use App\Http\Controllers\Control_admin\ControlAdministrativoController;
+use App\Http\Controllers\MiInformacion\MiInformacionController;
 
 
 // Rutas de autenticación
@@ -37,12 +38,28 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::get('/bienvenido', function () {return view('dashboard.index');
     })->name('dashboard');
 
-    // Mi Informacion
-    Route::get('/mi-informacion', function () { 
-        return view('layouts.MiInformacion.index'); 
-    })->name('MiInformacion.index');
+    // Mi Informacion **********************************************************************************************
+   Route::prefix('mi-informacion')->name('MiInformacion.')->group(function () {
 
-    // Cursos
+    // 1. Perfil (Accesible para todos)
+    Route::get('/', [MiInformacionController::class, 'index'])
+         ->name('index');
+
+    // 2. Rutas exclusivas para Alumnos y Docentes
+    Route::middleware(['role:estudiante,docente,master'])->group(function () {
+
+        Route::get('/clases', [MiInformacionController::class, 'showClases'])
+             ->name('clases');
+
+        Route::get('/horario', [MiInformacionController::class, 'showHorario'])
+             ->name('horario');
+
+        Route::get('/historial', [MiInformacionController::class, 'showHistorial'])
+             ->name('historial');
+    });
+});
+
+    // Cursos ******************************************************************************************************
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
        // Gestión de cursos - solo para admins y docentes
     Route::middleware(['role:master, docente'])->group(function () {
@@ -61,7 +78,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
     });
-// Ajustes
+// Ajustes *****************************************************************************************************************
 Route::middleware(['role:master,control_administrativo'])
     ->prefix('ajustes')->name('ajustes.')->group(function () {
     
@@ -90,7 +107,7 @@ Route::middleware(['role:master,control_administrativo'])
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
 
 
-    // Facturación 
+    // Facturación *************************************************************************************
     Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); 
     })->name('Facturacion.index');
     
@@ -98,7 +115,7 @@ Route::middleware(['role:master,control_administrativo'])
     // Control Administrativo - roles especificos
     Route::middleware(['role:master,control_administrativo'])
         ->prefix('control-administrativo')
-        ->name('control.') // Esto crea nombres como 'control.academico'
+        ->name('control.') 
         ->group(function () {
 
             // Ruta para "Control Académico"

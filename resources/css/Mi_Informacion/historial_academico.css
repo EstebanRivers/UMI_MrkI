@@ -1,0 +1,319 @@
+.historial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 0 5px;
+}
+
+.historial-titles-container {
+    flex: 1;
+}
+
+.historial-page-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.8em;
+    color: #1E1E1E;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.historial-welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.historial-welcome-message {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9em;
+    color: #000000;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.historial-action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.historial-btn {
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 0.85em;
+    color: white;
+    background-color: #223F70;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.historial-btn:hover {
+    background-color: #1a3159;
+}
+
+/* Tarjeta de Información del Alumno */
+.historial-info-card {
+    width: 100%;
+    background: #FCFCFC;
+    border: 1px solid rgba(33, 125, 204, 0.25);
+    border-radius: 12px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.student-info-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 10px 40px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #223F70;
+    margin-right: 8px;
+    font-size: 0.85em;
+}
+
+.info-value {
+    color: #333;
+    font-size: 0.85em;
+}
+
+.specialty-container {
+    text-align: right;
+}
+
+.specialty-label {
+    font-weight: 600;
+    color: #223F70;
+    font-size: 0.85em;
+}
+
+.specialty-value {
+    color: #333;
+    font-size: 0.85em;
+}
+
+/* Tabla Integrada (Contenedor Principal) */
+.historial-table-wrapper {
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border: 1px solid rgba(33, 125, 204, 0.25);
+    display: flex;
+    flex-direction: column;
+    /* Altura fija para scroll interno, o quitar para altura automática */
+    height: calc(100vh - 280px); 
+    min-height: 400px;
+}
+
+/* Header de la Tabla */
+.table-header {
+    background: #223F70;
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.9em;
+    /* Ajuste de espaciado para alinear con el contenido */
+    padding-left: 180px; /* Espacio para la columna de semestre */
+}
+
+.header-item {
+    text-align: center;
+}
+
+/* Definición de anchos (Flex) para columnas */
+.col-materia { flex: 2; text-align: left; padding-left: 10px; }
+.col-creditos { flex: 0.8; }
+.col-calificacion { flex: 0.8; }
+.col-evaluacion { flex: 1; }
+.col-observaciones { flex: 1.5; }
+
+/* Contenedor con Scroll */
+.materias-scroll-container {
+    background: #ECF0F1;
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Tarjeta de Semestre (Rectangle) */
+.semester-card {
+    background: #FFFFFF;
+    border-radius: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    position: relative;
+    min-height: 100px; /* Altura mínima */
+    overflow: hidden;
+}
+
+.semester-card:nth-child(even) { background: #f9f9f9; }
+
+/* Panel Izquierdo (Semestre y Promedio) */
+.semester-left-panel {
+    width: 160px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 2px solid #BC8A55; /* Línea vertical divisoria */
+    flex-shrink: 0;
+    z-index: 2;
+    background: inherit;
+}
+
+.semester-number {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.8em;
+    color: #000;
+    position: relative;
+}
+
+/* Línea decorativa debajo del número */
+.semester-number::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 2px;
+    background-color: #BC8A55;
+    margin: 5px auto;
+}
+
+.semester-period {
+    font-size: 0.75em;
+    text-align: center;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.semester-grade-label {
+    font-size: 0.7em;
+    font-weight: 600;
+    color: #333;
+}
+
+.semester-grade-value {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #223F70;
+}
+
+/* Panel Derecho (Lista de Materias) */
+.semester-content {
+    flex: 1;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.materia-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85em;
+    color: #333;
+}
+
+.materia-row:last-child {
+    border-bottom: none;
+}
+
+/* Celdas de la fila */
+.materia-row > div {
+    text-align: center;
+    padding: 0 5px;
+}
+
+/* Separadores verticales (Líneas rojas del diseño) */
+.cell-divider {
+    width: 1px;
+    height: 20px;
+    background-color: #e69a37; /* Color naranja/rojo */
+    margin: 0 5px;
+}
+
+/* Footer (Créditos y Promedio Final) */
+.historial-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding: 0 10px;
+}
+
+.final-grade-badge {
+    background: white;
+    border: 1px solid rgba(33, 125, 204, 0.25);
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: #223F70;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.credits-info {
+    display: flex;
+    gap: 15px;
+}
+
+.credit-badge {
+    background: white;
+    border: 1px solid rgba(33, 125, 204, 0.25);
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-size: 0.9em;
+    color: #223F70;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.credit-value {
+    font-weight: 700;
+    color: #092340;
+    margin-left: 5px;
+}
+
+/* Responsivo */
+@media (max-width: 968px) {
+    .table-header { display: none; } /* Ocultamos header en móvil */
+    .semester-card { flex-direction: column; }
+    .semester-left-panel { width: 100%; border-right: none; border-bottom: 2px solid #BC8A55; flex-direction: row; justify-content: space-between; padding: 10px; }
+    .semester-number::after { display: none; }
+    .materia-row { flex-wrap: wrap; padding: 10px; }
+    .col-materia { width: 100%; font-weight: 600; margin-bottom: 5px; }
+    .cell-divider { display: none; }
+    .historial-footer { flex-direction: column; gap: 10px; }
+}
