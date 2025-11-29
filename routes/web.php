@@ -21,6 +21,7 @@ use App\Http\Controllers\AdmonCont\generalController;
 use App\Http\Controllers\AdmonCont\MateriaController;
 use App\Http\Controllers\AdmonCont\store\teacherController;
 use App\Http\Controllers\SchoolarCont\InscripcionController;
+use App\Http\Controllers\SchoolarCont\MatriculaController; 
 
 // 1. Rutas Públicas y Autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -100,22 +101,22 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
             Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
         });
-
-    // --- Módulo Control Administrativo ---
+ // ==========================================
+    // 1. MÓDULO CONTROL ACADÉMICO (Administrativo)
+    // ==========================================
     Route::middleware(['role:master,control_administrativo'])
         ->prefix('control-administrativo')
         ->name('control.') 
         ->group(function () {
 
-            // Dashboards
             Route::get('/academico', [ControlAdministrativoController::class, 'showAcademico'])->name('academico');
-            Route::get('/escolar', [ControlAdministrativoController::class, 'showEscolar'])->name('escolar');
             Route::get('/planeacion', [ControlAdministrativoController::class, 'showPlaneacion'])->name('planeacion');
 
-            // Listas
+            // Alumnos & Docentes (Versión Admin)
             Route::get('/lista-estudiantes', [studentController::class, 'index'])->name('students.index');
             Route::get('/lista-estudiantes/{id}/edit',[InscripcionController::class, 'edit'])->name('students.edit');
             Route::put('/lista-estudiantes/{id}',[InscripcionController::class, 'update'])->name('students.update');
+            Route::delete('/lista-estudiantes/{id}', [InscripcionController::class, 'destroy'])->name('students.destroy'); // FALTABA ESTA
             
             Route::get('/lista-docentes', [teacherController::class, 'index'])->name('teachers.index');
             Route::get('/lista-docentes/registro', [teacherController::class, 'form'])->name('teachers.form');
@@ -123,18 +124,16 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::get('/lista-docentes/{id}/edit',[teacherController::class, 'edit'])->name('teachers.edit');
             Route::put('/lista-docentes/{id}',[teacherController::class, 'update'])->name('teachers.update');
 
-            // Materias
+            // Materias & Aulas
             Route::get('/listas/materias', [MateriaController::class, 'index'])->name('subjects.index');
             Route::post('/listas/materias/create', [MateriaController::class, 'store'])->name('subjects.store');
             Route::put('/listas/materias/{registro}', [MateriaController::class, 'update'])->name('subjects.update');
 
-            // Aulas
             Route::get('/aulas',[FacilityController::class, 'index'])->name('facilities.index');
             Route::get('/aulas/crear',[FacilityController::class, 'createForm'])->name('facilities.create');
             Route::post('/aulas', [FacilityController::class, 'store'])->name('facilities.store');
             Route::delete('/aulas/{facility}', [FacilityController::class, 'destroy'])->name('facilities.destroy');
 
-            // Horarios
             Route::resource('horarios', HorarioController::class)->names('schedules');
 
             // Carreras
@@ -145,14 +144,60 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('careers.destroy');
         });
 
-    // --- Inscripción (Control Escolar) ---
-    Route::middleware(['role:master,control_escolar'])->group(function () {
-        Route::get('/inscripcion',[InscripcionController::class, 'index'])->name('inscripcion.index');
-        Route::post('/inscripcion/create',[InscripcionController::class, 'store'])->name('inscripcion.store');
+  
+// ==========================================
+// 2. MÓDULO CONTROL ESCOLAR (Usa rol administrativo pero filtro por checkbox)
+// ==========================================
+Route::middleware(['role:master,control_administrativo']) 
+    ->prefix('control-escolar')
+    ->name('escolar.')
+    ->group(function () {
+        
+        Route::get('/inicio', [ControlAdministrativoController::class, 'showEscolar'])->name('dashboard');
+
+        // =============================================================
+        // 1. INSCRIPCIÓN Y REINSCRIPCIÓN (InscripcionController)
+        // =============================================================
+        
+        // A. Panel Principal (Index)
+        Route::get('/inscripcion', [InscripcionController::class, 'index'])
+            ->name('inscripcion.index');
+
+        // B. Nuevo Ingreso (Create & Store)
+        // FALTABA ESTA: Para ver el formulario vacío
+        Route::get('/inscripcion/nuevo', [InscripcionController::class, 'create'])
+            ->name('inscripcion.create');
+            
+        // Para guardar el formulario
+        Route::post('/inscripcion/nuevo', [InscripcionController::class, 'store'])
+            ->name('inscripcion.store');
+
+        // C. Reinscripción (Edit & Update)
+        // FALTABA ESTA: Para ver el formulario con datos del alumno
+        Route::get('/inscripcion/{id}/reinscribir', [InscripcionController::class, 'edit'])
+            ->name('inscripcion.edit');
+
+        // Para guardar los cambios de la reinscripción
+        Route::put('/inscripcion/{id}', [InscripcionController::class, 'update'])
+            ->name('inscripcion.update');   
+            
+        // Alumnos (Versión Escolar)
+        Route::get('/lista-alumnos', [studentController::class, 'index'])->name('students.index');
+        Route::get('/lista-alumnos/{id}/edit', [studentController::class, 'edit'])->name('students.edit'); // Corregido: Usar studentController o InscripcionController según tu lógica
+        Route::put('/lista-alumnos/{id}', [studentController::class, 'update'])->name('students.update');
+        Route::delete('/lista-alumnos/{id}', [studentController::class, 'destroy'])->name('students.destroy');
+
+        // Matrículas (¡Nuevo módulo!)
+        Route::get('/matriculas', [MatriculaController::class, 'index'])->name('matriculas.index');
+        Route::put('/matriculas/{id}', [MatriculaController::class, 'update'])->name('matriculas.update');
+        Route::post('/matriculas/{id}/asignar', [MatriculaController::class, 'store'])->name('matriculas.store');
+
+        // Placeholders
+       // Route::get('/becas', function() { return view('layouts.ControlEsc.becas'); })->name('becas');
+       // Route::get('/titulacion', function() { return 'Titulación'; })->name('titulacion');
     });
 
-    // --- Rutas Deprecadas (V1) ---
-    Route::get('/control-administrativo-v1', function () { return view('layouts.ControlAdmin.index'); })->middleware('role:master');
-    Route::get('/ajustes-v1', function () { return view('layouts.Ajustes.index'); })->middleware('role:master');
-
+// --- Rutas Deprecadas (V1) ---
+Route::get('/control-administrativo-v1', function () { return view('layouts.ControlAdmin.index'); })->middleware('role:master');
+Route::get('/ajustes-v1', function () { return view('layouts.Ajustes.index'); })->middleware('role:master');
 });

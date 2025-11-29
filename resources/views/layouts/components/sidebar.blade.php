@@ -41,16 +41,19 @@
         </a>
       </li>
 
-    @php
-    // Verificamos los roles y el contexto una sola vez
-    $user = Auth::user();
-    $isMaster = $user->hasActiveRole('master');
-    $isAdmin = $user->hasActiveRole('control_administrativo');
-    $userModules = @$user->academicProfile->modules ?? [];
+@php
+        $user = Auth::user();
+        $isMaster = $user->hasActiveRole('master');
+        
+        // Definimos ambas por si acaso usas una u otra
+        $isAdmin = $user->hasActiveRole('control_administrativo');
+        $isAdminBase = $isAdmin; // Alias para compatibilidad
+        
+        $userModules = $user->academicProfile->modules ?? [];
 
-    $universityName = 'Universidad Mundo Imperial';
-    $isUniversity = (session('active_institution_name') == $universityName);
-@endphp
+        $universityName = 'Universidad Mundo Imperial';
+        $isUniversity = (session('active_institution_name') == $universityName);
+    @endphp
 
 {{-- 1. Botón principal: Visible si es Master/Admin Y está en la Universidad --}}
 @if(($isMaster || $isAdmin) && $isUniversity)
@@ -67,29 +70,63 @@
         {{-- INICIA EL PRIMER NIVEL DE SUBMENÚ (FLOTANTE) --}}
         {{-- ----------------------------------------- --}}
         <ul class="submenu">
-            
-            {{-- 1. MÓDULO CONTROL ESCOLAR (AHORA ES UN SUBMENÚ) --}}
-            @if($isMaster || in_array('control_escolar', $userModules))
-                <li class="has-submenu {{ request()->is('control/escolar/*') ? 'active open' : '' }}">
-                    <a href="#">Control Escolar</a> {{-- Se vuelve un toggle --}}
-                    
+           @php
+        $user = Auth::user();
+        $isMaster = $user->hasActiveRole('master');
+        
+        // Ahora usamos 'control_administrativo' como rol base para todo
+        
+        // Módulos activados en el perfil académico (checkboxes)
+        $userModules = $user->academicProfile->modules ?? [];
+
+        $universityName = 'Universidad Mundo Imperial';
+        $isUniversity = (session('active_institution_name') == $universityName);
+    @endphp 
+
+          {{-- 1. MÓDULO CONTROL ESCOLAR --}}
+           @if( ($isMaster || ($isAdminBase && in_array('control_escolar', $userModules))) && $isUniversity )
+                <li class="has-submenu {{ request()->routeIs('escolar.*') ? 'active open' : '' }}">
+                    <a href="#">Control Escolar</a>
+                        
                     {{-- SEGUNDO NIVEL DE SUBMENÚ (HIJOS) --}}
                     <ul class="submenu">
-                        <li class="{{ request()->is('control/escolar/inscripcion') ? 'active-submenu' : '' }}"><a href="#">Inscripción</a></li>
-                        <li class="{{ request()->is('control/escolar/alumnos') ? 'active-submenu' : '' }}"><a href="#">Lista de alumnos</a></li>
-                        <li class="{{ request()->is('control/escolar/matriculas') ? 'active-submenu' : '' }}"><a href="#">Matrículas</a></li>
-                        <li class="{{ request()->is('control/escolar/becas') ? 'active-submenu' : '' }}"><a href="#">Becas</a></li>
-                        <li class="{{ request()->is('control/escolar/practicas') ? 'active-submenu' : '' }}"><a href="#">Prácticas profesionales</a></li>
-                        <li class="{{ request()->is('control/escolar/servicio') ? 'active-submenu' : '' }}"><a href="#">Servicio Social</a></li>
-                        <li class="{{ request()->is('control/escolar/boletas') ? 'active-submenu' : '' }}"><a href="#">Boleta de calificaciones</a></li>
-                        <li class="{{ request()->is('control/escolar/titulacion') ? 'active-submenu' : '' }}"><a href="#">Titulación</a></li>
+                        
+                        {{-- Inscripción (Ruta corregida) --}}
+                        <li class="{{ request()->routeIs('escolar.inscripcion.index') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('escolar.inscripcion.index') }}">Inscripción</a>
+                        </li>
+
+                        {{-- Lista de Alumnos (Ruta corregida para contexto escolar) --}}
+                        <li class="{{ request()->routeIs('escolar.students.index') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('escolar.students.index') }}">Lista de alumnos</a>
+                        </li>
+
+                        {{-- Matrículas (Nueva ruta) --}}
+                        <li class="{{ request()->routeIs('escolar.matriculas.index') ? 'active-submenu' : '' }}">
+                        <a href="{{ route('escolar.matriculas.index') }}">Matrículas</a>
+                        </li>
+                        <li class="{{ request()->is('control/escolar/becas') ? 'active-submenu' : '' }}">
+                            <a href="#">Becas</a>
+                        </li>
+                        <li class="{{ request()->is('control/escolar/practicas') ? 'active-submenu' : '' }}">
+                            <a href="#">Prácticas profesionales</a>
+                        </li>
+                        <li class="{{ request()->is('control/escolar/servicio') ? 'active-submenu' : '' }}">
+                            <a href="#">Servicio Social</a>
+                        </li>
+                        <li class="{{ request()->is('control/escolar/boletas') ? 'active-submenu' : '' }}">
+                            <a href="#">Boleta de calificaciones</a>
+                        </li>
+                        <li class="{{ request()->is('control/escolar/titulacion') ? 'active-submenu' : '' }}">
+                            <a href="#">Titulación</a>
+                        </li>
 
                     </ul>
                 </li>
             @endif
 
             {{-- 2. MÓDULO CONTROL ACADÉMICO (AHORA ES UN SUBMENÚ) --}}
-            @if($isMaster || in_array('control_academico', $userModules))
+            @if( ($isMaster || ($isAdminBase && in_array('control_academico', $userModules))) && $isUniversity )
                 <li class="has-submenu {{ request()->is('control/academico/*') ? 'active open' : '' }}">
                     <a href="#">Control Académico</a> {{-- Se vuelve un toggle --}}
                     
@@ -132,7 +169,7 @@
             @endif
 
             {{-- 3. MÓDULO PLANEACIÓN Y VINCULACIÓN (AHORA ES UN SUBMENÚ) --}}
-            @if($isMaster || in_array('planeacion_vinculacion', $userModules))
+            @if( ($isMaster || ($isAdmin && in_array('planeacion_vinculacion', $userModules))) && $isUniversity )
                 <li class="has-submenu {{ request()->is('control/planeacion/*') ? 'active open' : '' }}">
                     <a href="#">Planeación y vinculación</a> {{-- Se vuelve un toggle --}}
                     

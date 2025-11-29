@@ -28,9 +28,20 @@ use App\Models\AdmonCont\Horario;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Career whereUpdatedAt($value)
  * @mixin \Eloquent
  */
+
+
+namespace App\Models\Users;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+use App\Models\Users\Institution;
+use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
+
 class Career extends Model
 {
-
     protected $fillable = [
         'official_id',
         'name',
@@ -38,21 +49,30 @@ class Career extends Model
         'description2',
         'description3',
         'type',
-        'semestre'
+        'semesters', // <--- ✅ CORRECTO: Plural, como en tu BD
+        'institution_id', // Agregado por seguridad ya que está en tu BD
+        'credits'         // Agregado por seguridad
     ];
 
-    public function materiaProfile(): BelongsTo
-    {
-        return $this->belongsTo(Materia::class);
-    }
-    public function horarioProfile(): BelongsTo
-    {
-        return $this->belongsTo(Horario::class);
-    }
+    // --- RELACIONES ---
 
-    public function institution() 
+    public function institution(): BelongsTo 
     { 
         return $this->belongsTo(Institution::class); 
     }
 
+    public function materias(): HasMany
+    {
+        return $this->hasMany(Materia::class);
+    }
+
+    public function horarios(): HasMany
+    {
+        return $this->hasMany(Horario::class);
+    }
+    
+    public function academicProfiles(): HasMany
+    {
+        return $this->hasMany(AcademicProfile::class);
+    }
 }

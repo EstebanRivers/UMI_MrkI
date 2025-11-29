@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('billings', function (Blueprint $table) {
-            // Añade la nueva columna para el XML
-            $table->string('xml_path')->nullable()->after('archivo_path');
+        Schema::table('users', function (Blueprint $table) {
+            $table->softDeletes(); // Agrega la columna 'deleted_at'
         });
     }
 
@@ -22,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('billings', function (Blueprint $table) {
-            // Revierte el cambio
-            $table->dropColumn('xml_path');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropSoftDeletes();
         });
     }
 };
