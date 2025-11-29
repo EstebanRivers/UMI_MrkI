@@ -48,7 +48,6 @@ class AcademicProfile extends Model
     // CORREGIDO: Usar 'career_id' para que coincida con la BD y el fillable
     public function career(): BelongsTo
 {
-    // ✅ CORRECCIÓN: Usamos 'career_id' que es como se llama en tu base de datos
     return $this->belongsTo(Career::class, 'career_id');
 }
 }

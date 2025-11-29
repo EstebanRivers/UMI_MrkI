@@ -253,7 +253,6 @@
                 </div>
             </div>
         </div>
-        {{-- Footer eliminado para evitar redundancia --}}
     </div>
 </div>
 
