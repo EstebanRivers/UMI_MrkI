@@ -2,9 +2,9 @@
 
 @section('title', 'Mis Certificados')
 
-@vite(['resources/css/Cursos/certificados.css', 'resources/js/app.js'])
-
 @section('content')
+@vite(['resources/css/Cursos/certificados.css'])
+
 <div class="container-fluid">
     <div class="header-section">
         <h1>Mis Certificados</h1>

@@ -548,8 +548,7 @@ class CourseController extends Controller
         // ---------------------------------------------------------
 
         // Creamos un nombre de archivo limpio para evitar caracteres raros
-        $filename = 'Certificado_' . Str::slug($course->title) . '_' . Str::slug($user->name) . '.pdf';
-
+        $filename = 'Certificado_' . Str::slug($course->title) . '_' . Str::slug($user->nombre . ' ' . $user->apellido_paterno) . '.pdf';
         return $pdf->download($filename);
     }
 
