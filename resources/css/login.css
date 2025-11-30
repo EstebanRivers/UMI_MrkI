@@ -178,3 +178,11 @@ label[for="password"] {
         padding: 20px;
     }
 }
+
+@media (max-width: 1920px) {
+    .login-left img {
+        height: 100%;
+    }
+
+    
+}

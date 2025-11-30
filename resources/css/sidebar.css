@@ -288,3 +288,18 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
     font-weight: bold;
     background-color: rgba(0, 0, 0, 0.03);
 }
+
+/* ================================================= */
+/* --- ESTILOS RESPONSIVOS PARA EL SIDEBAR --- */
+/* ================================================= */
+@media (max-width: 1920px) {
+  .sidebar-bottom .brand-bottom {
+    margin-bottom: auto;
+    position: relative ;
+    top: 10px;
+  }
+
+  .brand-img {
+    max-width: 100px;
+  }
+}

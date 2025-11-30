@@ -55,7 +55,7 @@
     margin: 0;
 }
 .topics-header h2 {
-    color: #e69a37;
+    color: #BC8A55;
     font-weight: 500;
     margin-top: 5px;
 }
@@ -127,7 +127,7 @@
 .btn-subtopic,
 .btn-activities,
 .btn-secondary,
-.btn-success {
+.btn-successs {
     display: inline-block;
     border: none;
     border-radius: 5px;
@@ -158,11 +158,11 @@
 .btn-secondary:hover {
     background: #545b62;
 }
-.btn-success {
+.btn-successs {
     background: #223F70;
     color: white;
-    max-width: fit-content;
-    max-height: fit-content;
+    width: 140px;
+    font-size: medium;
     &:hover {
         background: #0056b3;
     }
@@ -277,55 +277,6 @@
     padding: 40px 0;
 }
 
-
-#cw-editor-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-#cw-editor-grid {
-    display: grid;
-    border: 2px solid #333;
-    grid-template-columns: repeat(var(--cw-editor-grid-size, 15), 25px);
-    flex-shrink: 0;
-}
-.cw-editor-cell {
-    width: 25px;
-    height: 25px;
-    background: #fff;
-    border: 1px solid #ccc;
-    box-sizing: border-box; /* Importante */
-    cursor: pointer;
-    position: relative;
-    font-size: 14px;
-    font-family: monospace;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.cw-editor-cell.selected {
-    outline: 3px solid #e69a37;
-    z-index: 10;
-}
-.cw-editor-cell .cw-editor-number {
-    position: absolute;
-    top: 1px;
-    left: 2px;
-    font-size: 9px;
-    font-weight: bold;
-    color: #333;
-}
-.cw-clue-list {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-    background: #f9f9f9;
-    padding: 5px;
-    border-radius: 4px;
-    min-height: 50px;
-}
-
 .form-group-exam {
     background: #fffbe6;
     padding: 10px;
@@ -356,5 +307,80 @@
     border-radius: 12px;
     &:hover {
         background: #0056b3;
+    }
+}
+
+/* ================================
+   🔹 Estilos para ≥ 1440px
+   (monitores grandes estándar)
+================================ */
+@media (min-width: 1440px) {
+    .topics-container {
+        max-width: 1500px;
+        padding: 20px 40px;
+    }
+
+    .topics-layout {
+        grid-template-columns: 1.3fr 2.2fr; /* un poco más de equilibrio en los paneles */
+        gap: 28px;
+    }
+
+    .topics-list-content{
+        max-height: 550px; /* más área visible */
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px;
+        padding: 10px;
+    }
+}
+/* ================================
+   🔹 Estilos para ≥ 1920px
+   (Full HD / monitores amplios)
+================================ */
+@media (min-width: 1920px) {
+    .topics-container {
+        max-width: 1750px;
+        padding: 30px 60px;
+        font-size: 18px;
+    }
+
+    .topics-header h1 { font-size: 32px; }
+    .topics-header h2 { font-size: 22px; }
+
+    .topics-layout {
+        grid-template-columns: 1.5fr 2.5fr;
+        gap: 40px;
+    }
+
+    .topics-form,
+    .topics-list {
+        padding: 25px;
+        border-radius: 14px;
+        font-size: 17px;
+    }
+
+    .btn-topic,
+    .btn-subtopic,
+    .btn-activities,
+    .btn-secondary,
+    .btn-success {
+        padding: 12px 14px;
+        font-size: 17px;
+    }
+
+    .topic-card {
+        padding: 22px;
+        font-size: 17px;
+    }
+
+    .topic-card p {
+        font-size: 15px;
+    }
+
+    .topics-list-content{
+        max-height: 700px; /* más espacio para ver listas largas */
     }
 }

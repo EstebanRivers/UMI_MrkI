@@ -47,54 +47,6 @@
     }
 }
 
-/* ===== FILTROS ===== */
-.courses-filters {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    padding: 8px 16px;
-    border: 1px #BC8A55;
-    background: #ACACAC;
-    color: #FFFFFF;
-    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.filter-btn:hover,
-.filter-btn.active {
-    background: #BC8A55;
-    color: #FFFFFF;
-}
-
-/* Variantes */
-.filter-btn.available {
-    border-color: #28a745;
-    color: #28a745;
-}
-
-.filter-btn.available:hover {
-    background: #28a745;
-    color: white;
-}
-
-.filter-btn.enrolled {
-    border-color: #17a2b8;
-    color: #17a2b8;
-}
-
-.filter-btn.enrolled:hover {
-    background: #17a2b8;
-    color: white;
-}
-
 /* ===== CURSOS ===== */
 .courses-container {
     display: grid;
@@ -216,5 +168,23 @@
     .courses-container {
         grid-template-columns: 1fr;
         gap: 16px;
+    }
+}
+@media (min-width: 1920px) {
+
+    .courses-wrapper {
+        max-width: 1600px;
+        padding: 40px ;
+        font-size: 18px;
+    }
+
+    .courses-container {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 35px;
+    }
+
+    .no-courses-message {
+        font-size: 20px;
+        padding: 60px;
     }
 }
