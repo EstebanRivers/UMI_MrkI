@@ -95,42 +95,10 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
         Route::post('/actividades', [ActivitiesController::class, 'store'])->name('activities.store');
         Route::delete('/actividades/{activity}', [ActivitiesController::class, 'destroy'])->name('activities.destroy');
     });
-<<<<<<< HEAD
 
     // --- Módulo: Cursos (Vista y Realización - Alumnos y General) ---
     // Estas rutas atrapan {course}, por eso van AL FINAL de la sección de cursos
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
-    Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
-    Route::get('/cursos/{course}/certificado', [CourseController::class, 'showCertificate'])->name('courses.certificate');
-    Route::get('/mis-certificados', [CourseController::class, 'myCertificates'])->name('courses.certificates.index');
-=======
-// Ajustes
-Route::middleware(['role:master,control_administrativo'])
-    ->prefix('ajustes')->name('ajustes.')->group(function () {
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
-    
-    // --- Rutas existentes ---
-    Route::get('/{seccion}', [AjustesController::class, 'show'])->name('show');
-    Route::post('/{seccion}', [AjustesController::class, 'store'])->name('store');
-    
-    // --- Rutas del Modal ---
-    Route::get('/{seccion}/create-form', [AjustesController::class, 'getCreateForm'])->name('getCreateForm');
-    Route::get('/{seccion}/{id}/edit-form', [AjustesController::class, 'getEditForm'])->name('getEditForm');
-    Route::put('/{seccion}/{id}', [AjustesController::class, 'update'])->name('update');
-    Route::delete('/{seccion}/{id}', [AjustesController::class, 'destroy'])->name('destroy');
-    
-    Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
-         ->name('users.toggleStatus'); 
-
-    Route::post('users/{id}/toggle-status', [AjustesController::class, 'toggleUserStatus'])
-         ->name('users.toggleStatus');
-         
-    Route::post('periods/{id}/toggle-status', [AjustesController::class, 'togglePeriodStatus'])
-         ->name('periods.toggleStatus');
-
-});
-
-    //Vista del curso
     Route::get('/cursos/{course}', [CourseController::class, 'show'])->name('course.show');
     Route::get('/cursos/{course}/certificado', [CourseController::class, 'showCertificate'])->name('courses.certificate');
     Route::get('/mis-certificados', [CourseController::class, 'myCertificates'])->name('courses.certificates.index');
@@ -149,34 +117,56 @@ Route::middleware(['role:master,control_administrativo'])
     // --- Gestión de Facturación (Cobros y Pagos) ---
     Route::post('/facturacion', [BillingController::class, 'store'])->name('Facturacion.store'); 
     Route::delete('/facturacion/{billing}', [BillingController::class, 'destroy'])->name('Facturacion.destroy');
-     Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
-    
-    // Control Administrativo - roles especificos
-    Route::middleware(['role:master,control_administrativo'])
-        ->prefix('control-administrativo')
-        ->name('control.') // Esto crea nombres como 'control.academico'
-        ->group(function () {
-
-            // Ruta para "Control Académico"
-            Route::get('/academico', [ControlAdministrativoController::class, 'showAcademico'])
-                 ->name('academico');
-
-            // Ruta para "Control Escolar"
-            Route::get('/escolar', [ControlAdministrativoController::class, 'showEscolar'])
-                 ->name('escolar');
-
-            // Ruta para "Planeación y Vinculación"
-            Route::get('/planeacion', [ControlAdministrativoController::class, 'showPlaneacion'])
-                 ->name('planeacion');
-
-
+    Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
+        // Grupo de rutas para Conceptos de Facturación
+    Route::prefix('facturacion/conceptos')->name('facturacion.conceptos.')->group(function () {
+        
+        // 1. Vista Principal (Tabla y Modales)
+        Route::get('/', [BillingConceptController::class, 'index'])->name('index');
+        
+        // 2. Operaciones CRUD
+        // Guardar nuevo concepto (POST)
+        Route::post('/', [BillingConceptController::class, 'store'])->name('store');
+        
+        // Actualizar concepto existente (PUT)
+        Route::put('/{id}', [BillingConceptController::class, 'update'])->name('update');
+        
+        // Eliminar concepto (DELETE)
+        Route::delete('/{id}', [BillingConceptController::class, 'destroy'])->name('destroy');
+        
+        // 3. Acción Extra (Toggle Activo/Inactivo)
+        Route::post('/{id}/toggle-status', [BillingConceptController::class, 'toggleStatus'])->name('toggleStatus');
     });
+        // ------------------------------------------------------------
+        // A. CONTROL ESCOLAR (Flujo de Ingreso)
+        // ------------------------------------------------------------
+        Route::prefix('control-escolar')->name('escolar.')->group(function () {
+            
+            Route::get('/inicio', [ControlAdministrativoController::class, 'showEscolar'])->name('dashboard');
 
-   
+            // 1. Inscripción / Reinscripción
+            Route::get('/inscripcion', [InscripcionController::class, 'index'])->name('inscripcion.index');
+            Route::get('/inscripcion/nuevo', [InscripcionController::class, 'create'])->name('inscripcion.create');
+            Route::post('/inscripcion/nuevo', [InscripcionController::class, 'store'])->name('inscripcion.store');
+            
+            Route::get('/inscripcion/{id}/reinscribir', [InscripcionController::class, 'edit'])->name('inscripcion.edit');
+            Route::put('/inscripcion/{id}', [InscripcionController::class, 'update'])->name('inscripcion.update'); 
+                
+            // 2. Lista de Alumnos (Gestión y Contraseña)
+            Route::get('/lista-alumnos', [studentController::class, 'index'])->name('students.index');
+            Route::get('/lista-alumnos/{id}/edit', [studentController::class, 'edit'])->name('students.edit');
+            Route::put('/lista-alumnos/{id}', [studentController::class, 'update'])->name('students.update');
+            Route::delete('/lista-alumnos/{id}', [studentController::class, 'destroy'])->name('students.destroy');
 
-    
+            // 3. Matrículas
+            Route::get('/matriculas', [MatriculaController::class, 'index'])->name('matriculas.index');
+            Route::put('/matriculas/{id}', [MatriculaController::class, 'update'])->name('matriculas.update');
+            Route::post('/matriculas/{id}/asignar', [MatriculaController::class, 'store'])->name('matriculas.store');
+            
+            // 4. Futuros Módulos (Becas, Titulación...)
+            // Route::get('/becas', ...);
+        });
 
-<<<<<<< HEAD
 
         // ------------------------------------------------------------
         // B. CONTROL ADMINISTRATIVO / ACADÉMICO (Infraestructura)
@@ -241,7 +231,4 @@ Route::middleware(['role:master,control_administrativo'])
 
     }); // Fin Middleware Administrativo
 
-}); // Fin Middleware Auth + Ajax + SPA
-=======
 });
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
