@@ -1,375 +1,82 @@
-/* =========================================
-   1. VARIABLES Y RESET BÁSICO
-   ========================================= */
-
-:root {
-    --umi-blue-dark: #223F70;
-    --umi-blue-light: #4A6CA8;
-    --umi-red-danger: #E74C3C;
-    
-    /* CAMBIO 2: MÁS ALTURA PARA LA TABLA */
-    /* Reducimos el offset de 120px a 60px para dar más espacio vertical */
-    --global-offset-height: 60px; 
-
-    /* CAMBIO 1: INVERSIÓN DE COLORES */
-    --page-bg: #FFFFFF;       /* Fondo de la página BLANCO */
-    --card-bg: #f5f5f5;       /* Fondo del contenedor GRIS */
-    --text: #333333; 
-}
-
+/* Reset y estilos base */
 *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
-    font-size: 16px;
-    scroll-behavior: smooth;
-    height: 100%;
+  font-size: 16px;
+  scroll-behavior: smooth;
+  height: 100%;
 }
 
 body {
-    font-family: 'Poppins', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    line-height: 1.6;
-    color: var(--text);
-    background: var(--page-bg); /* Ahora es blanco */
-    height: 100%;
-    overflow-x: hidden;
+  font-family: 'Poppins', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  overflow-x: hidden;
 }
 
-/* =========================================
-   2. LAYOUT PRINCIPAL
-   ========================================= */
-
-#umi-app-view {
-    height: calc(100vh - var(--global-offset-height));
-    width: 100%;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; 
+/* Optimizaciones de rendimiento */
+.app-container {
+  contain: layout style paint;
 }
 
-/* Header */
-#umi-app-view .umi-header h1 {
-    font-size: 28px;
-    font-weight: 800;
-    margin: 0 0 15px 0;
-    flex-shrink: 0; 
-    color: #333;
-    text-transform: uppercase;
+.sidebar {
+  contain: layout style;
 }
 
-/* Toolbar */
-#umi-app-view .umi-toolbar {
-    margin-bottom: 20px;
-    flex-shrink: 0; 
-    display: flex; 
-    align-items: center;
-    gap: 15px; 
+.main-content {
+  contain: layout style paint;
+  will-change: contents, opacity, transform;
 }
 
-/* --- CARD CONTENEDORA --- */
-#umi-app-view .umi-table-card {
-    flex: 1; 
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; 
-    min-height: 0; 
-    
-    /* CAMBIO 1: FONDO GRIS PARA EL CONTENEDOR */
-    background: var(--card-bg); 
-    border-radius: 12px;
-    /* Sombra más suave para el fondo gris */
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.03); 
-    padding: 20px;
+/* Estados de navegación */
+body.navigation-loading {
+  cursor: progress;
 }
 
-.umi-table-scroll {
-    height: 100%; 
-    overflow-y: auto; 
-    overflow-x: auto;
-    padding: 0;
-    /* CAMBIO 3: Asegura que el scroll se comporte bien con el sticky */
-    position: relative; 
+body.navigation-loading .main-content {
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
 }
 
-/* =========================================
-   3. ESTILOS DE LA TABLA
-   ========================================= */
-
-#umi-app-view .umi-table-card table {
-    table-layout: fixed; 
-    border-collapse: separate; 
-    border-spacing: 0;         
-    width: 100%;
+/* Utilidades de accesibilidad */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* --- ENCABEZADO TIPO "PASTILLA" AZUL (STICKY MEJORADO) --- */
-#umi-app-view table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 20; /* Z-index más alto para asegurar que quede por encima */
-    background-color: var(--umi-blue-dark);
-    color: white;
-    padding: 15px 10px;
-    white-space: normal;
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 14px;
-    vertical-align: middle;
-    border: none;
-    
-    /* Mantenemos el truco del borde transparente para la separación */
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar {
+    display: none;
+  }
   
-    background-clip: padding-box;
-    
-    /* CAMBIO 3: Sombra sutil para que al hacer scroll se sienta "desprendido" y sólido */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+  .main-content {
+    margin-left: 0;
+    padding: 0;
+  }
 }
-
-/* Redondeo completo (Píldora) para el encabezado */
-#umi-app-view table thead tr:first-child th:first-child {
-    border-top-left-radius: 50px;
-    border-bottom-left-radius: 50px;
-}
-#umi-app-view table thead tr:first-child th:last-child {
-    border-top-right-radius: 50px;
-    border-bottom-right-radius: 50px;
-}
-
-/* --- CUERPO DE LA TABLA (BLOQUE BLANCO CON LÍNEAS ROJAS) --- */
-
-/* Fondo blanco independiente para los datos */
-#umi-app-view tbody {
-    background-color: #FFFFFF; /* El cuerpo se mantiene blanco para contrastar con el gris */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border-radius: 12px;
-    /* Asegura que el cuerpo esté en un plano inferior al header */
-    position: relative; 
-    z-index: 1;
-}
-
-/* LÍNEAS ROJAS VERTICALES */
-#umi-app-view table tbody td:not(:last-child) {
-    border-right: 2px solid var(--umi-red-danger); 
-}
-
-/* Estilos de las celdas del cuerpo */
-#umi-app-view tbody td {
-    padding: 12px 10px;
-    border-bottom: 1px solid #f0f0f0; 
-    font-size: 14px;
-    vertical-align: middle;
-    color: #444;
-    word-wrap: break-word;
-}
-
-/* Redondeo del bloque del cuerpo */
-#umi-app-view tbody tr:first-child td:first-child { border-top-left-radius: 12px; }
-#umi-app-view tbody tr:first-child td:last-child { border-top-right-radius: 12px; }
-#umi-app-view table tbody tr:last-child td:first-child { border-bottom-left-radius: 12px; }
-#umi-app-view table tbody tr:last-child td:last-child { border-bottom-right-radius: 12px; }
-
-/* Quitar borde inferior de la última fila */
-#umi-app-view tbody tr:last-child td {
-    border-bottom: none;
-}
-
-#umi-app-view tbody tr:hover {
-    background-color: #f9f9f9; /* Un gris muy claro para el hover sobre blanco */
-}
-
-/* --- AJUSTE DE ANCHO Y ALINEACIÓN DE COLUMNAS --- */
-#umi-app-view table thead th:nth-child(1),
-#umi-app-view table tbody td:nth-child(1) {
-    width: 250px; 
-    min-width: 200px;
-    text-align: center;
-}
-#umi-app-view table thead th:nth-child(6), 
-#umi-app-view table tbody td:nth-child(6) {
-    width: 150px; 
-    min-width: 150px;
-    text-align: center;
-}
-#umi-app-view table thead th:nth-child(2),
-#umi-app-view table thead th:nth-child(3),
-#umi-app-view table thead th:nth-child(4),
-#umi-app-view table thead th:nth-child(5),
-#umi-app-view table tbody td:nth-child(2),
-#umi-app-view table tbody td:nth-child(3),
-#umi-app-view table tbody td:nth-child(4),
-#umi-app-view table tbody td:nth-child(5) {
-    text-align: center;
-}
-
-#umi-app-view tbody td .actions-row {
-    display: flex;
-    gap: 8px;
-    justify-content: center; 
-}
-
-/* =========================================
-   4. SCROLLBAR
-   ========================================= */
-.umi-table-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
-.umi-table-scroll::-webkit-scrollbar-track { background: #e0e0e0; border-radius: 10px; } /* Track un poco más oscuro para el fondo gris */
-.umi-table-scroll::-webkit-scrollbar-thumb { background: var(--umi-blue-dark); border-radius: 10px; }
-.umi-table-scroll::-webkit-scrollbar-thumb:hover { background: #1a3055; }
-
-/* =========================================
-   5. BOTONES Y BUSCADOR (PÍLDORA)
-   ========================================= */
-.umi-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background-color: var(--umi-blue-dark);
-    color: #FFFFFF;
-    border: none;
-    font-weight: 500; 
-    font-size: 16px; 
-    border-radius: 50px; 
-    padding: 10px 30px; 
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    text-decoration: none;
-    box-shadow: 0 4px 6px rgba(34, 63, 112, 0.2);
-    white-space: nowrap; 
-}
-.umi-btn:hover { background-color: #1a3055; transform: translateY(-1px); }
-.umi-btn i { font-size: 18px; }
-
-.umi-search-wrapper {
-    flex-grow: 1; 
-    max-width: 500px;
-    position: relative;
-}
-.umi-search-wrapper form { display: flex; align-items: center; }
-.umi-search-icon {
-    position: absolute;
-    left: 20px;
-    color: var(--umi-blue-dark);
-    font-size: 18px;
-    pointer-events: none;
-}
-.umi-search-input {
-    width: 100%;
-    padding: 12px 20px 12px 50px; 
-    border: 1px solid transparent;
-    border-radius: 50px; 
-    font-size: 16px;
-    outline: none;
-    background-color: #FFFFFF;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); 
-    color: #555;
-}
-.umi-search-input:focus { box-shadow: 0 4px 12px rgba(34, 63, 112, 0.15); }
-
-.inline-form { margin: 0; display: inline-block; }
-.btn-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px; height: 32px; 
-    border-radius: 50%;
-    border: 1px solid transparent;
-    background-color: transparent;
-    color: #555; 
-    padding: 0; 
-    transition: all 0.2s;
-    cursor: pointer;
-}
-.btn-icon:hover { background-color: #e0e0e0; color: var(--umi-blue-dark); } /* Hover ajustado para fondo gris */
-.btn-icon--danger { color: var(--umi-red-danger); }
-.btn-icon--danger:hover { background-color: #FDECEA; color: #C0392B; }
-.btn-icon img { width: 16px; height: 16px; }
-
-/* Utilidades */
-.app-container, .main-content { contain: layout style paint; }
-@media print { .sidebar { display: none; } .main-content { margin-left: 0; padding: 0; } }
-
-/* =========================================
-   6. ESTILOS PARA ALERTAS Y ERRORES
-   ========================================= */
-
-/* Contenedor de la Alerta (Reemplaza el div con style inline) */
-.umi-error-card {
-    background-color: #fee2e2; /* Fondo rojo suave */
-    border: 1px solid var(--umi-red-danger);
-    color: #b91c1c; /* Texto rojo oscuro */
-    padding: 40px 30px;
-    border-radius: 12px; /* Mismo radio que .umi-table-card */
-    text-align: center;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.15); /* Sombra roja suave */
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.umi-error-card h1 {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    color: var(--umi-red-danger);
-}
-
-.umi-error-card h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-/* Botón de Error Redondeado (Estilo Píldora) */
-.umi-btn-error {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    
-    /* Color Rojo definido en tus variables */
-    background-color: var(--umi-red-danger);
-    color: #FFFFFF;
-    
-    border: none;
-    font-weight: 600;
-    font-size: 16px;
-    
-    /* AQUÍ ESTÁ EL REDONDEO QUE PEDISTE */
-    border-radius: 50px; 
-    
-    padding: 12px 35px;
-    margin-top: 20px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
-}
-
-.umi-btn-error:hover {
-    background-color: #c0392b; /* Rojo más oscuro al pasar el mouse */
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
-    color: white;
-}
-
-.umi-btn-error i {
-    margin-right: 8px;
-}
-
-        .link-view-doc {
-            display: inline-block;
-            margin-top: 5px;
-            color: #3498db;
-            font-size: 0.9em;
-            text-decoration: none;
-        }
-        .link-view-doc:hover {
-            text-decoration: underline;
-            color: #2980b9;
-        }
-        .form-title { font-size: 1.5rem; color: #2c3e50; margin: 0; }
-   

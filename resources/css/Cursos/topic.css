@@ -64,12 +64,6 @@
 
 }
 
-.header-topic h3,
-.topics-list-header h3{
-    margin: 0;
-    color: #333;
-}
-
 /* Layout */
 .topics-layout {
     display: grid;
@@ -277,6 +271,7 @@
     padding: 40px 0;
 }
 
+<<<<<<< HEAD
 .form-group-exam {
     background: #fffbe6;
     padding: 10px;
@@ -384,37 +379,53 @@
         max-height: 700px; /* más espacio para ver listas largas */
     }
 }
+=======
 
-
-.form-group-exam {
-    background: #fffbe6;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ffe58f;
-    margin-bottom: 15px;
+#cw-editor-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
 }
-
-/* summary se comporta como el "botón" */
-.exam-label {
+#cw-editor-grid {
+    display: grid;
+    border: 2px solid #333;
+    grid-template-columns: repeat(var(--cw-editor-grid-size, 15), 25px);
+    flex-shrink: 0;
+}
+.cw-editor-cell {
+    width: 25px;
+    height: 25px;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-sizing: border-box; /* Importante */
+    cursor: pointer;
+    position: relative;
+    font-size: 14px;
+    font-family: monospace;
+    text-transform: uppercase;
     display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    list-style: none; /* quita el triángulo por defecto si quieres */
+    justify-content: center;
 }
-
-.exam-note {
-    margin-top: 5px;
-    color: #666;
+.cw-editor-cell.selected {
+    outline: 3px solid #e69a37;
+    z-index: 10;
 }
-
-.btn-secondary-exam {
-    background: #223F70;
-    color: white;
-    max-height: fit-content;
+.cw-editor-cell .cw-editor-number {
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #333;
+}
+.cw-clue-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    background: #f9f9f9;
     padding: 5px;
-    border-radius: 12px;
-    &:hover {
-        background: #0056b3;
-    }
+    border-radius: 4px;
+    min-height: 50px;
 }
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)

@@ -47,5 +47,6 @@ class RoleSeeder extends Seeder
             ['display_name' => 'Estudiante']
         );
 
+
     }
 }

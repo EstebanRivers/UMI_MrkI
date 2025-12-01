@@ -10,22 +10,16 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse; 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-use App\Models\Cursos\Completion;
-use Illuminate\Validation\Rule;
 
 class ActivitiesController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
         $validatedData = $request->validate([
-            'course_id' => 'required|exists:courses,id', 
-            'is_final_exam' => 'nullable|boolean', 
-            
-            'topic_id' => 'nullable|exists:topics,id|required_without_all:subtopic_id,is_final_exam',
-            'subtopic_id' => 'nullable|exists:subtopics,id|required_without_all:topic_id,is_final_exam',
-
+            'topic_id' => 'nullable|exists:topics,id|required_without_all:subtopic_id',
+            'subtopic_id' => 'nullable|exists:subtopics,id|required_without_all:topic_id',
             'title' => 'required|string|max:255',
-            'type' => 'required|string', 
+            'type' => 'required|string', // Tipos: 'Cuestionario', 'SopaDeLetras', 'Crucigrama'
             'content' => 'required|array',
         ]);
 
@@ -36,16 +30,6 @@ class ActivitiesController extends Controller
                 'content.options.*' => 'required|string',
                 'content.correct_answer' => 'required', 
 
-            ]);
-        }
-
-        elseif ($validatedData['type'] === 'Examen') {
-            $request->validate([
-                'content.questions' => 'required|array|min:1',
-                'content.questions.*.question' => 'required|string',
-                'content.questions.*.options' => 'required|array|min:2',
-                'content.questions.*.options.*' => 'required|string',
-                'content.questions.*.correct_answer' => 'required|string',
             ]);
         }
         
@@ -80,16 +64,10 @@ class ActivitiesController extends Controller
             ]);
         }
 
-        $courseId = $validatedData['course_id'];
-        $validatedData['is_final_exam'] = $request->has('is_final_exam');
+        $courseId = null;
 
         // 2. LÓGICA DE LIMPIEZA DE ID (Asegurar que solo uno se guarde)
-        if ($validatedData['is_final_exam']) {
-            // Es un examen final, pertenece al CURSO. Anular temas.
-            $validatedData['topic_id'] = null;
-            $validatedData['subtopic_id'] = null;
-
-        } elseif ($request->filled('subtopic_id')) {
+        if ($request->filled('subtopic_id')) {
             // Caso 1: Actividad pertenece a un Subtema
             $validatedData['topic_id'] = null; // Forzar a NULL
             
@@ -134,47 +112,24 @@ class ActivitiesController extends Controller
     public function submit(Request $request, Activities $activity): JsonResponse
     {
         $user = Auth::user();
-        $score = 0; 
-        $message = '¡Actividad completada!';
 
-        // 1. Validar "Cuestionario" (1 pregunta)
+        // 1. Validar la respuesta (si aplica)
         if ($activity->type === 'Cuestionario') {
             $validated = $request->validate(['answer' => 'required']);
+            
             $userAnswer = $validated['answer'];
             $correctAnswer = $activity->content['correct_answer'] ?? null;
 
+            // Comparamos la respuesta enviada (ej. "1") con la correcta (ej. "1")
             if (strval($userAnswer) !== strval($correctAnswer)) {
-                return response()->json(['success' => false, 'message' => 'Respuesta incorrecta.'], 422);
-            }
-            $score = 100.00; // Si es correcta, 100
-        }
-
-        // 2. Validar "Examen" (múltiples preguntas)
-        elseif ($activity->type === 'Examen') {
-            $userAnswersData = $request->validate(['answers' => 'required|array']);
-            $userAnswers = $userAnswersData['answers'];
-            
-            $questions = $activity->content['questions'] ?? [];
-            $totalQuestions = count($questions);
-            $correctCount = 0;
-
-            if ($totalQuestions > 0) {
-                foreach ($userAnswers as $index => $answerData) {
-                    $questionIndex = $answerData['q'];
-                    $userAnswerIndex = $answerData['a'];
-
-                    if (isset($questions[$questionIndex])) {
-                        $correctAnswerIndex = $questions[$questionIndex]['correct_answer'] ?? null;
-                        if (strval($userAnswerIndex) === strval($correctAnswerIndex)) $correctCount++;
-                    }
-                }
-                $score = round(($correctCount / $totalQuestions) * 100, 2);
-                $message = "¡Examen completado! Tu calificación: $correctCount / $totalQuestions ($score%)";
-            } else {
-                return response()->json(['success' => false, 'message' => 'Este examen no tiene preguntas.'], 422);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Respuesta incorrecta. ¡Inténtalo de nuevo!'
+                ], 422); // Error de validación
             }
         }
 
+<<<<<<< HEAD
         elseif ($activity->type === 'Crucigrama' ) {
             // $validated = $request->validate(['completed' => 'required|boolean']);
             // $completed = $validated['completed'];
@@ -184,6 +139,12 @@ class ActivitiesController extends Controller
             // }
             $score = 100.00; // Completado correctamente
         }
+=======
+        // Para 'SopaDeLetras' o 'Crucigrama', la validación se hace en el frontend (JS).
+        // El simple hecho de llamar a esta ruta significa que el usuario completó el juego.
+        // Si quisieras más seguridad, el JS debería enviar una "prueba" que el backend pueda validar.
+        // Por ahora, confiamos en que si el JS lo envía, está completo.
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 
         // 2. Marcar como completado usando el sistema polimórfico
         $completion = $user->completions()->updateOrCreate(
