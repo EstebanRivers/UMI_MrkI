@@ -167,9 +167,17 @@ class ActivitiesController extends Controller
         );
 
         if ($completion->wasRecentlyCreated || $completion->wasChanged()) {
+            // La actividad tiene la relación 'course' directa en el modelo
             $course = $activity->course; 
-            if($course) {
-                $newProgress = $course->calculateUserProgress($user->id);
+            
+            // Si por alguna razón la relación es null (ej: actividad huérfana), buscamos manual
+            if (!$course) {
+                if ($activity->topic) $course = $activity->topic->course;
+                elseif ($activity->subtopic) $course = $activity->subtopic->topic->course;
+            }
+
+            if ($course) {
+                $course->calculateUserProgress($user->id);
             }
         }
 

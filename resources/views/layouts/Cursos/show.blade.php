@@ -93,7 +93,7 @@
                 </div>
             @endforeach
             @if ($finalExamActivity)
-                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #e69a37; margin-top: 15px; padding-top: 15px;">
+                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #BC8A55; margin-top: 15px; padding-top: 15px;">
                     <strong 
                         class="syllabus-link auto-complete-link accordion-toggle"
                         data-target="#content-activity-{{ $finalExamActivity->id }}"
