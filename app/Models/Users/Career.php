@@ -25,7 +25,6 @@ use App\Models\Users\Institution;
  */
 class Career extends Model
 {
-<<<<<<< HEAD
     protected $fillable = [
         'official_id',
         'name',
@@ -41,9 +40,6 @@ class Career extends Model
     // --- RELACIONES ---
 
     public function institution(): BelongsTo 
-=======
-    public function institution() 
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
     { 
         return $this->belongsTo(Institution::class); 
     }

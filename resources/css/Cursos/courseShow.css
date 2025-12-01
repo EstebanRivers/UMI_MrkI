@@ -406,13 +406,9 @@
     background-color: transparent;
     padding: 0;
     margin: 0;
-<<<<<<< HEAD
     outline: none; 
     color: #000;
     z-index: 10;
-=======
-    outline: none; /* Quitar el contorno al enfocar */
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 }
 
 .cw-cell input:focus {

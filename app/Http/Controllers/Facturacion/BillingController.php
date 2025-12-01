@@ -184,24 +184,13 @@ class BillingController extends Controller
                     $agregarAlerta = true;
 
                     if ($diasRestantes > 1) {
-<<<<<<< HEAD
-                        $titulo = "⚠ Atención: Pago Próximo";
-=======
                         // 2 o más días antes
                         $titulo = "⚠️ Atención: Pago Próximo";
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                         $mensaje = "Hola {$user->nombre}, faltan {$diasRestantes} días para que venza tu factura '{$factura->concepto}'.";
                     } elseif ($diasRestantes === 1) {
                         $titulo = "⚠ Atención: Pago Próximo";
                         $mensaje = "Hola {$user->nombre}, falta 1 día para que venza tu factura '{$factura->concepto}'.";
                     } elseif ($diasRestantes === 0) {
-<<<<<<< HEAD
-                        $titulo = "⚠ Atención: Vence Hoy";
-                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' vence HOY.";
-                    } else {
-                        $titulo = "⚠ Atención: Su Pago Venció";
-                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' ya venció.";
-=======
                         $titulo = "⚠️ Atención: Vence Hoy";
                         $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' vence HOY. Por favor realiza el pago.";
                     } elseif ($diasRestantes === -1) {
@@ -210,7 +199,6 @@ class BillingController extends Controller
                     } else { // $diasRestantes === -2
                         $titulo = "⚠️ Atención: Su Pago Venció";
                         $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' venció hace 2 días. Por favor regulariza el pago.";
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                     }
                 }
 

@@ -287,7 +287,6 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
     color: var(--accent, #e69a37);
     font-weight: bold;
     background-color: rgba(0, 0, 0, 0.03);
-<<<<<<< HEAD
 }
 
 /* ================================================= */
@@ -303,6 +302,4 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
   .brand-img {
     max-width: 100px;
   }
-=======
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 }

@@ -41,16 +41,12 @@ class StoreCourseRequest extends FormRequest
             'credits' => $creditsRule,
             'hours' => 'required|integer|min:0',
             'workstation_id' => 'nullable|exists:workstations,id',
-<<<<<<< HEAD
             'guide_material' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:40960', // max 40MB
             'cert_bg_image'    => 'nullable|image|mimes:jpeg,png,jpg|max:20480', // Máx 20MB
             'cert_sig_1_image' => 'nullable|image|mimes:png|max:10240', // Preferible PNG para firmas transparentes
             'cert_sig_2_image' => 'nullable|image|mimes:png|max:10240',
             'cert_sig_1_name'  => 'nullable|string|max:100',
             'cert_sig_2_name'  => 'nullable|string|max:100',
-=======
-            'guide_material' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:40960', // max 20MB
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
         ];
     }
 }

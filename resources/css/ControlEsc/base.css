@@ -1,0 +1,144 @@
+/* Estilos Generales para el Formulario */
+.form-container {
+    max-width: 95%; /* Ancho máximo del formulario */
+    margin: 40px auto; /* Centrar el formulario en la página */
+    padding: 20px 30px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Sombra suave */
+    background-color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+/* Título */
+.form-title {
+    color: #004085; /* Un azul institucional */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+
+
+hr {
+    display: none; /* La línea del h3 es suficiente */
+}
+
+/* Mensajes de error */
+.error-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.error-message ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.error-message li {
+    margin: 5px 0;
+}
+
+/* Estilos de los grupos de campos */
+
+/* Grupos de 3 columnas (en escritorio) */
+.form-group-triple {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas de igual ancho */
+    gap: 20px; /* Espacio entre campos */
+    margin-bottom: 20px;
+}
+
+/* Grupos de 2 columnas (en escritorio) */
+.form-group-double {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas de igual ancho */
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Estilo para cada campo individual */
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Etiquetas */
+.form-field label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+    font-size: 0.95em;
+}
+
+/* Campos de entrada (Input y Select) */
+.form-field input[type="text"],
+.form-field input[type="email"],
+.form-field input[type="date"],
+.form-field input[type="number"],
+.form-field input[type="password"],
+.form-field select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box; /* Incluye padding y border en el ancho total */
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: #f9f9f9;
+}
+
+/* Foco en los campos */
+.form-field input:focus,
+.form-field select:focus {
+    border-color: #007bff; /* Azul al enfocar */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+    background-color: #fff;
+}
+
+/* Botón de envío */
+.form-action-buttons {
+    display: flex;
+    justify-content: flex-end; /* Alinear el botón a la derecha */
+    padding-top: 20px;
+}
+
+.submit-button {
+    background-color: #223f70; /* Verde para acción de registro */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    color: var(--accent);
+}
+
+/* --- Adaptabilidad (Responsiveness) --- */
+
+/* Para pantallas más pequeñas (móviles) */
+@media (max-width: 768px) {
+    .form-container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    /* Convertir grupos de 3 o 2 columnas a una sola columna */
+    .form-group-triple,
+    .form-group-double {
+        grid-template-columns: 1fr; /* Una columna en móviles */
+        gap: 15px;
+    }
+
+    .form-action-buttons {
+        justify-content: center; /* Centrar el botón en móviles */
+    }
+}

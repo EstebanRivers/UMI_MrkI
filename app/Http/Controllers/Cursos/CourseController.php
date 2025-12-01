@@ -452,7 +452,6 @@ class CourseController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
     public function showCertificate(Course $course)
     {
         $user = Auth::user();
@@ -536,6 +535,4 @@ class CourseController extends Controller
         return view('layouts.Cursos.certificates_list', compact('certificates'));
     }
 
-=======
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 }
