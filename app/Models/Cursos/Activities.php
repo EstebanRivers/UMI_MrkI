@@ -45,12 +45,10 @@ class Activities extends Model
     protected $fillable = [
         'topic_id',
         'subtopic_id',
-        'course_id',
         'title',
         'description',
         'type',
         'content',
-        'is_final_exam',
         
     ];
 
@@ -74,11 +72,6 @@ class Activities extends Model
     {
         return $this->belongsToMany(User::class, 'activity_user', 'user_id', 'activity_id')
                     ->withTimestamps('completed_at');
-    }
-
-    public function course(): BelongsTo
-    {
-        return $this->belongsTo(Course::class, 'course_id');
     }
 
 

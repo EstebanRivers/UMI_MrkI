@@ -31,6 +31,7 @@
 {{-- CONTENEDOR DE FECHAS DINÁMICAS --}}
 <div class="form-group" style="border-top: 2px solid #eee; margin-top: 20px; padding-top: 15px;">
     <label style="color: #223F70; font-size: 1.1em; margin-bottom: 15px; display: block;">
+        <img src="{{ asset('images/icons/calendar-solid-full.svg') }}" style="width: 16px; vertical-align: middle;" onerror="this.style.display='none'"> 
         Configuración de Vencimientos por Mes:
     </label>
     

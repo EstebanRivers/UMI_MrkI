@@ -50,6 +50,7 @@
             {{-- ========================================================== --}}
             {{-- VISTA ADMINISTRATIVA (Master/Control Escolar) --}}
             {{-- ========================================================== --}}
+            <h2>Usuarios por Período</h2>
             <div class="period-accordion">
                 
                 @foreach ($periods as $period)

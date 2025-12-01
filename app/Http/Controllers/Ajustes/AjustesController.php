@@ -116,40 +116,39 @@ class AjustesController extends Controller
              if ($seccion === 'workstations') {
                 $department = Department::find($request->department_id);
                 $data['institution_id'] = $department ? $department->institution_id : $activeInstitutionId;
-             } else if ($seccion !== 'institutions') {
+            } else if ($seccion !== 'institutions') {
                 $data['institution_id'] = $activeInstitutionId;
-             }
+            }
         }
-
-        
-        $message = 'Registro guardado exitosamente.';
-        $clear_spa_cache = false;
 
         switch ($seccion) {
             case 'institutions':
-                $request->validate(['name' => 'required|string|max:255|unique:institutions']);
+               $request->validate(['name' => 'required|string|max:255|unique:institutions']);
                 $data = $request->all(); 
 
                 if ($request->hasFile('logo_path')) {
                     $data['logo_path'] = $request->file('logo_path')->store('logos/institutions', 'public');
                 }
+
                 
                 $institution = Institution::create($data);
+                
                 
                 try {
                     $user = Auth::user(); 
                     $masterRole = Role::where('name', 'master')->first(); 
 
                     if ($user && $masterRole) {
+                        
                         $user->roles()->attach($masterRole->id, [
                             'institution_id' => $institution->id
                         ]);
                     }
                 } catch (\Exception $e) {
+                    
                     Log::error('Fallo al auto-asignar master a nueva institución: ' . $e->getMessage());
                 }
                 
-                $message = 'Institución creada exitosamente.';
                 break;
             
             case 'departments':
@@ -158,7 +157,6 @@ class AjustesController extends Controller
                     'institution_id' => 'required|exists:institutions,id'
                 ]);
                 Department::create($data);
-                $message = 'Departamento creado exitosamente.';
                 break;
 
             case 'workstations':
@@ -167,11 +165,11 @@ class AjustesController extends Controller
                     'department_id' => 'required|exists:departments,id'
                 ]);
                 Workstation::create($data);
-                $message = 'Puesto creado exitosamente.';
                 break;
 
             case 'periods':
-                $validatedData = $request->validate([
+                
+              $validatedData = $request->validate([
                     'start_date' => 'required|date_format:Y-m',
                     'end_date' => 'required|date_format:Y-m|after_or_equal:start_date',
                     'institution_id' => 'required|exists:institutions,id',
@@ -203,61 +201,23 @@ class AjustesController extends Controller
                 Period::where('institution_id', $data['institution_id'])->update(['is_active' => false]);
                 
                 Period::create($data);
-                break; 
+                break;
 
             case 'users':
-              
-                $validatedData = $request->validate([
+              $validatedData = $request->validate([
                     'nombre' => 'required|string|max:255',
                     'apellido_paterno' => 'required|string|max:255',
                     'apellido_materno' => 'nullable|string|max:255',
-                    'RFC' => ['required', 'string', 'max:13', 'unique:users,RFC'], 
-                    'email' => ['required', 'email', 'unique:users,email'],
+                    'RFC' => ['required', 'string', 'max:13'],
+                    'email' => ['required', 'email'],
                     'password' => 'required|string|min:8|confirmed',
                     'role_id' => 'required|exists:roles,id',
                     'institution_id' => 'required|exists:institutions,id',
                     'department_id' => 'nullable|exists:departments,id',
                     'workstation_id' => 'nullable|exists:workstations,id',
-                ], [
-                    'RFC.unique' => 'Este RFC ya está registrado.',
-                    'email.unique' => 'Este correo ya está registrado.',
-
-                    'password.confirmed' => 'Las contraseñas no coinciden.',
-                    'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
                 ]);
                 
-                
-                $selectedRole = Role::find($validatedData['role_id']);
-                
-                if ($selectedRole && $selectedRole->name === 'control_administrativo') {
-                    
-                    if (!$request->has('modules_enabled') || empty($request->input('modules_enabled'))) {
-                       
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'modules_enabled' => 'Para el rol de Control Administrativo, debes seleccionar al menos un permiso.',
-                        ]);
-                    }
-                }
-
-                if ($selectedRole && $selectedRole->name === 'anfitrion') {
-                    
-                    $errors = [];
-                    
-                    // Verificamos Departamento
-                    if (empty($request->input('department_id'))) {
-                        $errors['department_id'] = 'El Departamento es obligatorio para el rol de Anfitrión.';
-                    }
-                    
-                    // Verificamos Puesto
-                    if (empty($request->input('workstation_id'))) {
-                        $errors['workstation_id'] = 'El Puesto es obligatorio para el rol de Anfitrión.';
-                    }
-
-                    // Si hay errores, detenemos todo
-                    if (!empty($errors)) {
-                        throw \Illuminate\Validation\ValidationException::withMessages($errors);
-                    }
-                }
+                $user = User::where('email', $validatedData['email'])->first();
 
                 
                 $userData = [
@@ -273,46 +233,74 @@ class AjustesController extends Controller
                     'role_id' => $validatedData['role_id'],
                 ];
                 
-               
-                $user = User::create($userData);
-                $message = 'Nuevo usuario creado';
-
                 $institution_id_to_add = $validatedData['institution_id'];
                 $role_id_to_add = $validatedData['role_id'];
-                
-              
-                $user->institutions()->syncWithoutDetaching([$institution_id_to_add]);
+                $message = '';
+
+                if (!$user) {
+                    $user = User::create($userData);
+                    $message = 'Nuevo usuario creado';
+                } else {
+                    unset($userData['password']); 
+                    $user->update($userData);
+                    $message = 'Usuario existente actualizado';
+                }
+
 
                 
-                $user->roles()->syncWithoutDetaching([
-                    $role_id_to_add => ['institution_id' => $institution_id_to_add]
-                ]);
-                
-                $message .= ' y asignado correctamente.';
+                if (!$user->institutions()->where('institution_id', $institution_id_to_add)->exists()) {
+                    $user->institutions()->attach($institution_id_to_add);
+                    $message .= ' y asignado a la nueva institución';
+                }
 
                 
-                $roleName = Role::find($role_id_to_add)->name;
+                $pivotRoleExists = $user->roles()
+                                    ->wherePivot('institution_id', $institution_id_to_add)
+                                    ->exists();
+
+                if ($pivotRoleExists) {
+                    $user->roles()->wherePivot('institution_id', $institution_id_to_add)->detach();
+                    $user->roles()->attach($role_id_to_add, ['institution_id' => $institution_id_to_add]);
+                    $message .= ', y su rol ha sido actualizado.';
+                } else {
+                    $user->roles()->attach($role_id_to_add, ['institution_id' => $institution_id_to_add]);
+                    $message .= ' con el rol seleccionado.';
+                }
+                
+                
+                $roleName = Role::find($validatedData['role_id'])->name;
+                
                 $academicRoles = ['docente', 'control_escolar', 'control_administrativo', 'estudiante']; 
 
                 if (in_array($roleName, $academicRoles)) {
-                    $profileData = [];
-                    if ($roleName === 'control_administrativo') {
-                        $profileData['modules'] = $request->input('modules_enabled', []);
-                        $message .= ' Módulos guardados.';
+                    if (!$user->academicProfile) {
+                        $profileData = [];
+                        if ($roleName === 'control_administrativo') {
+                            $modulesToSave = $request->input('modules_enabled', []);
+                            $profileData['modules'] = $modulesToSave;
+                            $message .= ' Módulos administrativos guardados.';
+                        }
+                        $user->academicProfile()->create($profileData); 
+                        $message .= ' Se creó perfil académico.';
+                    } else {
+                        if ($roleName === 'control_administrativo') {
+                            $modulesToSave = $request->input('modules_enabled', []);
+                            $user->academicProfile->update(['modules' => $modulesToSave]);
+                            $message .= ' Módulos administrativos actualizados.';
+                        }
                     }
-                    $user->academicProfile()->create($profileData); 
                 } else {
-                    $user->corporateProfile()->create();
+                    if (!$user->corporateProfile) {
+                        $user->corporateProfile()->create();
+                        $message .= ' Se creó perfil corporativo.';
+                    }
                 }
                 
-                $clear_spa_cache = true;
-                break;
-        } 
+                return redirect()->route('ajustes.show', ['seccion' => $seccion])
+                                 ->with('success', $message)
+                                 ->with('clear_spa_cache', true);
+            }
 
-        
-        return redirect()->route('ajustes.show', ['seccion' => $seccion])
-                         ->with('success', $message)
-                         ->with('clear_spa_cache', $clear_spa_cache);
        
     }
 
@@ -385,109 +373,8 @@ public function update(Request $request, $seccion, $id)
             // ====================================================
             
             case 'users':
-           
-                // 1. Buscamos el usuario
-                $item = $this->findItem($seccion, $id);
-                if (!$item) return back()->with('error', 'Registro no encontrado.');
-
-                // 2. Validación Principal (QUITAMOS PASSWORD DE AQUÍ)
-                $validatedData = $request->validate([
-                    'nombre' => 'required|string|max:255',
-                    'apellido_paterno' => 'required|string|max:255',
-                    'apellido_materno' => 'nullable|string|max:255',
-                    'RFC' => ['required', 'string', 'max:13', Rule::unique('users', 'RFC')->ignore($item->id)],
-                    'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($item->id)],
-                    
-                    // 'password' => '...', // <--- ¡¡BORRA ESTA LÍNEA!!
-                    
-                    'role_id' => 'required|exists:roles,id',
-                    'institution_id' => 'required|exists:institutions,id',
-                    'department_id' => 'nullable|exists:departments,id',
-                    'workstation_id' => 'nullable|exists:workstations,id',
-                ], [
-                    'RFC.unique' => 'Este RFC ya pertenece a otro usuario.',
-                    'email.unique' => 'Este correo ya está siendo usado por otra persona.',
-                ]);
-
-                // 3. Validación de Contraseña (AQUÍ SÍ VA)
-                if (!empty($request->password)) {
-                    $request->validate([
-                        'password' => 'string|min:8|confirmed'
-                    ], [
-                        // Aquí están tus mensajes en español
-                        'password.confirmed' => 'Las contraseñas no coinciden.',
-                        'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-                    ]);
-                    
-                    $validatedData['password'] = Hash::make($request->password);
-                } else {
-                    unset($validatedData['password']);
-                }
-                
-                // 4. Validación Extra (Módulos de Admin)
-                $selectedRole = Role::find($validatedData['role_id']);
-                if ($selectedRole && $selectedRole->name === 'control_administrativo') {
-                    if (!$request->has('modules_enabled') || empty($request->input('modules_enabled'))) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'modules_enabled' => 'Debes mantener al menos un permiso activo para este rol.',
-                        ]);
-                    }
-                }
-
-                if ($selectedRole && $selectedRole->name === 'anfitrion') {
-                    $errors = [];
-                    if (empty($request->input('department_id'))) {
-                        $errors['department_id'] = 'El Departamento es obligatorio para el rol de Anfitrión.';
-                    }
-                    if (empty($request->input('workstation_id'))) {
-                        $errors['workstation_id'] = 'El Puesto es obligatorio para el rol de Anfitrión.';
-                    }
-                    if (!empty($errors)) {
-                        throw \Illuminate\Validation\ValidationException::withMessages($errors);
-                    }
-                }
-
-               
-                $item->update($validatedData);
-                
-                
-                $institution_id = $validatedData['institution_id'];
-                $role_id = $validatedData['role_id'];
-
-               
-                $item->institutions()->syncWithoutDetaching([$institution_id]);
-
-              
-                $item->roles()->wherePivot('institution_id', $institution_id)->detach();
-                $item->roles()->attach($role_id, ['institution_id' => $institution_id]);
-                
-                
-                $roleName = $selectedRole->name;
-                $academicRoles = ['docente', 'control_escolar', 'control_administrativo', 'estudiante']; 
-
-                if (in_array($roleName, $academicRoles)) {
-                    // Crear perfil si no existe
-                    if (!$item->academicProfile) { 
-                        $profileData = [];
-                        if ($roleName === 'control_administrativo') {
-                            $profileData['modules'] = $request->input('modules_enabled', []);
-                        }
-                        $item->academicProfile()->create($profileData); 
-                    } else { 
-                        // Actualizar perfil existente
-                        if ($roleName === 'control_administrativo') {
-                            $modulesToSave = $request->input('modules_enabled', []);
-                            $item->academicProfile->update(['modules' => $modulesToSave]);
-                        } else {
-                            // Limpiar módulos si ya no es admin
-                            $item->academicProfile->update(['modules' => null]);
-                        }
-                    }
-                }
-                
-
-                $clear_spa_cache = true;
-                
+                // Tu lógica para usuarios (extraída a una función o pegada aquí)
+                 $this->updateUserLogic($request, $item); 
                 break;
 
             default:
@@ -576,7 +463,6 @@ public function update(Request $request, $seccion, $id)
                           ->orWhere('email', 'like', "%{$search}%");
                     });
                 }
-                $query->orderBy('id', 'desc');
                 break;
         }
         return $query;
@@ -711,7 +597,7 @@ public function toggleUserStatus($id)
 
     $activeInstitutionId = session('active_institution_id');
 
-    
+    // 1. Busca la fila pivote para el usuario en la institución actual
     $pivotRow = DB::table('user_roles_institution')
                     ->where('user_id', $id)
                     ->where('institution_id', $activeInstitutionId)
@@ -721,10 +607,11 @@ public function toggleUserStatus($id)
         return back()->with('error', 'El usuario no tiene un rol en esta institución.');
     }
 
-    
+    // 2. Invierte el estatus (si era true, lo vuelve false)
+    // (Usamos la columna 'is_active' de la migración que hicimos)
     $newStatus = !$pivotRow->is_active;
 
-   
+    // 3. Actualiza SÓLO la fila pivote
     DB::table('user_roles_institution')
         ->where('user_id', $id)
         ->where('institution_id', $activeInstitutionId)
@@ -736,7 +623,7 @@ public function toggleUserStatus($id)
 
     return redirect()->route('ajustes.show', ['seccion' => 'users'])
                      ->with('success', $message)
-                     ->with('clear_spa_cache', true); 
+                     ->with('clear_spa_cache', true); // Mantenemos esto por la SPA
     }
 
 public function togglePeriodStatus($id)
