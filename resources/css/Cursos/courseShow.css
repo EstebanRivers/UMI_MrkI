@@ -153,25 +153,25 @@
     transition: background 0.2s ease;
 }
 .btn-primary {
-    background: #007bff;
+    background: #223F70;
     color: #fff;
 }
 .btn-primary:hover {
-    background: #0056b3;
+    background: #2a4c86;
 }
 .btn-secondary {
-    background: #6c757d;
+    background: #223F70;
     color: #fff;
 }
 .btn-secondary:hover {
-    background: #545b62;
+    background: #2a4c86;
 }
 .btn-success {
-    background: #28a745;
+    background: #223F70;
     color: #fff;
 }
 .btn-success:hover {
-    background: #1e7e34;
+    background: #2a4c86;
 }
 
 

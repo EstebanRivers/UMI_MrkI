@@ -170,7 +170,7 @@ class CourseController extends Controller
         $progress = 0;
         $isEnrolled = false;
         $finalExamData = null;
-        $userCompletionsMap = collect();
+        $userCompletions = collect();
 
         if ($user) {
             // Verificar inscripción

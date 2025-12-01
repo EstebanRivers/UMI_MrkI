@@ -11,40 +11,51 @@ class CompletionController extends Controller
     {
         $user = Auth::user();
 
-        // Validamos el 'type'
-        $type = $request->input('type'); // 'Topics', 'Subtopic', 'Activities'
+        // 1. Validamos y guardamos en variables limpias
+        $type = $request->input('type'); 
+        $id   = $request->input('id');
+
         if (!in_array($type, ['Topics', 'Subtopic', 'Activities'])) {
             return response()->json(['success' => false, 'message' => 'Tipo inválido'], 400);
         }
 
-        // Construimos el nombre completo del modelo
         $modelClass = 'App\\Models\\Cursos\\' . $type;
-        $id = $request->input('id');
 
-        // Usamos firstOrCreate para crear el registro solo si no existe
+        // 2. Crear registro
         $completion = $user->completions()->firstOrCreate([
             'completable_type' => $modelClass,
             'completable_id'   => $id
         ]);
 
-            if ($completion->wasRecentlyCreated) {
-            // Necesitamos encontrar el Curso ID basado en lo que se completó
-        
+        // 3. Si es nuevo, calcular progreso
+        if ($completion->wasRecentlyCreated) {
+            
             $courseId = null;
-            if ($request->type === 'Topics') {
-                $item = \App\Models\Cursos\Topics::find($request->id);
-                $courseId = $item->course_id;
-            } elseif ($request->type === 'Subtopic') {
-                $item = \App\Models\Cursos\Subtopic::find($request->id);
-                $courseId = $item->topic->course_id;
+            
+            // Usamos la variable $type y $id que ya definimos arriba (más limpio)
+            if ($type === 'Topics') {
+                $item = \App\Models\Cursos\Topics::find($id);
+                if ($item) $courseId = $item->course_id; // <--- Agregamos protección if($item)
+
+            } elseif ($type === 'Subtopic') {
+                $item = \App\Models\Cursos\Subtopic::find($id);
+                if ($item) $courseId = $item->topic->course_id; // <--- Agregamos protección if($item)
+
+            } elseif ($type === 'Activities') {
+                $item = \App\Models\Cursos\Activities::find($id);
+                if ($item) $courseId = $item->course_id;
             }
             
+            // Recalcular solo si encontramos el curso
             if ($courseId) {
                 $course = \App\Models\Cursos\Course::find($courseId);
-                $course->calculateUserProgress($user->id);
+                if ($course) $course->calculateUserProgress($user->id);
             }
         }
 
-        return response()->json(['success' => true, 'created' => $completion->wasRecentlyCreated]);
+        return response()->json([
+            'success' => true, 
+            'created' => $completion->wasRecentlyCreated
+        ]);
     }
 }

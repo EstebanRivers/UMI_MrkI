@@ -474,7 +474,7 @@
                 @php $activity = $finalExamActivity; @endphp
 
                 <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none;">
-                    <h2 style="color: #e69a37;">Examen Final</h2>
+                    <h2 style="color: #BC8A55;">Examen Final</h2>
                     
                     {{-- CONTENEDOR 1: TARJETA DE ÉXITO (Se muestra si ya hay datos O si JS lo activa) --}}
                     <div id="exam-success-card" 
@@ -485,7 +485,7 @@
                         <p style="font-size: 1.2em; margin-bottom: 30px;">Has completado el examen final.</p>
                         
                         {{-- El puntaje se llenará con PHP si existe, o JS lo actualizará --}}
-                        <div style="font-size: 3em; font-weight: bold; color: #e69a37; margin-bottom: 30px;">
+                        <div style="font-size: 3em; font-weight: bold; color: #BC8A55; margin-bottom: 30px;">
                             <span id="dynamic-score">{{ $finalExamData ? $finalExamData->score : '0' }}</span> / 100
                         </div>
 
@@ -714,7 +714,7 @@
         });
 
         // --- Marcar items que YA estaban completas al cargar la página ---
-        const userCompletions = @json($userCompletionsMap ?? collect());
+        const userCompletions = @json($userCompletions ?? collect());
         userCompletions.forEach(item => {
             // Buscamos el elemento exacto usando los atributos data-
             const selector = `.syllabus-link[data-completable-type="${item.type}"][data-completable-id="${item.id}"]`;
