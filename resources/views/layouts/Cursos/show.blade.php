@@ -395,6 +395,7 @@
                             <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}" disabled>Terminado</button>
                             <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
 
+<<<<<<< HEAD
                         @elseif ($activity->type == 'Examen' && is_array($activity->content))
                             {{-- INTERFAZ WIZARD PARA EXAMEN NORMAL --}}
                             <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
@@ -458,11 +459,33 @@
                                     </button>
                                 </div>
                             </form>
+=======
+                        @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
+                            <div class="cw-game-container" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
+                                <div class="cw-grid-container">
+                                    <div class="cw-grid"></div>
+                                </div>
+                                <div class="cw-clues-container">
+                                    <div class="cw-clues-list" id="cw-clues-across">
+                                        <h4>Horizontales</h4>
+                                        <ul></ul>
+                                    </div>
+                                    <div class="cw-clues-list" id="cw-clues-down">
+                                        <h4>Verticales</h4>
+                                        <ul></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}">Comprobar y Terminar</button>
+                            <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+                        @else
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                             {{-- Fallback --}}
                             <p>{{ is_array($activity->content) ? json_encode($activity->content) : $activity->content }}</p>
                         @endif
                     </div>
                 @endforeach
+<<<<<<< HEAD
             @endforeach
             @if ($finalExamActivity)
                 @php $activity = $finalExamActivity; @endphp
@@ -549,7 +572,12 @@
                     
             </div>
             
+=======
+
+            @endforeach
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
         </div>
+
     </div>
 </div>
 {{-- MODAL DE EXAMEN DESBLOQUEADO --}}
@@ -614,6 +642,7 @@
         /* ==================================================================
            3. LÓGICA DE PROGRESO (CORREGIDA)
            ================================================================== */
+<<<<<<< HEAD
         // --- Referencia al enlace del examen ---
         const finalExamSyllabusLink = document.getElementById('final-exam-syllabus-link');
         const unlockModal = document.getElementById('examUnlockedModal');
@@ -639,6 +668,8 @@
                 }
             }
         }
+=======
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 
         const markItemAsComplete = (type, id, element) => {
             if (element.classList.contains('completed')) return;
@@ -739,6 +770,7 @@
                         const syllabusLink = document.querySelector(`.syllabus-link[data-completable-id="${activityId}"][data-completable-type="Activities"]`);
                         if (syllabusLink) syllabusLink.classList.add('completed');
                         if (response.data.created) updateProgressBar();
+<<<<<<< HEAD
 
                         // 2. Si es el examen final, hacer el cambio de interfaz
                         if (syllabusLink && syllabusLink.closest('#final-exam-syllabus-link')) {
@@ -768,6 +800,8 @@
                             feedbackEl.innerText = response.data.message;
                             this.querySelectorAll('input, button').forEach(el => el.disabled = true);
                         }
+=======
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                     })
                     .catch(error => {
                         feedbackEl.style.color = 'red';

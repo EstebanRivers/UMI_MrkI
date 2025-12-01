@@ -129,32 +129,7 @@ class ActivitiesController extends Controller
             }
         }
 
-        // 2. Validar "Examen" (múltiples preguntas)
-        elseif ($activity->type === 'Examen') {
-            $userAnswersData = $request->validate(['answers' => 'required|array']);
-            $userAnswers = $userAnswersData['answers'];
-            
-            $questions = $activity->content['questions'] ?? [];
-            $totalQuestions = count($questions);
-            $correctCount = 0;
-
-            if ($totalQuestions > 0) {
-                foreach ($userAnswers as $index => $answerData) {
-                    $questionIndex = $answerData['q'];
-                    $userAnswerIndex = $answerData['a'];
-
-                    if (isset($questions[$questionIndex])) {
-                        $correctAnswerIndex = $questions[$questionIndex]['correct_answer'] ?? null;
-                        if (strval($userAnswerIndex) === strval($correctAnswerIndex)) $correctCount++;
-                    }
-                }
-                $score = round(($correctCount / $totalQuestions) * 100, 2);
-                $message = "¡Examen completado! Tu calificación: $correctCount / $totalQuestions ($score%)";
-            } else {
-                return response()->json(['success' => false, 'message' => 'Este examen no tiene preguntas.'], 422);
-            }
-        }
-
+<<<<<<< HEAD
         elseif ($activity->type === 'Crucigrama' ) {
             // $validated = $request->validate(['completed' => 'required|boolean']);
             // $completed = $validated['completed'];
@@ -164,6 +139,12 @@ class ActivitiesController extends Controller
             // }
             $score = 100.00; // Completado correctamente
         }
+=======
+        // Para 'SopaDeLetras' o 'Crucigrama', la validación se hace en el frontend (JS).
+        // El simple hecho de llamar a esta ruta significa que el usuario completó el juego.
+        // Si quisieras más seguridad, el JS debería enviar una "prueba" que el backend pueda validar.
+        // Por ahora, confiamos en que si el JS lo envía, está completo.
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 
         // 2. Marcar como completado usando el sistema polimórfico
         $completion = $user->completions()->updateOrCreate(
