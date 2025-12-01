@@ -181,16 +181,16 @@ class BillingController extends Controller
                     $tipo = 'warning';
                     $agregarAlerta = true;
                     if ($diasRestantes > 1) {
-                        $titulo = "⚠ Atención: Pago Próximo";
+                        $titulo = "⚠️ Atención: Pago Próximo";
                         $mensaje = "Hola {$user->nombre}, faltan {$diasRestantes} días para que venza tu factura '{$factura->concepto}'.";
                     } elseif ($diasRestantes === 1) {
                         $titulo = "⚠ Atención: Pago Próximo";
                         $mensaje = "Hola {$user->nombre}, falta 1 día para que venza tu factura '{$factura->concepto}'.";
                     } elseif ($diasRestantes === 0) {
-                        $titulo = "⚠ Atención: Vence Hoy";
+                        $titulo = "⚠️ Atención: Vence Hoy";
                         $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' vence HOY.";
                     } else {
-                        $titulo = "⚠ Atención: Su Pago Venció";
+                        $titulo = "⚠️ Atención: Su Pago Venció";
                         $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' ya venció.";
                     }
                 }

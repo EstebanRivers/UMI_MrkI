@@ -17,7 +17,14 @@
     text-align: center;
 }
 
-
+/* Estilos para las secciones (h3) y separadores (hr) */
+h3 {
+    color: #333;
+    border-bottom: 2px solid #004085;
+    padding-bottom: 5px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
 
 hr {
     display: none; /* La línea del h3 es suficiente */

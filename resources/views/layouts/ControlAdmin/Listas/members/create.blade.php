@@ -14,7 +14,7 @@
         
         {{-- Cuerpo del formulario --}}
         <div class="form-body">
-            <form method="POST" action="{{ route('Listas.members.create') }}" class="registration-form">
+            <form method="POST" action="{{ route('control.teachers.store') }}" class="registration-form">
                 @csrf
                 
                 {{-- Bloque para mostrar mensajes Flash (éxito o error) --}}
@@ -155,7 +155,7 @@
                 </div>
 
                 <div class="form-action-buttons">
-                    <button type="submit" class="submit-button">Registrar Alumno</button>
+                    <button type="submit" class="submit-button">Registrar Docente</button>
                 </div>
             </form>
         </div>

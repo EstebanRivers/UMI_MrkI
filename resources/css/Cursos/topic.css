@@ -384,3 +384,37 @@
         max-height: 700px; /* más espacio para ver listas largas */
     }
 }
+
+
+.form-group-exam {
+    background: #fffbe6;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ffe58f;
+    margin-bottom: 15px;
+}
+
+/* summary se comporta como el "botón" */
+.exam-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    list-style: none; /* quita el triángulo por defecto si quieres */
+}
+
+.exam-note {
+    margin-top: 5px;
+    color: #666;
+}
+
+.btn-secondary-exam {
+    background: #223F70;
+    color: white;
+    max-height: fit-content;
+    padding: 5px;
+    border-radius: 12px;
+    &:hover {
+        background: #0056b3;
+    }
+}

@@ -296,3 +296,31 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
     max-width: 100px;
   }
 }
+/* ================================================= */
+/* --- ESTILOS PARA SUBMENÚ FLOTANTE (FACTURACIÓN) -- */
+/* ================================================= */
+
+/* 1. Estilo para el LI padre (el botón del menú) */
+/* 'position: relative' es vital para que el hijo se posicione respecto a este botón */
+.menu li.has-submenu.submenu-flotante {
+    position: relative;
+}
+
+/* 2. Estilo para el UL hijo (la caja que flota a la derecha) */
+.menu li.has-submenu.submenu-flotante > ul.submenu {
+    position: absolute;   /* Lo saca del flujo normal */
+    left: 100%;           /* Lo empuja el 100% del ancho hacia la derecha */
+    top: 0;               /* Lo alinea arriba con el botón padre */
+    width: 210px;         /* Ancho de la caja desplegable */
+    background: #fff;     /* Fondo blanco */
+    border: 1px solid #ddd; /* Borde gris suave */
+    padding: 5px 0;
+    z-index: 9999;        /* Asegura que flote encima del contenido de la página */
+    display: none;        /* Oculto hasta que pases el mouse */
+    box-shadow: 4px 0 5px rgba(0,0,0,0.1); /* Sombra para profundidad */
+}
+
+/* 3. Interacción: Mostrar SOLO este submenú al pasar el mouse */
+.menu li.has-submenu.submenu-flotante:hover > ul.submenu {
+    display: block !important;
+}
