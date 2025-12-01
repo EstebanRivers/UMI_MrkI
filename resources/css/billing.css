@@ -74,9 +74,9 @@ body {
 .search-input { min-width: 250px; }
 
 .filter-select {
-    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236c757d'%3E%3Cpath fill-rule='evenodd' d='M8 10.793l-4.646-4.647-.708.708L8 12.207l5.354-5.353-.708-.708L8 10.793z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
