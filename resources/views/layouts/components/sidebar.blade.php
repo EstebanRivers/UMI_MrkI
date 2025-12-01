@@ -116,13 +116,26 @@
             @endif
 
             {{-- 2. CURSOS --}}
-            <li class="@if(request()->routeIs('Cursos.*')) active @endif">
-                <a href="{{ route('Cursos.index') }}">
+            <li class="has-submenu {{ request()->routeIs('Cursos.*') || request()->routeIs('courses.certificates.*') ? 'active' : '' }}">
+                <a href="#">
                     <span class="icon" aria-hidden="true">
                         <img src="{{ asset('images/icons/desktop-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
                     </span>
                     <span class="text">Cursos</span>
                 </a>
+                
+                {{-- Submenú --}}
+                <ul class="submenu">
+                    {{-- Opción 1: Cursos Disponibles (Ruta original) --}}
+                    <li class="{{ request()->routeIs('Cursos.index') ? 'active-submenu' : '' }}">
+                        <a href="{{ route('Cursos.index') }}">Cursos Disponibles</a>
+                    </li>
+
+                    {{-- Opción 2: Mis Certificados (Nueva Ruta) --}}
+                    <li class="{{ request()->routeIs('courses.certificates.index') ? 'active-submenu' : '' }}">
+                        <a href="{{ route('courses.certificates.index') }}">Mis Certificados</a> 
+                    </li>
+                </ul>
             </li>
 
             {{-- 3. FACTURACIÓN --}}
