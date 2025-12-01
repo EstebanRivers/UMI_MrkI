@@ -104,6 +104,7 @@
                 <h3>Añadir Nueva Actividad</h3>
                 <form id="activity-form" action="{{route('activities.store')}}" method="POST">
                     @csrf
+                    <input type="hidden" name="course_id" value="{{ $course->id }}">
                     <input type="hidden" name="subtopic_id" id="activity-subtopic-id">
                     <input type="hidden" name="topic_id" id="activity-topic-id">
 
@@ -116,6 +117,18 @@
                         <input type="text" name="title" placeholder="Título de la actividad" required>
                     </div>
 
+                    <div class="form-group-exam">
+                        <details>
+                            <summary class="exam-label">
+                                <input type="checkbox" name="is_final_exam" value="1" id="is_final_exam_checkbox">
+                                <strong>Marcar como Examen Final</strong>
+                            </summary>
+                            <small class="exam-note">
+                                Si se marca, esta actividad se ocultará hasta que se complete el 100% del curso.
+                            </small>
+                        </details>
+                    </div>
+
                     <div class="form-group">
                         <label for="activity_type">Tipo de Actividad</label>
                         <select name="type" id="activity_type" required>
@@ -123,6 +136,7 @@
                             <option value="Cuestionario">Cuestionario (Quiz)</option>
                             <option value="SopaDeLetras">Sopa de Letras</option>
                             <option value="Crucigrama">Crucigrama</option>
+                            <option value="Examen">Examen (Múltiples preguntas)</option> 
                         </select>
                     </div>
 
@@ -130,10 +144,10 @@
 
                         <div id="template-Cuestionario" class="activity-template" style="display: none;">
                             <div class="activity-fields-container">
-                                <div class="activity-fields" id="fields-Cuestionario"> <div class="form-group">
+                                 <div class="form-group">
                                         <label>Pregunta del cuestionario:</label>
                                         <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí" disabled>
-                                    </div>
+                                    
                                 </div>
                                 <label>Opciones de respuesta (marca la correcta):</label>
                                 @for ($i = 0; $i < 4; $i++)
@@ -235,6 +249,15 @@
                             <div id="cw_hidden_inputs"></div>
                             
                         </div>
+
+                        <div id="template-Examen" class="activity-template" style="display: none;">
+                            <div class="activity-fields-container" id="examen-questions-container">
+                                {{-- Las preguntas se añadirán aquí con JS --}}
+                            </div>
+                            <button type="button" id="add-examen-question-btn" class="btn-secondary-exam" disabled>
+                                + Añadir Pregunta al Examen
+                            </button>
+                        </div>
                     </div> 
                 </form>
             </div>
@@ -300,6 +323,37 @@
                 
             {{-- Lista de temas y subtemas --}}
             <div class="topics-list-content">
+                @if ($course->finalExam)
+                    @php $activity = $course->finalExam; @endphp
+                    
+                    <div class="topic-card final-exam-card" data-activity-id="{{ $activity->id }}" style="margin-bottom: 20px;">
+                        <div class="card-body" style="border-left: 5px solid #e69a37; padding: 15px; border-radius: 4px; background: #fffbe6;">
+                            <div class="topic-header" style="align-items: center; justify-content: space-between;">
+                                
+                                <div>
+                                    <h5 style="color: #e69a37; font-weight: 700; margin-bottom: 5px;">
+                                        🎓 EXAMEN FINAL DEL CURSO
+                                    </h5>
+                                    <p class="topic-title" style="font-weight: 600; font-size: 15px;">{{ $activity->title }}</p>
+                                    <p style="font-size: 0.9em; color: #555;">Tipo: {{ $activity->type }} ({{ count($activity->content['questions'] ?? []) }} preguntas)</p>
+                                </div>
+                                
+                                <div class="topic-actions">
+                                    {{-- Botón eliminar actividad/examen usando la ruta existente --}}
+                                    <form action="{{ route('activities.destroy', $activity) }}" method="POST" 
+                                        onsubmit="return confirm('¿Eliminar el Examen Final? Esto no se puede deshacer.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger" title="Eliminar Examen">
+                                            <img src="{{ asset('images/icons/Vector.svg') }}" alt="Eliminar" 
+                                                style="width:24px;height:24px" loading="lazy">
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 @forelse ($course->topics as $topic)
                 <div class="topic-card" data-topic-id="{{ $topic->id }}" data-topic-title="{{ $topic->title }}">
                     <div class="card-body">
@@ -859,6 +913,56 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('cw_number').value = parseInt(number) + 1;
             document.getElementById('cw_clue').focus();
         });
+    }
+
+    // --- LÓGICA PARA NUEVO EXAMEN (MÚLTIPLES PREGUNTAS) ---
+    const addExamenBtn = document.getElementById('add-examen-question-btn');
+    const examenContainer = document.getElementById('examen-questions-container');
+    let examenQuestionCounter = 0;
+
+    if (addExamenBtn) {
+        document.getElementById('activity_type').addEventListener('change', function() {
+            if (this.value === 'Examen') {
+                addExamenBtn.disabled = false;
+                if (examenContainer.childElementCount === 0) {
+                    addExamenQuestionBlock(); // Añadir la primera pregunta
+                }
+            } else {
+                addExamenBtn.disabled = true;
+            }
+        });
+        addExamenBtn.addEventListener('click', addExamenQuestionBlock);
+    }
+
+    function addExamenQuestionBlock() {
+        const index = examenQuestionCounter++;
+        const questionBlock = document.createElement('div');
+        questionBlock.classList.add('quiz-question-block');
+        questionBlock.style.border = '1px solid #ccc';
+        questionBlock.style.padding = '10px';
+        questionBlock.style.marginBottom = '10px';
+        questionBlock.style.borderRadius = '8px';
+
+        questionBlock.innerHTML = `
+            <h5>Pregunta ${index + 1}</h5>
+            <div class="form-group">
+                <label>Texto de la Pregunta:</label>
+                <input type="text" name="content[questions][${index}][question]" class="form-field-examen" required>
+            </div>
+            <label>Opciones (marca la correcta):</label>
+            ${[0, 1, 2, 3].map(optIndex => `
+                <div class="quiz-option">
+                    <input type="radio" name="content[questions][${index}][correct_answer]" value="${optIndex}" required>
+                    <input type="text" name="content[questions][${index}][options][]" class="form-field-examen" placeholder="Opción ${optIndex + 1}" required>
+                </div>
+            `).join('')}
+            <button type="button" class="btn-danger-small btn-remove-question" style="margin-top: 5px;">Eliminar Pregunta</button>
+        `;
+        questionBlock.querySelectorAll('.form-field-examen, input[type="radio"]').forEach(el => el.disabled = false);
+        questionBlock.querySelector('.btn-remove-question').addEventListener('click', function() {
+            questionBlock.remove();
+        });
+        examenContainer.appendChild(questionBlock);
     }
 
     // ===================================================

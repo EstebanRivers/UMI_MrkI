@@ -6,7 +6,7 @@ use App\Models\Users\User;
 class Completion extends Model
 {
     // Permitir asignación masiva
-    protected $fillable = ['user_id', 'completable_type', 'completable_id'];
+    protected $fillable = ['user_id', 'completable_type', 'completable_id', 'score'];
 
     public function completable()
     {

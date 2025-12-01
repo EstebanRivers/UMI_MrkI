@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse; // <-- Importante
+use App\Models\Cursos\Activities;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class CourseController extends Controller
 {
@@ -99,6 +102,22 @@ class CourseController extends Controller
             $path = $request->file('guide_material')->store('courses/guides', 'public');
             $courseData['guide_material_path'] = $path;
         }
+        // 2. Manejo de subida de archivos
+        if ($request->hasFile('cert_bg_image')) {
+            // Guardar en storage/app/public/certificates/backgrounds
+            $path = $request->file('cert_bg_image')->store('certificates/backgrounds', 'public');
+            $courseData['cert_bg_path'] = $path;
+        }
+
+        if ($request->hasFile('cert_sig_1_image')) {
+            $path = $request->file('cert_sig_1_image')->store('certificates/signatures', 'public');
+            $courseData['cert_sig_1_path'] = $path;
+        }
+
+        if ($request->hasFile('cert_sig_2_image')) {
+            $path = $request->file('cert_sig_2_image')->store('certificates/signatures', 'public');
+            $courseData['cert_sig_2_path'] = $path;
+        }
 
         $course = Course::create($courseData);
 
@@ -132,14 +151,16 @@ class CourseController extends Controller
     public function show(Course $course)
     {
         // Cargar toda la data del curso
-        $course->load('topics.subtopics.activities');
+        $course->load('topics.subtopics.activities', 'topics.activities', 'finalExam');
         
         $user = Auth::user();
         
         // --- Lógica de Auto-Inscripción ELIMINADA ---
-        // if ($user && !$user->courses->contains($course->id)) {
-        //     $user->courses()->attach($course->id);
-        // }
+        $isEnrolled = $user ? $user->courses->contains($course->id) : false;
+        if ($user && !$isEnrolled) {
+            $user->courses()->attach($course->id);
+            $isEnrolled = true; 
+        }
         // --- FIN DE LÓGICA ELIMINADA ---
 
         $totalItems = 0;
@@ -175,31 +196,49 @@ class CourseController extends Controller
                 
                 // 3. Contar todas las Actividades (quizzes)
                 foreach ($subtopic->activities as $activity) {
-                    $totalItems++;
-                    if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
-                        $completedItems++;
+                    if (!$activity->is_final_exam) {
+                        $totalItems++;
+                        if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
+                            $completedItems++;
+                        }
                     }
                 }
             }
             
             // 4. Contar Actividades directas del Tema
             foreach ($topic->activities as $activity) {
-                $totalItems++;
-                if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
-                    $completedItems++;
+                if (!$activity->is_final_exam) {
+                    $totalItems++;
+                    if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
+                        $completedItems++;
+                    }
                 }
             }
         }
 
         $progress = ($totalItems > 0) ? round(($completedItems / $totalItems) * 100) : 0;
         
+        // Obtener el examen final (será null si no existe)
+        $finalExamActivity = $course->finalExam;
+
+        $finalExamData = null;
+        if ($finalExamActivity && $user) {
+            $finalExamData = $user->completions()
+                ->where('completable_type', Activities::class) // Asegúrate de importar Activities
+                ->where('completable_id', $finalExamActivity->id)
+                ->first();
+        }
+
         // Pasamos los nuevos totales a la vista
         return view('layouts.Cursos.show', compact(
             'course', 
-            'progress', 
-            'totalItems', // Reemplaza a totalActivities
-            'completedItems', // Reemplaza a completedCount
-            'userCompletionsMap' // Lo pasamos al JS
+            'progress', // Progreso del contenido principal
+            'totalItems', 
+            'completedItems', 
+            'userCompletionsMap',
+            'isEnrolled', // (Añadido por si acaso, si mantienes la auto-inscripción)
+            'finalExamActivity', // <-- PASAR EL EXAMEN A LA VISTA
+            'finalExamData' // <-- PASAR LOS DATOS DEL EXAMEN A LA VISTA
         ));
     }
 
@@ -450,6 +489,68 @@ class CourseController extends Controller
             'success' => true, 
             'message' => 'Has sido dado de baja del curso.'
         ]);
+    }
+
+    public function showCertificate(Course $course)
+    {
+        $user = Auth::user();
+        
+        // 1. Buscar el examen final del curso
+        $finalExam = $course->finalExam;
+        
+        if (!$finalExam) {
+            return redirect()->route('course.show', $course)
+                ->with('error', 'Este curso no tiene certificado disponible.');
+        }
+
+        // 2. Verificar si el usuario completó ese examen específico
+        $completion = $user->completions()
+            ->where('completable_type', Activities::class)
+            ->where('completable_id', $finalExam->id)
+            ->first();
+
+        // 3. Validar (puedes añadir validación de puntaje mínimo aquí si quieres, ej: score >= 60)
+        if (!$completion) {
+            return redirect()->route('course.show', $course)
+                ->with('error', 'Debes completar el examen final para ver el certificado.');
+        }
+
+        // ---------------------------------------------------------
+        // 2. PREPARACIÓN DE DATOS
+        // ---------------------------------------------------------
+        
+        // Formatear fecha elegante: "24 de Noviembre de 2025"
+        // Si tu Laravel no está en español, esto ayuda a forzarlo.
+        $completionDate = $completion->created_at->locale('es')->isoFormat('D [de] MMMM [de] YYYY');
+
+        $data = [
+            'course'           => $course,
+            'user'             => $user,
+            'score'            => $completion->score,
+            'date'             => $completionDate,
+            // Datos de la institución (logotipo y nombre) obtenidos de la sesión actual
+            'institution_logo' => session('active_institution_logo'),
+            'institution_name' => session('active_institution_name'),
+        ];
+
+        // ---------------------------------------------------------
+        // 3. GENERACIÓN DEL PDF
+        // ---------------------------------------------------------
+        
+        // Cargamos la vista de diseño que creamos (Cursos.template_v1)
+        $pdf = Pdf::loadView('layouts.Cursos.template_v1', $data);
+
+        // Configuramos el papel A4 Horizontal
+        $pdf->setPaper('a4', 'landscape');
+
+        // ---------------------------------------------------------
+        // 4. DESCARGA
+        // ---------------------------------------------------------
+
+        // Creamos un nombre de archivo limpio para evitar caracteres raros
+        $filename = 'Certificado_' . Str::slug($course->title) . '_' . Str::slug($user->name) . '.pdf';
+
+        return $pdf->download($filename);
     }
 
 }

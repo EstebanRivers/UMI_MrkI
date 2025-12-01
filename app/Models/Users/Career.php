@@ -4,6 +4,11 @@ namespace App\Models\Users;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Users\Institution;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Importar
+
+// Modelos necesarios para la consulta y relaciones
+use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
 
 
 /**
@@ -23,11 +28,51 @@ use App\Models\Users\Institution;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Career whereUpdatedAt($value)
  * @mixin \Eloquent
  */
+
+
+namespace App\Models\Users;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+use App\Models\Users\Institution;
+use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
+
 class Career extends Model
 {
-    public function institution() 
+    protected $fillable = [
+        'official_id',
+        'name',
+        'description1',
+        'description2',
+        'description3',
+        'type',
+        'semesters', 
+        'institution_id',
+        'credits'         
+    ];
+
+    // --- RELACIONES ---
+
+    public function institution(): BelongsTo 
     { 
         return $this->belongsTo(Institution::class); 
     }
 
+    public function materias(): HasMany
+    {
+        return $this->hasMany(Materia::class);
+    }
+
+    public function horarios(): HasMany
+    {
+        return $this->hasMany(Horario::class);
+    }
+    
+    public function academicProfiles(): HasMany
+    {
+        return $this->hasMany(AcademicProfile::class);
+    }
 }

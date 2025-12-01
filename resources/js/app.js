@@ -1,3 +1,8 @@
+import './bootstrap';
+import axios from 'axios';
+
+window.axios = axios;
+
 // Navegación SPA optimizada y simplificada
 class SimpleSPANavigation {
     constructor() {
@@ -76,17 +81,36 @@ class SimpleSPANavigation {
             }
         });
 
-        // --- Popstate (sin cambios) ---
+        // Manejar botón atrás/adelante del navegador
         window.addEventListener('popstate', (e) => {
-            // (Tu lógica de popstate, si tenías una, iría aquí)
-            // Por ejemplo, recargar la página si la navegación SPA no lo maneja
+            if (!(e.target instanceof Element)) return;
+            if (e.state && e.state.page) {
+                this.loadPage(e.state.page, false);
+            }
             this.navigate(window.location.href);
         });
-    }
 
-    // !! ========================================================== !!
-    // !! NUEVA FUNCIÓN DE AYUDA (Pégala aquí, dentro de la clase) !!
-    // !! ========================================================== !!
+        // Precargar al hacer hover (optimizado)
+        let hoverTimeout;
+        document.addEventListener('mouseenter', (e) => {
+            if (!(e.target instanceof Element)) return;
+            const link = e.target.closest('.menu a');
+            if (link && this.shouldIntercept(link)) {
+                clearTimeout(hoverTimeout);
+                hoverTimeout = setTimeout(() => {
+                    this.preloadPage(link.href);
+                }, 200);
+            }
+        }, true);
+
+        document.addEventListener('mouseleave', (e) => {
+            if (!(e.target instanceof Element)) return;
+            const link = e.target.closest('.menu a');
+            if (link) {
+                clearTimeout(hoverTimeout);
+            }
+        }, true);
+    }
     getSiblings(elem) {
         let siblings = [];
         if (!elem.parentNode) return siblings;
@@ -99,12 +123,6 @@ class SimpleSPANavigation {
         }
         return siblings;
     }
-
-    // ==================================================
-    // EL RESTO DE TU ARCHIVO (setImmediateActivate, 
-    // shouldIntercept, navigate, loadPage, parsePageContent, 
-    // etc.) VA AQUÍ SIN CAMBIOS.
-    // ==================================================
 
     setImmediateActivate(link) {
         document.querySelectorAll('.menu li').forEach(li => {
@@ -287,7 +305,7 @@ async loadPage(url, updateHistory = true) {
     }
 
     preloadCriticalPages() {
-        const criticalPages = ['/dashboard', '/mi-informacion', '/ajustes'];
+        const criticalPages = ['/cursos', '/mi-informacion', '/ajustes'];
         setTimeout(() => {
             criticalPages.forEach(page => {
                 if (page !== this.currentPage) {

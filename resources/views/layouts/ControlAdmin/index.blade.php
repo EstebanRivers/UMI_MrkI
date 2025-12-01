@@ -7,6 +7,11 @@
 @section('content')
 <div class ="container">
     <h1 class="page-title">Control Administrativo</h1>
-
+    <a href="{{ route('Carreras.index') }}">Carreras</a>
+    <a href="{{ route('Listas.students.index') }}">Lista de Alumnos</a>
+    <a href="{{ route('Listas.members.index') }}">Lista de Docentes</a>
+    <a href="{{ route('Inscripción.index') }}">Registro de Alumnos</a>
+    <a href="{{ route('Listas.materias.index') }}">Lista de materias</a>
+    <a href="{{ route("Horarios.index") }}">Horarios</a>
 </div>
 @endsection

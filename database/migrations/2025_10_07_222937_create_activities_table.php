@@ -15,10 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('topic_id')->nullable()->constrained('topics')->onDelete('cascade');
             $table->foreignId('subtopic_id')->nullable()->constrained('subtopics')->onDelete('cascade');
+            $table->foreignId('course_id')->nullable()->constrained('courses')->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('type'); // e.g., 'quiz', 'assignment', '
             $table->json('content');
+            $table->boolean('is_final_exam')->default(false);
+
             $table->timestamps();
         });
     }

@@ -1,190 +1,320 @@
 <aside class="sidebar" role="navigation" aria-label="Menú de navegación principal">
-  <div class="sidebar-top">
-    <div class="brand" style="margin-bottom: 5px">
-      <!-- logo arriba -->
-      @if(session('active_institution_logo'))
-        {{-- Si hay un logo en la sesión, lo muestra --}}
-        <img src="{{ asset('storage/' . session('active_institution_logo')) }}" alt="Logo Institución" style="width: 100%; height: auto; max-width: 130px;" loading="lazy">
-      @else
-        {{-- Si no hay logo, muestra el nombre como texto --}}
-        <span>{{ session('active_institution_name', 'Logo') }}</span> 
-      @endif
-    </div>
-  </div>
-
-  <nav class="menu" aria-label="Menú principal">
-    <ul>
-      <li class="@if(request()->routeIs('MiInformacion.*')) active @endif">
-        <a href="{{ route('MiInformacion.index') }}">
-          <span class="icon" aria-hidden="true">
-            <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-          </span>
-          <span class="text">Mi Información</span>
-        </a>
-      </li>
-
-      <li class="@if(request()->routeIs('Cursos.*')) active @endif">
-        <a href="{{ route('Cursos.index') }}">
-          <span class="icon" aria-hidden="true">
-            <img src="{{ asset('images/icons/desktop-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-          </span>
-          <span class="text">Cursos</span>
-        </a>
-      </li>
-
-      <li class="@if(request()->routeIs('Facturacion.*')) active @endif">
-        <a href="{{ route('Facturacion.index') }}">
-          <span class="icon" aria-hidden="true">
-            <img src="{{ asset('images/icons/money-bill-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-          </span>
-          <span class="text">Facturación</span>
-        </a>
-      </li>
-
+    {{-- =================================================================== --}}
+    {{-- BLOQUE LÓGICO: PRE-CALCULAR PERMISOS --}}
+    {{-- =================================================================== --}}
     @php
-    // Verificamos los roles y el contexto una sola vez
-    $user = Auth::user();
-    $isMaster = $user->hasActiveRole('master');
-    $isAdmin = $user->hasActiveRole('control_administrativo');
-    $userModules = @$user->academicProfile->modules ?? [];
-
-    $universityName = 'Universidad Mundo Imperial';
-    $isUniversity = (session('active_institution_name') == $universityName);
-@endphp
-
-{{-- 1. Botón principal: Visible si es Master/Admin Y está en la Universidad --}}
-@if(($isMaster || $isAdmin) && $isUniversity)
-    
-    <li class="has-submenu {{ request()->routeIs('control.*') ? 'active' : '' }}">
-        <a href="#">
-            <span class="icon" aria-hidden="true">
-                <img src="{{ asset('images/icons/clipboard-regular-full.svg') }}" alt="Control Icon" style="width:24px;height:24px" loading="lazy">
-            </span>
-            <span class="text">Control Administrativo</span>
-        </a>
+        $user = Auth::user();
         
-        {{-- ----------------------------------------- --}}
-        {{-- INICIA EL PRIMER NIVEL DE SUBMENÚ (FLOTANTE) --}}
-        {{-- ----------------------------------------- --}}
-        <ul class="submenu">
-            
-            {{-- 1. MÓDULO CONTROL ESCOLAR (AHORA ES UN SUBMENÚ) --}}
-            @if($isMaster || in_array('control_escolar', $userModules))
-                <li class="has-submenu {{ request()->is('control/escolar/*') ? 'active open' : '' }}">
-                    <a href="#">Control Escolar</a> {{-- Se vuelve un toggle --}}
-                    
-                    {{-- SEGUNDO NIVEL DE SUBMENÚ (HIJOS) --}}
-                    <ul class="submenu">
-                        <li class="{{ request()->is('control/escolar/inscripcion') ? 'active-submenu' : '' }}"><a href="#">Inscripción</a></li>
-                        <li class="{{ request()->is('control/escolar/alumnos') ? 'active-submenu' : '' }}"><a href="#">Lista de alumnos</a></li>
-                        <li class="{{ request()->is('control/escolar/matriculas') ? 'active-submenu' : '' }}"><a href="#">Matrículas</a></li>
-                        <li class="{{ request()->is('control/escolar/becas') ? 'active-submenu' : '' }}"><a href="#">Becas</a></li>
-                        <li class="{{ request()->is('control/escolar/practicas') ? 'active-submenu' : '' }}"><a href="#">Prácticas profesionales</a></li>
-                        <li class="{{ request()->is('control/escolar/servicio') ? 'active-submenu' : '' }}"><a href="#">Servicio Social</a></li>
-                        <li class="{{ request()->is('control/escolar/boletas') ? 'active-submenu' : '' }}"><a href="#">Boleta de calificaciones</a></li>
-                        <li class="{{ request()->is('control/escolar/titulacion') ? 'active-submenu' : '' }}"><a href="#">Titulación</a></li>
+        // --- 1. CONTEXTO ---
+        $universityName = 'Universidad Mundo Imperial';
+        $isUniversity   = (session('active_institution_name') == $universityName);
 
-                    </ul>
-                </li>
+        // --- 2. ROLES ---
+        $isMaster       = $user->hasActiveRole('master');
+        $isControlAdmin = $user->hasActiveRole('control_administrativo'); 
+        
+        // Agrupando "Control Administrativo" y "Gerente TH"
+        $isControlGroup = $isControlAdmin || $user->hasActiveRole('gerente_th');
+        
+        // Agrupando "Docente" y "Gerente Capacitación"
+        $isDocenteGroup = $user->hasActiveRole('docente') || $user->hasActiveRole('gerente_capacitacion');
+        
+        // Agrupando "Estudiante" y "Anfitrión"
+        $isStudentGroup = $user->hasActiveRole('estudiante') || $user->hasActiveRole('anfitrion');
+
+        // --- 3. BANDERAS DE VISIBILIDAD ---
+
+        // Submenú "Facturación": Solo Master y Control Admin
+        $hasFacturacionSubmenu = $isMaster || $isControlAdmin;
+
+        // Submenú "Mi Información"
+        $hasInfoSubmenu = $isStudentGroup || $isDocenteGroup || ($isMaster && $isUniversity);
+
+        // Menú "Control Administrativo"
+        $showControlMenu = ($isMaster || $isControlGroup) && $isUniversity;
+
+        // Módulos (Checkboxes)
+        $userModules = $user->academicProfile->modules ?? [];
+        $canSeeEscolar    = $isMaster || ($isControlGroup && in_array('control_escolar', $userModules));
+        $canSeeAcademico  = $isMaster || ($isControlGroup && in_array('control_academico', $userModules));
+        $canSeePlaneacion = $isMaster || ($isControlGroup && in_array('planeacion_vinculacion', $userModules));
+
+        // Menú "Ajustes"
+        $showSettings = $isMaster || $isControlGroup;
+    @endphp
+
+    {{-- =================================================================== --}}
+    {{-- PARTE SUPERIOR --}}
+    {{-- =================================================================== --}}
+    <div class="sidebar-top">
+        <div class="brand" style="margin-bottom: 5px">
+            @if(session('active_institution_logo'))
+                <img src="{{ asset('storage/' . session('active_institution_logo')) }}" alt="Logo Institución" style="width: 100%; height: auto; max-width: 130px;" loading="lazy">
+            @else
+                <span>{{ session('active_institution_name', 'Logo') }}</span> 
             @endif
+        </div>
+    </div>
 
-            {{-- 2. MÓDULO CONTROL ACADÉMICO (AHORA ES UN SUBMENÚ) --}}
-            @if($isMaster || in_array('control_academico', $userModules))
-                <li class="has-submenu {{ request()->is('control/academico/*') ? 'active open' : '' }}">
-                    <a href="#">Control Académico</a> {{-- Se vuelve un toggle --}}
-                    
-                    {{-- SEGUNDO NIVEL DE SUBMENÚ (HIJOS) --}}
+    {{-- =================================================================== --}}
+    {{-- MENÚ LATERAL --}}
+    {{-- =================================================================== --}}
+    <nav class="menu" aria-label="Menú principal">
+        <ul>
+
+            {{-- 1. MI INFORMACIÓN --}}
+            @if($hasInfoSubmenu)
+                <li class="has-submenu {{ request()->routeIs('MiInformacion.*') ? 'active' : '' }}">
+                    <a href="#">
+                        <span class="icon" aria-hidden="true">
+                            <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="Info Icon" style="width:24px;height:24px" loading="lazy">
+                        </span>
+                        <span class="text">Mi Información</span>
+                    </a>
                     <ul class="submenu">
-                       
-                         <li class="{{ request()->is('control/academico/carreras') ? 'active-submenu' : '' }}"><a href="#">Carreras</a></li>
-                        <li class="{{ request()->is('control/academico/materias') ? 'active-submenu' : '' }}"><a href="#">Materias</a></li>
-                        <li class="{{ request()->is('control/academico/docentes') ? 'active-submenu' : '' }}"><a href="#">Lista de docentes</a></li>
-                        <li class="{{ request()->is('control/academico/horarios') ? 'active-submenu' : '' }}"><a href="#">Horarios</a></li>
-                        <li class="{{ request()->is('control/academico/clases') ? 'active-submenu' : '' }}"><a href="#">Clases</a></li>
-                        <li class="{{ request()->is('control/academico/alumnos') ? 'active-submenu' : '' }}"><a href="#">Lista de alumnos</a></li>
-                        <li class="{{ request()->is('control/academico/planeacion') ? 'active-submenu' : '' }}"><a href="#">Planeación escolar</a></li>
+                        <li class="{{ request()->routeIs('MiInformacion.index') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('MiInformacion.index') }}">Perfil</a>
+                        </li>
+                        <li class="{{ request()->routeIs('MiInformacion.clases') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('MiInformacion.clases') }}">Clases</a>
+                        </li>
+                        <li class="{{ request()->routeIs('MiInformacion.horario') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('MiInformacion.horario') }}">Horario</a>
+                        </li>
+                        <li class="{{ request()->routeIs('MiInformacion.historial') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('MiInformacion.historial') }}">Historial Académico</a>
+                        </li>
+                        @if($isDocenteGroup)
+                            <li class="{{ request()->routeIs('MiInformacion.boletas') ? 'active-submenu' : '' }}">
+                                <a href="#">Boletas</a>
+                            </li>
+                        @endif
+                        @if($isStudentGroup)
+                             <li class="{{ request()->routeIs('MiInformacion.reticula') ? 'active-submenu' : '' }}">
+                                <a href="#">Retícula Escolar</a>
+                            </li>
+                             <li class="{{ request()->routeIs('MiInformacion.boletas') ? 'active-submenu' : '' }}">
+                                <a href="#">Boleta de Calif.</a>
+                            </li>
+                        @endif
+                         @if($isMaster && $isUniversity)
+                            <li class="{{ request()->routeIs('MiInformacion.constancias') ? 'active-submenu' : '' }}">
+                                <a href="#">Constancias</a>
+                            </li>
+                        @endif
                     </ul>
-                </li>
-            @endif
-
-            {{-- 3. MÓDULO PLANEACIÓN Y VINCULACIÓN (AHORA ES UN SUBMENÚ) --}}
-            @if($isMaster || in_array('planeacion_vinculacion', $userModules))
-                <li class="has-submenu {{ request()->is('control/planeacion/*') ? 'active open' : '' }}">
-                    <a href="#">Planeación y vinculación</a> {{-- Se vuelve un toggle --}}
-                    
-                    {{-- SEGUNDO NIVEL DE SUBMENÚ (HIJOS) --}}
-                    <ul class="submenu">
-                        <li class="{{ request()->is('control/planeacion/presupuestos') ? 'active-submenu' : '' }}"><a href="#">Presupuestos</a></li>
-                    </ul>
-                </li>
-            @endif
-        </ul>
-        {{-- ----------------------------------------- --}}
-        {{-- FIN DEL PRIMER NIVEL DE SUBMENÚ --}}
-        {{-- ----------------------------------------- --}}
-    </li>
-@endif
-      
-    @if(Auth::user()->hasActiveRole('master'))
-    <li class="has-submenu {{ request()->routeIs('ajustes.*') ? 'active open' : '' }}">
-        <a href="#">
-            <span class="icon" aria-hidden="true">
-                <img src="{{ asset('images/icons/user-gear-solid-full.svg') }}" alt="Ajustes Icon" style="width:24px;height:24px" loading="lazy">
-            </span>
-            <span class="text">Ajustes</span>
-        </a>
-        <ul class="submenu">
-            
-            @php
-                $universityName = 'Universidad Mundo Imperial';
-                $isUniversity = (session('active_institution_name') == $universityName);
-            @endphp
-
-            {{-- !! LÓGICA CORREGIDA !! --}}
-            @if($isUniversity)
-                {{-- Si SÍ es la Uni: Deptos, Periodos --}}
-                <li class="{{ request()->is('ajustes/departments') ? 'active-submenu' : '' }}">
-                    <a href="{{ route('ajustes.show', 'departments') }}">Departamentos</a>
-                </li>
-                <li class="{{ request()->is('ajustes/periods') ? 'active-submenu' : '' }}">
-                    <a href="{{ route('ajustes.show', 'periods') }}">Periodos</a>
                 </li>
             @else
-                {{-- Si NO es la Uni: Unidades, Deptos, Puestos --}}
-                <li class="{{ request()->is('ajustes/institutions') ? 'active-submenu' : '' }}">
-                    <a href="{{ route('ajustes.show', 'institutions') }}">Unidades de Negocio</a>
-                </li>
-                <li class="{{ request()->is('ajustes/departments') ? 'active-submenu' : '' }}">
-                    <a href="{{ route('ajustes.show', 'departments') }}">Departamentos</a>
-                </li>
-                <li class="{{ request()->is('ajustes/workstations') ? 'active-submenu' : '' }}">
-                    <a href="{{ route('ajustes.show', 'workstations') }}">Puestos</a>
+                <li class="{{ request()->routeIs('MiInformacion.index') ? 'active' : '' }}">
+                    <a href="{{ route('MiInformacion.index') }}">
+                        <span class="icon" aria-hidden="true">
+                            <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="Info Icon" style="width:24px;height:24px" loading="lazy">
+                        </span>
+                        <span class="text">Mi Información</span>
+                    </a>
                 </li>
             @endif
-            
-            {{-- "Usuarios" siempre se muestra --}}
-            <li class="{{ request()->is('ajustes/users') ? 'active-submenu' : '' }}">
-                <a href="{{ route('ajustes.show', 'users') }}">Usuarios</a>
+
+            {{-- 2. CURSOS --}}
+            <li class="@if(request()->routeIs('Cursos.*')) active @endif">
+                <a href="{{ route('Cursos.index') }}">
+                    <span class="icon" aria-hidden="true">
+                        <img src="{{ asset('images/icons/desktop-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+                    </span>
+                    <span class="text">Cursos</span>
+                </a>
             </li>
+
+            {{-- 3. FACTURACIÓN --}}
+            @if($hasFacturacionSubmenu)
+                {{-- CASO A: Master y Control Administrativo (Con submenú flotante) --}}
+                <li class="has-submenu submenu-flotante {{ request()->routeIs('Facturacion.*') ? 'active' : '' }}">
+                    
+                    {{-- El enlace principal lleva al Index (Panel General) --}}
+                    <a href="{{ route('Facturacion.index') }}">
+                        <span class="icon" aria-hidden="true">
+                            <img src="{{ asset('images/icons/money-bill-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+                        </span>
+                        <span class="text">Facturación</span>
+                    </a>
+                    
+                    {{-- SUBMENÚ FLOTANTE A LA DERECHA --}}
+                    <ul class="submenu">
+                        <li class="{{ request()->routeIs('facturacion.conceptos.*') ? 'active-submenu' : '' }}">
+                            <a href="{{ route('facturacion.conceptos.index') }}">Conceptos y Montos</a>
+                        </li>
+                    </ul>
+                </li>
+            @else
+                {{-- CASO B: Alumnos, Docentes (Enlace directo sin submenú) --}}
+                <li class="@if(request()->routeIs('Facturacion.*')) active @endif">
+                    <a href="{{ route('Facturacion.index') }}">
+                        <span class="icon" aria-hidden="true">
+                            <img src="{{ asset('images/icons/money-bill-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+                        </span>
+                        <span class="text">Facturación</span>
+                    </a>
+                </li>
+            @endif
+
+            {{-- 4. CONTROL ADMINISTRATIVO --}}
+            @if($showControlMenu)
+                <li class="has-submenu {{ request()->routeIs('control.*') || request()->routeIs('escolar.*') ? 'active' : '' }}">
+                    <a href="#">
+                        <span class="icon" aria-hidden="true">
+                            <img src="{{ asset('images/icons/clipboard-regular-full.svg') }}" alt="Control Icon" style="width:24px;height:24px" loading="lazy">
+                        </span>
+                        <span class="text">Control Administrativo</span>
+                    </a>
+                    
+                    <ul class="submenu">
+                        @if($canSeeEscolar)
+                            <li class="has-submenu {{ request()->routeIs('escolar.*') ? 'active open' : '' }}">
+                                <a href="#">Control Escolar</a>
+                                <ul class="submenu">
+                                    <li class="{{ request()->routeIs('escolar.inscripcion.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('escolar.inscripcion.index') }}">Inscripción</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('escolar.students.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('escolar.students.index') }}">Lista de Alumnos</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('escolar.matriculas.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('escolar.matriculas.index') }}">Matrículas</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/escolar/becas') ? 'active-submenu' : '' }}">
+                                        <a href="#">Becas</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/escolar/practicas') ? 'active-submenu' : '' }}">
+                                        <a href="#">Prácticas Prof.</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/escolar/servicio') ? 'active-submenu' : '' }}">
+                                        <a href="#">Servicio Social</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/escolar/boletas') ? 'active-submenu' : '' }}">
+                                        <a href="#">Boletas</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/escolar/titulacion') ? 'active-submenu' : '' }}">
+                                        <a href="#">Titulación</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif
+
+                        @if($canSeeAcademico)
+                            <li class="has-submenu {{ request()->routeIs('control.*') && !request()->routeIs('control.planeacion.*') ? 'active open' : '' }}">
+                                <a href="#">Control Académico</a>
+                                <ul class="submenu">
+                                    <li class="{{ request()->routeIs('control.careers.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('control.careers.index') }}">Carreras</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('control.subjects.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('control.subjects.index') }}">Materias</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('control.teachers.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('control.teachers.index') }}">Lista de Docentes</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('control.schedules.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('control.schedules.index') }}">Horarios</a>
+                                    </li>
+                                    <li class="{{ request()->routeIs('control.classes.*') ? 'active-submenu' : '' }}">
+                                        <a href="#">Clases</a> 
+                                    </li>
+                                    <li class="{{ request()->routeIs('control.students.*') ? 'active-submenu' : '' }}">
+                                        <a href="{{ route('control.students.index') }}">Lista de Alumnos</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/academico/reticula') ? 'active-submenu' : '' }}">
+                                        <a href="#">Retícula Escolar</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/academico/planeacion') ? 'active-submenu' : '' }}">
+                                        <a href="#">Planeación Escolar</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif
+
+                        @if($canSeePlaneacion)
+                            <li class="has-submenu {{ request()->is('control/planeacion/*') ? 'active open' : '' }}">
+                                <a href="#">Planeación y Vinc.</a>
+                                <ul class="submenu">
+                                    <li class="{{ request()->is('control/planeacion/general') ? 'active-submenu' : '' }}">
+                                        <a href="#">Información</a>
+                                    </li>
+                                    <li class="{{ request()->is('control/planeacion/presupuestos') ? 'active-submenu' : '' }}">
+                                        <a href="#">Presupuestos</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
+
+            {{-- 5. AJUSTES --}}
+            @if($showSettings)
+                <li class="has-submenu {{ request()->routeIs('ajustes.*') ? 'active open' : '' }}">
+                    <a href="#">
+                        <span class="icon" aria-hidden="true">
+                            <img src="{{ asset('images/icons/user-gear-solid-full.svg') }}" alt="Ajustes Icon" style="width:24px;height:24px" loading="lazy">
+                        </span>
+                        <span class="text">Ajustes</span>
+                    </a>
+                    <ul class="submenu">
+                        @if($isMaster)
+                            @if($isUniversity)
+                                <li class="{{ request()->is('ajustes/departments') ? 'active-submenu' : '' }}">
+                                    <a href="{{ route('ajustes.show', 'departments') }}">Departamentos</a>
+                                </li>
+                                <li class="{{ request()->is('ajustes/periods') ? 'active-submenu' : '' }}">
+                                    <a href="{{ route('ajustes.show', 'periods') }}">Periodos</a>
+                                </li>
+                            @else
+                                <li class="{{ request()->is('ajustes/institutions') ? 'active-submenu' : '' }}">
+                                    <a href="{{ route('ajustes.show', 'institutions') }}">Unidades de Negocio</a>
+                                </li>
+                                <li class="{{ request()->is('ajustes/departments') ? 'active-submenu' : '' }}">
+                                    <a href="{{ route('ajustes.show', 'departments') }}">Departamentos</a>
+                                </li>
+                                <li class="{{ request()->is('ajustes/workstations') ? 'active-submenu' : '' }}">
+                                    <a href="{{ route('ajustes.show', 'workstations') }}">Puestos</a>
+                                </li>
+                            @endif
+                            <li class="{{ request()->is('ajustes/users') ? 'active-submenu' : '' }}">
+                                <a href="{{ route('ajustes.show', 'users') }}">Usuarios</a>
+                            </li>
+                        @elseif($isControlGroup)
+                            <li class="{{ request()->is('ajustes/users') ? 'active-submenu' : '' }}">
+                                <a href="{{ route('ajustes.show', 'users') }}">Usuarios</a>
+                            </li>
+                            <li class="{{ request()->is('ajustes/periods') ? 'active-submenu' : '' }}">
+                                <a href="{{ route('ajustes.show', 'periods') }}">Periodos</a>
+                            </li>
+                            <li class="{{ request()->is('ajustes/departments') ? 'active-submenu' : '' }}">
+                                <a href="{{ route('ajustes.show', 'departments') }}">Departamentos</a>
+                            </li>
+                        @endif
+                    </ul>
+                </li>
+            @endif
+
         </ul>
-    </li>
-@endif
-    </ul>
-  </nav>
+    </nav>
 
-  <div class="sidebar-bottom">
-    <form method="POST" action="{{ route('logout') }}" style="width: 100%;">
-      @csrf
-      <button type="submit" class="btn-logout" aria-label="Cerrar sesión">
-        <span class="icon" aria-hidden="true">
-          <img src="{{ asset('images/icons/right-to-bracket-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-        </span>
-        <span class="text">Cerrar sesión</span>
-      </button>
-    </form>
+    {{-- =================================================================== --}}
+    {{-- PARTE INFERIOR --}}
+    {{-- =================================================================== --}}
+    <div class="sidebar-bottom">
+        <form method="POST" action="{{ route('logout') }}" style="width: 100%;">
+            @csrf
+            <button type="submit" class="btn-logout" aria-label="Cerrar sesión">
+                <span class="icon" aria-hidden="true">
+                    <img src="{{ asset('images/icons/right-to-bracket-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
+                </span>
+                <span class="text">Cerrar sesión</span>
+            </button>
+        </form>
 
-    <div class="brand-bottom">
-      <img src="{{ asset('images/LOGO3.png') }}" alt="Logo Mundo Imperial" loading="lazy">
+        <div class="brand-bottom">
+            <img src="{{ asset('images/LOGO3.png') }}" alt="Logo Mundo Imperial" loading="lazy">
+        </div>
     </div>
-  </div>
 </aside>

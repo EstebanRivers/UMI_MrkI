@@ -92,6 +92,17 @@
                     </div>
                 </div>
             @endforeach
+            @if ($finalExamActivity)
+                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #e69a37; margin-top: 15px; padding-top: 15px;">
+                    <strong 
+                        class="syllabus-link auto-complete-link accordion-toggle"
+                        data-target="#content-activity-{{ $finalExamActivity->id }}"
+                        data-completable-type="Activities"
+                        data-completable-id="{{ $finalExamActivity->id }}">
+                        <span style="font-size: 1.1em;"></span> Examen Final
+                    </strong>
+                </div>
+            @endif
         </div>
         {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
             <div class="course-progress-container" 
@@ -260,17 +271,14 @@
                                     @foreach ($activity->content['options'] as $index => $option)
                                         <div class="option-box">
                                             <label>
-                                                <input type="radio" name="answer" value="{{ $index }}" {{ Auth::id() == $course->instructor_id ? 'disabled' : '' }}>
+                                                <input type="radio" name="answer" value="{{ $index }}" >
                                                 {{ $option }}
                                             </label>
                                         </div>
                                     @endforeach
                                     <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                                    @if (Auth::id() != $course->instructor_id)
                                         <button type="submit" class="btn-success">Enviar Respuesta</button>
-                                    @else
-                                        <p class="instructor-note">(Vista de previsualización para el instructor)</p>
-                                    @endif
+                                   
                                 </form> 
                             
                             @elseif ($activity->type == 'SopaDeLetras' && is_array($activity->content))
@@ -380,10 +388,114 @@
                         @endif
                     </div>
                 @endforeach
-
             @endforeach
-        </div>
+            @if ($finalExamActivity)
+                @php $activity = $finalExamActivity; @endphp
 
+                <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none;">
+                    <h2 style="color: #e69a37;"> Examen Final</h2>
+                    <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
+
+                    {{-- CASO 1: YA COMPLETÓ EL EXAMEN --}}
+                    @if ($finalExamData) 
+                        <div class="exam-completed-container" style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 10px;">
+                            <h3 style="color: #28a745; font-size: 2em; margin-bottom: 10px;">¡Felicidades!</h3>
+                            <p style="font-size: 1.2em; margin-bottom: 30px;">Has completado el examen final.</p>
+                            
+                            <div style="font-size: 3em; font-weight: bold; color: #e69a37; margin-bottom: 30px;">
+                                {{ $finalExamData->score }} / 100
+                            </div>
+
+                            <a href="{{ route('courses.certificate', $course) }}" target="_blank" class="btn-success" style="padding: 15px 30px; font-size: 1.1em; text-decoration: none;">
+                                 Ver mi Certificado
+                            </a>
+                        </div>
+
+                    {{-- CASO 2: AÚN NO LO COMPLETA (Muestra el formulario) --}}
+                    @else
+                        
+                        <h3>{{ $activity->title }} ({{ $activity->type }})</h3>
+
+                        @if ($activity->type == 'Examen' && is_array($activity->content))
+
+                            <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
+                                action="{{ route('activities.submit', $activity) }}" 
+                                method="POST" data-activity-id="{{ $activity->id }}">
+                                @csrf
+                                
+                                @php
+                                    $questions = $activity->content['questions'];
+                                    $totalQuestions = count($questions);
+                                @endphp
+
+                                {{-- Contenedor de Preguntas (Wizard) --}}
+                                <div class="questions-wrapper" id="questions-wrapper-{{ $activity->id }}">
+                                    
+                                    @foreach ($questions as $q_index => $questionData)
+                                        {{-- La clase 'question-step' y 'active' (solo al 1ro) --}}
+                                        <div class="quiz-question-block question-step {{ $q_index === 0 ? 'active' : '' }}" 
+                                            data-index="{{ $q_index }}"
+                                            style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                                            
+                                            <span class="exam-progress">Pregunta {{ $q_index + 1 }} de {{ $totalQuestions }}</span>
+                                            
+                                            <p class="question-text" style="font-size: 1.2em; margin-bottom: 15px;">
+                                                <strong>{{ $questionData['question'] }}</strong>
+                                            </p>
+                                            
+                                            @foreach ($questionData['options'] as $opt_index => $option)
+                                                <div class="option-box" style="margin-bottom: 10px;">
+                                                    <label style="display: flex; align-items: center; cursor: pointer;">
+                                                        <input type="radio" name="answers[{{ $q_index }}][a]" 
+                                                            value="{{ $opt_index }}" data-question-index="{{ $q_index }}"
+                                                            style="margin-right: 10px;">
+                                                        {{ $option }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                            <input type="hidden" name="answers[{{ $q_index }}][q]" value="{{ $q_index }}">
+                                            
+                                            {{-- Mensaje de error --}}
+                                            <div class="step-error-msg" style="color: red; display: none; margin-top: 10px;">
+                                                Debes seleccionar una opción para continuar.
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
+                                
+                                {{-- Controles de Navegación --}}
+                                
+                                    <div class="exam-controls" style="margin-top: 20px; display: flex; justify-content: space-between;">
+                                        <button type="button" class="btn-secondary btn-next-step" 
+                                                data-form-id="quiz-form-{{ $activity->id }}"
+                                                style="{{ $totalQuestions <= 1 ? 'display:none;' : '' }}">
+                                            Siguiente Pregunta &rarr;
+                                        </button>
+
+                                        <button type="submit" class="btn-success btn-finish-exam" 
+                                                style="{{ $totalQuestions > 1 ? 'display:none;' : '' }}">
+                                            Finalizar y Calificar
+                                        </button>
+                                    </div>
+                                
+                            </form>
+
+                        {{-- CORRECCIÓN: Cerrar el if interno y abrir elseif para el siguiente tipo --}}
+                        @elseif ($activity->type == 'Cuestionario' && is_array($activity->content))
+                            <form class="quiz-form" id="quiz-form-{{ $activity->id }}" ...>
+                                {{-- ... Tu código de cuestionario simple ... --}}
+                            </form>
+                        @endif  {{-- Cierre del @if interno ($activity->type) --}}
+
+                    @endif
+                </div>
+            @endif
+                    
+                </div>
+            
+        </div>
     </div>
 </div>
 
@@ -427,6 +539,20 @@
         /* ==================================================================
            3. LÓGICA DE PROGRESO (CORREGIDA)
            ================================================================== */
+        // --- Referencia al enlace del examen ---
+        const finalExamSyllabusLink = document.getElementById('final-exam-syllabus-link');
+
+        // --- Función para comprobar y mostrar el examen ---
+        function checkAndShowFinalExam(progressValue) {
+            if (progressValue >= 100 && finalExamSyllabusLink) {
+                // Comprobar si ya se mostró para no repetir alertas
+                if (finalExamSyllabusLink.style.display === 'none') {
+                    finalExamSyllabusLink.style.display = 'block';
+                    // Opcional: Mostrar un mensaje
+                    alert('¡Felicidades! Has completado el curso y desbloqueado el Examen Final.');
+                }
+            }
+        }
 
         const markItemAsComplete = (type, id, element) => {
             if (element.classList.contains('completed')) return;
@@ -448,12 +574,17 @@
             if (!tracker) return;
             const barFill = document.getElementById('progress-bar-fill');
             const barText = document.getElementById('progress-bar-text');
-            const completedNow = document.querySelectorAll('.syllabus-link.completed').length;
+            const completedNow = document.querySelectorAll('.course-syllabus .syllabus-link.completed').length;
             const totalItems = parseInt(tracker.dataset.totalActivities, 10); 
-            if (totalItems === 0) return;
+            if (totalItems === 0) {
+                checkAndShowFinalExam(100); // Si no hay items, desbloquear
+                return;
+            };
             let newProgress = Math.round((completedNow / totalItems) * 100);
+            if (newProgress > 100) newProgress = 100; // Asegurar el tope
             barFill.style.width = newProgress + '%';
             barText.innerText = newProgress + '%';
+            checkAndShowFinalExam(newProgress);
         };
 
         // --- Escuchar clics en los enlaces "completables" (PDFs/Videos) ---
@@ -510,22 +641,38 @@
                 e.preventDefault(); 
                 const activityId = this.dataset.activityId;
                 const feedbackEl = document.getElementById(`feedback-${activityId}`);
-                const formData = new FormData(this);
-                const userAnswer = formData.get('answer');
+                let formData;
+                const isMultiQuestionExam = this.querySelector('input[name^="answers["]');
 
-                if (userAnswer === null) {
-                    feedbackEl.style.color = 'red';
-                    feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
-                    return;
+                if (isMultiQuestionExam) {
+                    // Es el Examen (múltiples preguntas)
+                    // Serializar el formulario para obtener el array 'answers'
+                    formData = new FormData(this);
+                } else {
+                    // Es el Cuestionario (1 pregunta)
+                    const singleAnswer = this.querySelector('input[name="answer"]:checked');
+                    if (singleAnswer === null) {
+                        feedbackEl.style.color = 'red';
+                        feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
+                        return;
+                    }
+                    formData = { answer: singleAnswer.value };
                 }
-                window.axios.post(this.action, { answer: userAnswer })
+                window.axios.post(this.action, formData)
                     .then(response => {
+                        
                         feedbackEl.style.color = 'green';
                         feedbackEl.innerText = response.data.message;
                         this.querySelectorAll('input, button').forEach(el => el.disabled = true);
                         const syllabusLink = document.querySelector(`.syllabus-link[data-completable-id="${activityId}"][data-completable-type="Activities"]`);
                         if (syllabusLink) syllabusLink.classList.add('completed');
                         if (response.data.created) updateProgressBar();
+                        if (syllabusLink && syllabusLink.closest('#final-exam-syllabus-link')) {
+                            // Esperar 1.5 segundos para que el usuario lea "Examen enviado" y luego recargar
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        }
                     })
                     .catch(error => {
                         feedbackEl.style.color = 'red';
@@ -535,6 +682,54 @@
                             feedbackEl.innerText = 'Error al enviar la respuesta. Intenta más tarde.';
                         }
                     });
+            });
+        });
+
+        // --- COMPROBACIÓN INICIAL AL CARGAR PÁGINA ---
+        // Obtenemos el progreso inicial que pasó el controlador
+        const initialProgress = {{ $progress ?? 0 }};
+        checkAndShowFinalExam(initialProgress);
+        // --- LÓGICA DE "WIZARD" (PASO A PASO) PARA EL EXAMEN ---
+        document.querySelectorAll('.btn-next-step').forEach(button => {
+            button.addEventListener('click', function() {
+                const formId = this.dataset.formId;
+                const form = document.getElementById(formId);
+                
+                // 1. Identificar la pregunta actual visible
+                const currentStep = form.querySelector('.question-step.active');
+                const nextStep = currentStep.nextElementSibling;
+                
+                // 2. Validar que haya respondido (buscar radio checked dentro del paso actual)
+                const selectedOption = currentStep.querySelector('input[type="radio"]:checked');
+                const errorMsg = currentStep.querySelector('.step-error-msg');
+                
+                // Si no seleccionó nada (y no es el instructor), mostrar error y detener
+                // (Puedes quitar la condición de instructor si quieres que él también valide)
+                if (!selectedOption) {
+                    if (errorMsg) {
+                        errorMsg.style.display = 'block';
+                        errorMsg.innerText = "Por favor, selecciona una respuesta para continuar.";
+                    }
+                    return; // DETENER AQUÍ
+                } else {
+                    if (errorMsg) errorMsg.style.display = 'none';
+                }
+
+                // 3. Avanzar a la siguiente pregunta
+                if (nextStep && nextStep.classList.contains('question-step')) {
+                    currentStep.classList.remove('active');
+                    nextStep.classList.add('active');
+
+                    // 4. Gestionar botones
+                    // Si NO hay más pasos después del siguiente, ocultar "Siguiente" y mostrar "Finalizar"
+                    const isLastQuestion = !nextStep.nextElementSibling || !nextStep.nextElementSibling.classList.contains('question-step');
+                    
+                    if (isLastQuestion) {
+                        this.style.display = 'none'; // Ocultar botón Siguiente
+                        const finishBtn = form.querySelector('.btn-finish-exam');
+                        if (finishBtn) finishBtn.style.display = 'inline-block'; // Mostrar botón Finalizar
+                    }
+                }
             });
         });
         
@@ -896,6 +1091,7 @@
         }
 
     }); // Cierre del DOMContentLoaded
+    
 </script>
 @endpush
 @endsection

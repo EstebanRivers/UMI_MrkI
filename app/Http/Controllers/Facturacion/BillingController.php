@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Facturacion;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Facturacion\Billing;
+use App\Models\Facturacion\BillingConcept; // Importamos el modelo de conceptos
 use App\Models\Users\User;
 use App\Models\Users\Period; 
 use Illuminate\Support\Facades\Auth;
@@ -22,11 +23,20 @@ class BillingController extends Controller
         // 1. Obtener Periodos ordenados
         $periods = Period::orderBy('start_date', 'desc')->get();
 
+        // 2. Obtener CONCEPTOS PREDEFINIDOS (Para el select del modal)
+        // Solo traemos los activos de la institución actual
+        $institutionId = session('active_institution_id');
+        
+        // Obtenemos los conceptos y los guardamos en una variable
+        $conceptosDisponibles = BillingConcept::where('institution_id', $institutionId)
+                                          ->where('is_active', 1)
+                                          ->orderBy('concept')
+                                          ->get();
+
         // ======================================================
         // LÓGICA FUNCIONAL: CALCULAR MESES DINÁMICAMENTE
         // ======================================================
         $periods->map(function ($period) {
-            // 1. Obtenemos las fechas configuradas
             $fechasConfiguradas = $period->payment_dates ?? [];
 
             if ($period->start_date && $period->end_date) {
@@ -39,10 +49,6 @@ class BillingController extends Controller
                 $index = 0; 
 
                 foreach ($monthRange as $date) {
-                    
-                    // 2. LÓGICA MAESTRA DE FECHAS (SOLO FECHAS)
-                    // (Aquí NO va nada de facturas ni pagos)
-                    
                     if (isset($fechasConfiguradas[$index])) {
                         $fechaVencimiento = $fechasConfiguradas[$index]; 
                     } else {
@@ -64,7 +70,8 @@ class BillingController extends Controller
             return $period;
         });
 
-        $viewData = ['user' => $user, 'periods' => $periods];
+        // Pasamos 'conceptosDisponibles' a la vista para que coincida con el @foreach del Blade
+        $viewData = ['user' => $user, 'periods' => $periods, 'conceptosDisponibles' => $conceptosDisponibles];
         $isAdmin = $user->hasActiveRole('master') || $user->hasActiveRole('control_administrativo');
 
         if ($isAdmin) {
@@ -138,12 +145,11 @@ class BillingController extends Controller
         }
 
         // ==========================================================
-        // 🚦 SISTEMA DE ALERTAS (Aquí SÍ usamos $factura)
+        // 🚦 SISTEMA DE ALERTAS
         // ==========================================================
         $alertasVencimiento = [];
 
         if (!$isAdmin) {
-            // Buscamos facturas vivas
             $facturasPorVencer = Billing::with('payments') 
                 ->where('user_id', $user->id)
                 ->whereIn('status', ['Pendiente', 'Abonado'])
@@ -152,11 +158,9 @@ class BillingController extends Controller
                 ->get();
 
             foreach ($facturasPorVencer as $factura) {
-                
-                // 1. CHEQUEO DE PAGOS (Aquí sí va)
                 $totalPagado = $factura->payments->sum('monto');
                 if ($totalPagado >= $factura->monto) {
-                    continue; // Si ya pagó, saltamos
+                    continue; 
                 }
 
                 $fechaVencimiento = Carbon::parse($factura->fecha_vencimiento)->startOfDay();
@@ -167,24 +171,16 @@ class BillingController extends Controller
                 $tipo = 'info';
                 $agregarAlerta = false;
 
-                // Niveles de alerta
-                // 🔵 NIVEL 1: RELAJADO (7 a 3 días antes)
                 if ($diasRestantes <= 7 && $diasRestantes >= 3) {
                     $titulo = "📅 Recordatorio Amigable";
                     $mensaje = "Hola {$user->nombre}, te recordamos que tu factura '{$factura->concepto}' vence en {$diasRestantes} " . ($diasRestantes === 1 ? "día." : "días.");
                     $tipo = 'info';
                     $agregarAlerta = true;
                 }
-
-                // 🟡 NIVEL 2: ATENCIÓN (2 días antes hasta 2 días después) — mismo rango,
-                // pero con mensaje adaptado a antes/hoy/ya venció
                 elseif ($diasRestantes <= 2 && $diasRestantes >= -2) {
-
                     $tipo = 'warning';
                     $agregarAlerta = true;
-
                     if ($diasRestantes > 1) {
-                        // 2 o más días antes
                         $titulo = "⚠️ Atención: Pago Próximo";
                         $mensaje = "Hola {$user->nombre}, faltan {$diasRestantes} días para que venza tu factura '{$factura->concepto}'.";
                     } elseif ($diasRestantes === 1) {
@@ -192,26 +188,19 @@ class BillingController extends Controller
                         $mensaje = "Hola {$user->nombre}, falta 1 día para que venza tu factura '{$factura->concepto}'.";
                     } elseif ($diasRestantes === 0) {
                         $titulo = "⚠️ Atención: Vence Hoy";
-                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' vence HOY. Por favor realiza el pago.";
-                    } elseif ($diasRestantes === -1) {
+                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' vence HOY.";
+                    } else {
                         $titulo = "⚠️ Atención: Su Pago Venció";
-                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' venció ayer (hace 1 día). Por favor regulariza el pago.";
-                    } else { // $diasRestantes === -2
-                        $titulo = "⚠️ Atención: Su Pago Venció";
-                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' venció hace 2 días. Por favor regulariza el pago.";
+                        $mensaje = "Hola {$user->nombre}, tu factura '{$factura->concepto}' ya venció.";
                     }
                 }
-
-                // 🔴 NIVEL 3: URGENTE (3 a 7 días después del vencimiento)
                 elseif ($diasRestantes <= -3 && $diasRestantes >= -7) {
                     $titulo = "⛔ AVISO URGENTE DE BAJA";
                     $abs = abs($diasRestantes);
-                    $mensaje = "Tu factura '{$factura->concepto}' venció hace {$abs} " . ($abs === 1 ? "día. " : "días. ") .
-                            "Si no se recibe el pago pronto, se procederá a la baja.";
+                    $mensaje = "Tu factura '{$factura->concepto}' venció hace {$abs} días.";
                     $tipo = 'error';
                     $agregarAlerta = true;
                 }
-
 
                 if ($agregarAlerta) {
                     $alertasVencimiento[] = [
@@ -225,6 +214,7 @@ class BillingController extends Controller
 
         $viewData['alertasVencimiento'] = $alertasVencimiento;
 
+        // Ruta de la vista (Layouts...)
         return view('layouts.Facturacion.index', $viewData);
     }
 
@@ -236,9 +226,11 @@ class BillingController extends Controller
             abort(403, 'ACCIÓN NO AUTORIZADA.');
         }
 
+        // VALIDACIÓN
         $validated = $request->validate([
             'concepto' => 'required|string|max:255',
             'monto' => 'required|numeric|min:0',
+            // IMPORTANTE: El modal envía "fecha", no "fecha_vencimiento"
             'fecha' => 'required|date', 
             'archivo' => 'required|file|mimes:pdf|max:2048',
             'status' => 'required|in:Pendiente,Pagada',
@@ -248,19 +240,7 @@ class BillingController extends Controller
         ]);
 
         $periodo = Period::find($validated['period_id']);
-        $fechaFactura = Carbon::parse($validated['fecha']);
         
-        if ($periodo->start_date && $periodo->end_date) {
-            $inicio = Carbon::parse($periodo->start_date)->startOfDay();
-            $fin = Carbon::parse($periodo->end_date)->endOfDay();
-
-            if (!$fechaFactura->between($inicio, $fin)) {
-                return redirect()->back()
-                    ->withErrors(['fecha' => "La fecha no coincide con el periodo."])
-                    ->withInput();
-            }
-        } 
-
         $filePath = $request->file('archivo')->store('facturas', 'public');
         $xmlPath = null;
         
@@ -271,19 +251,24 @@ class BillingController extends Controller
         $lastId = Billing::withTrashed()->max('id') ?? 0;
         $newUid = "FAC-" . str_pad($lastId + 1, 3, "0", STR_PAD_LEFT);
 
+        // CREACIÓN
         Billing::create([
             'factura_uid' => $newUid,
             'user_id' => $validated['user_id'],
             'period_id' => $validated['period_id'],
             'concepto' => $validated['concepto'],
             'monto' => $validated['monto'],
-            'fecha_vencimiento' => $fechaFactura->format('Y-m-d'),
+            // Mapeamos el input 'fecha' a la columna 'fecha_vencimiento'
+            'fecha_vencimiento' => $validated['fecha'], 
             'archivo_path' => $filePath,
             'xml_path' => $xmlPath,
             'status' => $validated['status'],
         ]);
 
-        $url = route('Facturacion.index');
+        // REDIRECCIÓN CON ANCLAJE (SCROLL)
+        $url = route('Facturacion.index', ['period_id' => $validated['period_id']]);
+        
+        // El ID debe coincidir exactamente con el <details> en la vista
         $anchor = '#factura-target-user-' . $validated['user_id'] . '-period-' . $validated['period_id'];
 
         return redirect()->to($url . $anchor)->with('success', 'Factura creada exitosamente.');
@@ -308,7 +293,8 @@ class BillingController extends Controller
 
         $billing->delete();
         
-        $url = route('Facturacion.index');
+        // REDIRECCIÓN CON ANCLAJE
+        $url = route('Facturacion.index', ['period_id' => $periodId]);
         $anchor = '#factura-target-user-' . $userId . '-period-' . $periodId;
 
         return redirect()->to($url . $anchor)->with('success', 'Factura eliminada exitosamente.');
