@@ -3,257 +3,302 @@
 namespace App\Http\Controllers\SchoolarCont;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdmonCont\Career;
-use App\Models\Users\AcademicProfile;
-use App\Models\Users\Address;
-use App\Models\Users\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 
+// Modelos Necesarios
+use App\Models\Users\User;
+use App\Models\Users\Address;
+use App\Models\Users\Career; 
+use App\Models\Users\AcademicProfile;
+use App\Models\Users\Department;
+use App\Models\Users\Workstation;
+use App\Models\Users\Enrollment; 
+use App\Models\Users\Period;
+use App\Models\Facturacion\Billing; 
 class InscripcionController extends Controller
 {
-    //Formulario de Inscripción
+    // =========================================================================
+    // 1. MOSTRAR FORMULARIO (INDEX / CREATE)
+    // =========================================================================
+    
     public function index(){
-        // 1. Cargar las Carreras
-        // Asume que el modelo se llama 'Carrera' y tiene las columnas 'id' y 'nombre'.
+        $periodoActivo = Period::where('is_active', 1)->first();
+
+        if (!$periodoActivo) {
+            session()->flash('error', '⛔ NO SE PUEDE INSCRIBIR: No hay un Periodo Académico activo configurado.');
+        }
+
         $carreras = Career::all();
+        $departamentos = Department::all(); 
+        $puestos = Workstation::all();      
 
-        // 2. Cargar otros datos para dropdowns (ejemplo de Campus)
-        // $campuses = Campus::orderBy('nombre', 'asc')->get(); 
-
-        // 3. Retornar la vista 'create' con los datos
-        return view('layouts.ControlEsc.Inscripcion.index', compact('carreras' /*, 'campuses' */));
+        return view('layouts.ControlEsc.Inscripcion.index', compact('carreras', 'departamentos', 'puestos', 'periodoActivo'));
     }
-    public function store(Request $request){
-        // --- 1. VERIFICACIÓN / VALIDACIÓN DE DATOS ---
+
+    public function create()
+    {
+        return $this->index(); // Reutilizamos la lógica del index
+    }
+
+    // =========================================================================
+    // 2. GUARDAR NUEVO ASPIRANTE (STORE)
+    // =========================================================================
+public function store(Request $request)
+    {
+        // 1. Validar Periodo
+        $periodoActivo = Period::where('is_active', 1)->first();
+        if (!$periodoActivo) {
+            return back()->with('error', 'Error crítico: El periodo se cerró durante el proceso.');
+        }
+
+        // VALIDACIÓN DE DATOS ENTRANTES
         $request->validate([
-            // Reglas del Modelo User
-            'nombre' => ['required', 'string', 'max:255'],
-            'apellido_paterno' => ['required', 'string', 'max:255'],
-            'apellido_materno' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'telefono' => ['required', 'string', 'max:20'],
-            'RFC' => ['nullable', 'string', 'max:13'],
-            'fecha_nacimiento' => ['required', 'date'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-
-            // Reglas de la Dirección
-            'calle' => ['required', 'string', 'max:255'],
-            'colonia' => ['required', 'string', 'max:255'],
-            'ciudad' => ['required', 'string', 'max:100'],
-            'estado' => ['required', 'string', 'max:100'],
-            'codigo_postal' => ['required', 'string', 'digits:5'],
-            
-            // Reglas Académicas
-            'carrera' => ['required', 'integer', Rule::exists('carrers', 'id')],
-        ]);
-            // 1.2. PREPARACIÓN DE DATOS (RFC Genérico) ✅
-            // ----------------------------------------------------
-            $rfcFinal = $request->RFC;
-
-            if (empty($rfcFinal)) {
-                $rfcBase = 'XAXX010101000';
-                $isUnique = false;
-                $suffix = 0;
-                
-                do {
-                    // Generar el RFC candidato: XAXX010101000, XAXX010101001, etc.
-                    $rfcCandidato = $rfcBase . ($suffix > 0 ? $suffix : '');
-
-                    // 🚨 Verificar en la base de datos si el RFC candidato ya existe
-                    $isUnique = User::where('RFC', $rfcCandidato)->doesntExist();
-
-                    if (!$isUnique) {
-                        $suffix++;
-                    }
-                } while (!$isUnique && $suffix < 1000); // Límite el bucle para seguridad
-
-                $rfcFinal = $rfcCandidato;
-            }
-            // ----------------------------------------------------
-
+        'nombre' => 'required|string|max:255',
+        'apellido_paterno' => 'required|string|max:255',
+        'email' => 'required|email',
+        'telefono' => 'required|string',
+        'fecha_nacimiento' => 'required|date',
+        'carrera_id' => 'required|exists:careers,id', 
+        'calle' => 'required',
+        'colonia' => 'required',
+    ]);
         DB::beginTransaction();
 
         try {
-            // --- 1. GUARDAR LA DIRECCIÓN (MODELO ADDRESS) 📍 ---
+            // Generar RFC si no viene
+            $rfcFinal = $request->RFC ?? ('XAXX010101000' . rand(100, 999));
+
+            // Crear Dirección
             $address = Address::create([
-                'calle' => $request->calle,
-                'colonia' => $request->colonia,
-                'ciudad' => $request->ciudad,
-                'estado' => $request->estado,
+                'calle' => $request->calle, 'colonia' => $request->colonia,
+                'ciudad' => $request->ciudad, 'estado' => $request->estado,
                 'codigo_postal' => $request->codigo_postal,
             ]);
 
-            // --- 2. GUARDAR EL USUARIO (MODELO USER) 👤 ---
+            // Crear Usuario
             $user = User::create([
                 'nombre' => $request->nombre,
                 'apellido_paterno' => $request->apellido_paterno,
                 'apellido_materno' => $request->apellido_materno,
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'password' => Hash::make('TMP_' . uniqid()), 
                 'RFC' => $rfcFinal,
                 'telefono' => $request->telefono,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'edad' => $request->edad,
-                'address_id' => $address->id, // ¡Vinculado correctamente!
+                'address_id' => $address->id,
+                'institution_id' => 4, 
+                'department_id' => $request->has('is_anfitrion') ? $request->department_id : null,
+                'workstation_id' => $request->has('is_anfitrion') ? $request->workstation_id : null,
+                'role_id' => 7,
+                
             ]);
-            // --- 3. ASIGNAR EL ROL 'ALUMNO' (TABLA PIVOTE user_roles_institution) 🔑 ---
-            
-            // Claves que se insertarán en la tabla pivote: user_roles_institution
-            $roleIdAlumno = 7;  // Estudiante
-            $institutionId = 4; // UMI
 
-            $user->roles()->attach($roleIdAlumno, [
-                // Laravel inserta este valor en la columna 'institution_id'
-                'institution_id' => $institutionId, 
-            ]);
-            // --- 4. GUARDAR EL PERFIL ACADÉMICO (MODELO ACADEMICPROFILE) 🎓 ---
+            // Asignar Rol
+            $user->roles()->attach(7, ['institution_id' => 4]); 
 
+            // Subir Documentos
+            $rutasDocs = $this->subirDocumentos($request, $user->id);
+
+            // 5. Crear Perfil Académico (CORREGIDO)
             $academicProfile = AcademicProfile::create([
-                'user_id' => $user->id, // La clave foránea del usuario recién creado
-                'carrera_id' => $request->carrera, // El ID de la carrera seleccionado en el formulario
-
-                // CAMPOS FALTANTES (Asumiendo valores predeterminados o nullables):
-                'semestre' => 1,          // EJEMPLO: Siempre inicia en el semestre 1
-                'status' => 'Aspirante',     // EJEMPLO: Estatus inicial
+                'user_id' => $user->id,
+                // CAMBIO AQUÍ: Usamos la variable correcta
+                'career_id' => $request->carrera_id, 
+                'semestre' => 1,
+                'status' => 'Aspirante', 
+                'is_anfitrion' => $request->has('is_anfitrion'),
+                'doc_acta_nacimiento' => $rutasDocs['doc_acta_nacimiento'] ?? null,
+                'doc_certificado_prepa' => $rutasDocs['doc_certificado_prepa'] ?? null,
+                'doc_curp' => $rutasDocs['doc_curp'] ?? null,
+                'doc_ine' => $rutasDocs['doc_ine'] ?? null,
             ]);
-            // --- 5. FINALIZACIÓN Y REDIRECCIÓN 🎉 ---
 
-            // Si todos los pasos son exitosos, confirmamos los cambios
+            // 6. Crear Historial (CORREGIDO)
+            Enrollment::create([
+                'user_id' => $user->id,
+                // CAMBIO AQUÍ: Usamos la variable correcta
+                'career_id' => $request->carrera_id,
+                'semestre' => 1,
+                'periodo' => $periodoActivo->name,
+                'status' => 'Pendiente',
+                'doc_acta_nacimiento' => $rutasDocs['doc_acta_nacimiento'] ?? null,
+                'doc_certificado_prepa' => $rutasDocs['doc_certificado_prepa'] ?? null,
+                'doc_curp' => $rutasDocs['doc_curp'] ?? null,
+                'doc_ine' => $rutasDocs['doc_ine'] ?? null,
+            ]);
+
+            // 7. Generar Factura
+            Billing::create([
+                'user_id'           => $user->id,
+                'period_id'         => $periodoActivo->id,
+                'factura_uid'       => 'INS-' . strtoupper(uniqid()),
+                'concepto'          => 'Inscripción Nuevo Ingreso', 
+                'monto'             => 1500.00, 
+                'fecha_vencimiento' => Carbon::now()->addDays(7),
+                'status'            => 'Pendiente', 
+                'description'       => 'Cargo automático por registro de aspirante.'
+            ]);
+
             DB::commit();
-            return redirect()->route('Listas.students.index')->with('success', '¡El nuevo alumno ha sido registrado exitosamente!');
+            return redirect()->route('escolar.students.index')
+                ->with('success', 'Aspirante registrado. Factura de Inscripción generada (Pendiente de Pago).');
+
         } catch (\Exception $e) {
-            // Si ocurre cualquier error, deshacemos todos los cambios
             DB::rollBack();
-
-
-            // Redirigir de vuelta al formulario con un mensaje de error
-            return back()->withInput()->with('error', 'Ocurrió un error en el registro. Inténtalo de nuevo.'. $e->getMessage());
-            
+            return back()->withInput()->with('error', 'Error: ' . $e->getMessage());
         }
-
-        
-
     }
 
+    // =========================================================================
+    // 7. MOSTRAR EDICIÓN / REINSCRIPCIÓN (EDIT)
+    // =========================================================================
     public function edit(string $id)
     {
-        // 1. Buscar al usuario y cargar las relaciones necesarias
-        // Usamos with(['address', 'academicProfile']) para cargar la información de dirección
-        // y la información académica en una sola consulta, evitando problemas N+1.
-        // findOrFail($id) asegura un error 404 si el ID no existe.
+        $periodoActivo = Period::where('is_active', 1)->first();
+        if (!$periodoActivo) {
+            session()->flash('error', 'No hay periodo activo para reinscripciones.');
+        }
+
         $user = User::with(['address', 'academicProfile'])->findOrFail($id);
+        $carreras = Career::all();
+        $departamentos = Department::all();
+        $puestos = Workstation::all();
+        $historialInscripciones = Enrollment::where('user_id', $id)->orderBy('created_at', 'desc')->get();
 
-        // Opcional: Si quieres asegurar que solo se editen usuarios con el rol 'Alumno' (ID 7)
-        // Descomenta la siguiente línea si es necesario
-        
-        if (!$user->roles()->where('role_id', 7)->exists()) {
-            abort(403, 'Acceso no autorizado. Este usuario no es un alumno.');
-        }
-        
-        
-        // 2. Cargar la lista de carreras para llenar el dropdown
-        $carreras = Career::all(); 
-
-        // 3. Devolver la vista de edición con los datos
-        return view('layouts.ControlAdmin.Listas.students.edit', compact('user', 'carreras'));
-    }
-    public function update(Request $request, string $id)
-    {
-        // --- 0. BUSCAR EL ALUMNO A EDITAR ---
-        $alumno = User::with(['address', 'academicProfile'])->findOrFail($id);
-
-        // --- 1. VERIFICACIÓN / VALIDACIÓN DE DATOS ---
-        $request->validate([
-            // Reglas del Modelo User
-            'nombre' => ['required', 'string', 'max:255'],
-            'apellido_paterno' => ['required', 'string', 'max:255'],
-            'apellido_materno' => ['required', 'string', 'max:255'],
-            // El email debe ser único, EXCLUYENDO el ID del alumno actual.
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($alumno->id)],
-            'telefono' => ['required', 'string', 'max:20'],
-            'RFC' => ['nullable', 'string', 'max:13'],
-            'fecha_nacimiento' => ['required', 'date'],
-            
-            // 🚨 Contraseña ELIMINADA de la validación.
-
-            // Reglas de la Dirección
-            'calle' => ['required', 'string', 'max:255'],
-            'colonia' => ['required', 'string', 'max:255'],
-            'ciudad' => ['required', 'string', 'max:100'],
-            'estado' => ['required', 'string', 'max:100'],
-            'codigo_postal' => ['required', 'string', 'digits:5'],
-            
-            // Reglas Académicas
-            'carrera' => ['required', 'integer', Rule::exists('carrers', 'id')],
+        return view('layouts.ControlEsc.Inscripcion.index', [
+            'alumno' => $user,
+            'carreras' => $carreras,
+            'periodoActivo' => $periodoActivo,
+            'historialInscripciones' => $historialInscripciones,
+            'departamentos' => $departamentos,
+            'puestos' => $puestos
         ]);
-        
-        // 1.2. PREPARACIÓN DE DATOS (RFC Genérico) ✅
-        // ... (Tu lógica de RFC genérico, que está correcta) ...
-        $rfcFinal = $request->RFC;
-        if (empty($rfcFinal)) {
-            // ... (lógica para generar $rfcFinal único) ...
-        }
+    }
+
+    // =========================================================================
+    // 8. PROCESO DE REINSCRIPCIÓN (UPDATE)
+    // =========================================================================
+public function update(Request $request, string $id)
+    {
+        $periodoActivo = Period::where('is_active', 1)->first();
+        if (!$periodoActivo) return back()->with('error', 'No hay periodo activo.');
 
         DB::beginTransaction();
-
         try {
-            // --- 2. GESTIONAR LA DIRECCIÓN (CREAR O ACTUALIZAR) 📍 ---
-            $addressData = [
-                'calle' => $request->calle,
-                'colonia' => $request->colonia,
-                'ciudad' => $request->ciudad,
-                'estado' => $request->estado,
-                'codigo_postal' => $request->codigo_postal,
-            ];
+            $user = User::findOrFail($id);
+            $perfil = $user->academicProfile;
 
-            // 🚨 Lógica de Address: Usar la variable final para asegurar la vinculación
-            $addressIdFinal = $alumno->address_id; 
-
-            if ($alumno->address) {
-                $alumno->address->update($addressData);
-            } else {
-                $newAddress = Address::create($addressData);
-                $addressIdFinal = $newAddress->id; // Asignar ID si es nuevo
-            }
-
-            // --- 3. ACTUALIZAR EL USUARIO (MODELO USER) 👤 ---
-            $userData = [
+            // 1. Actualizar Datos Personales
+            $user->update([
                 'nombre' => $request->nombre,
                 'apellido_paterno' => $request->apellido_paterno,
                 'apellido_materno' => $request->apellido_materno,
                 'email' => $request->email,
-                'RFC' => $rfcFinal,
                 'telefono' => $request->telefono,
+                // Asegúrate de agregar todos los campos editables aquí
+                'RFC' => $request->RFC,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'edad' => $request->edad,
-                'address_id' => $addressIdFinal, // Aseguramos la vinculación
-            ];
+                // Dirección también debería actualizarse si cambió
+                // 'address_id' => ... (o actualizar la relación address)
+            ]);
             
-            // 🚨 GESTIÓN DE CONTRASEÑA ELIMINADA: No hay lógica aquí para 'password'
-
-            $alumno->update($userData);
-            
-            // --- 4. ACTUALIZAR EL PERFIL ACADÉMICO (MODELO ACADEMICPROFILE) 🎓 ---
-            if ($alumno->academicProfile) {
-                $alumno->academicProfile->update([
-                    'carrera_id' => $request->carrera, 
-                    // ... (otros campos) ...
+            // Actualizar la Dirección
+            if ($user->address) {
+                $user->address->update([
+                    'calle' => $request->calle,
+                    'colonia' => $request->colonia,
+                    'ciudad' => $request->ciudad,
+                    'estado' => $request->estado,
+                    'codigo_postal' => $request->codigo_postal,
                 ]);
-            } 
-            // Nota: Si el perfil no existe, deberías crearlo aquí (ver lógica anterior).
+            }
 
-            // --- 5. FINALIZACIÓN Y REDIRECCIÓN 🎉 ---
-            DB::commit();
+            // 2. Lógica de Semestre y Carrera
+            $nuevoSemestre = $perfil->semestre + 1;
             
-            return redirect()->route('Listas.students.index')->with('success', '¡El alumno ha sido actualizado exitosamente!');
+            // Leemos la carrera del formulario 
+            $nuevaCarreraId = $request->carrera_id ?? $perfil->career_id;
+
+            // 3. Subir Nuevos Documentos
+            $nuevosDocs = $this->subirDocumentos($request, $user->id);
+            
+            // MEJORA: Preparamos el array final de documentos para el historial
+            // Si hay nuevo, usa nuevo. Si no, usa el del perfil actual.
+            $docsFinales = [
+                'doc_acta_nacimiento' => $nuevosDocs['doc_acta_nacimiento'] ?? $perfil->doc_acta_nacimiento,
+                'doc_certificado_prepa' => $nuevosDocs['doc_certificado_prepa'] ?? $perfil->doc_certificado_prepa,
+                'doc_curp' => $nuevosDocs['doc_curp'] ?? $perfil->doc_curp,
+                'doc_ine' => $nuevosDocs['doc_ine'] ?? $perfil->doc_ine,
+            ];
+
+            // 4. Actualizar Perfil Académico
+            // Usamos array_filter para solo actualizar en la BD los que traen archivo nuevo
+            $perfil->update(array_merge(array_filter($nuevosDocs), [
+                'semestre' => $nuevoSemestre,
+                'career_id' => $nuevaCarreraId,
+                'status' => 'Inactivo', 
+                'is_anfitrion' => $request->has('is_anfitrion'),
+            ]));
+
+            // 5. Crear Historial (Enrollment) CON LOS DOCUMENTOS CORRECTOS
+            Enrollment::create(array_merge($docsFinales, [ // <--- Usamos $docsFinales aquí
+                'user_id' => $user->id,
+                'career_id' => $nuevaCarreraId,
+                'semestre' => $nuevoSemestre,
+                'periodo' => $periodoActivo->name,
+                'status' => 'Pendiente',
+            ]));
+
+           
+
+            // Factura de Reinscripción (Lógica Inteligente)
+            $facturaExiste = Billing::where('user_id', $user->id)
+                            ->where('period_id', $periodoActivo->id)
+                            ->where('concepto', 'like', '%Reinscripción%')
+                            ->exists();
+
+            if (!$facturaExiste) {
+                Billing::create([
+                    'user_id' => $user->id,
+                    'period_id' => $periodoActivo->id,
+                    'factura_uid' => 'RE-' . strtoupper(uniqid()),
+                    'concepto' => 'Reinscripción Semestre ' . $nuevoSemestre, 
+                    'monto' => 1200.00, 
+                    'fecha_vencimiento' => Carbon::now()->addDays(5),
+                    'status' => 'Pendiente',
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('escolar.students.index')->with('success', 'Reinscripción procesada.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return back()->withInput()->with('error', 'Ocurrió un error en la actualización. Inténtalo de nuevo. ' . $e->getMessage());
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
+    }
+
+    public function destroy($id) {
+        $user = User::findOrFail($id);
+        $user->delete();
+        return redirect()->route('escolar.students.index')->with('success', 'Usuario eliminado.');
+    }
+
+    // --- Helper Privado ---
+    private function subirDocumentos($request, $userId) {
+        $rutas = [];
+        $campos = ['doc_acta_nacimiento', 'doc_certificado_prepa', 'doc_curp', 'doc_ine'];
+        foreach ($campos as $campo) {
+            if ($request->hasFile($campo)) {
+                $rutas[$campo] = $request->file($campo)->store("documentos/{$userId}/expediente", 'public');
+            }
+        }
+        return $rutas;
     }
 }

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Esto crea la tabla 'periods' con todas las columnas correctas
         Schema::create('periods', function (Blueprint $table) {
         $table->id();
         $table->string('name')->unique();

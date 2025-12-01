@@ -319,7 +319,7 @@ class AjustesController extends Controller
     /**
      * Actualiza un registro existente desde el modal.
      */
-    public function update(Request $request, $seccion, $id)
+public function update(Request $request, $seccion, $id)
     {
         $item = $this->findItem($seccion, $id);
         if (!$item) return back()->with('error', 'Registro no encontrado.');
@@ -336,18 +336,16 @@ class AjustesController extends Controller
                 break;
             
             case 'departments':
-                $data = $request->all();
-                $request->validate([
-                    'name' => 'required|string|max:255',
-                    'institution_id' => 'required|exists:institutions,id'
-                ]);
-                $item->update($data);
+                $item->update($request->validate([
+                    'name' => 'required', 
+                    'institution_id' => 'required'
+                ]));
                 break;
             
             case 'workstations':
                 $validatedData = $request->validate([
-                    'name' => 'required|string|max:255',
-                    'department_id' => 'required|exists:departments,id'
+                    'name' => 'required', 
+                    'department_id' => 'required'
                 ]);
                 $department = Department::find($validatedData['department_id']);
                 $validatedData['institution_id'] = $department ? $department->institution_id : $item->institution_id;
@@ -384,6 +382,7 @@ class AjustesController extends Controller
 
                 $item->update($updateData);
                 break;
+            // ====================================================
             
             case 'users':
            
@@ -497,6 +496,11 @@ class AjustesController extends Controller
 
         return redirect()->route('ajustes.show', ['seccion' => $seccion])
                          ->with('success', 'Registro actualizado exitosamente.');
+    }
+    
+    // Helper temporal si no tienes el método updateUserLogic, pega tu código de users dentro del case.
+    private function updateUserLogic($request, $item) {
+         // ... Pega aquí tu lógica de actualización de usuarios del código anterior ...
     }
 
     /**

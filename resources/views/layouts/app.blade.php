@@ -1,7 +1,7 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
+    <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="description" content="Sistema de gestión UHTA">
@@ -32,14 +32,13 @@
           <div class="header-user-info">
              <span class="user-name ">{{ Auth::user()->nombre }} </span>
               <div class="user-context">
-                  <span class="user-role" style="margin-left: 0.3rem;">{{-- Mostramos el nombre del rol activo desde la sesión --}}
+                  <span class="user-role" style="margin-left: 0.3rem;">
                       {{ session('active_role_display_name', ', Sin rol') }}
                   </span>
                   <span class="user-institution">en {{ session('active_institution_name', 'Sin institución') }}</span>
               </div>
           </div>
           <div class="context-switcher">
-            {{-- Solo mostramos el botón si hay más de un contexto para elegir --}}
             @if (count($availableContexts) > 1)
                 <button id="context-switcher-button" class="context-switcher-button">
                     <img src="{{ asset('images/icons/gear-solid-full.svg') }}" alt="Ajustes">
@@ -48,10 +47,8 @@
                 <div id="context-switcher-menu" class="context-switcher-menu">
                     <div class="context-switcher-header">Unidad de Negocio</div>
                     <ul>
-                        {{-- Iterar sobre cada contexto disponible para el usuario --}}
                         @foreach ($availableContexts as $context)
                             <li>
-                                {{-- Cada opción es un enlace a la ruta que cambia el contexto --}}
                                 <a href="{{ route('context.switch', ['institutionId' => $context['institution_id'], 'roleId' => $context['role_id']]) }}"
                                   data-no-spa>
                                     <span class="institution">{{ $context['institution_name'] }}</span>
@@ -68,45 +65,201 @@
       @yield('content')
     </main>
   </div>
+
+{{-- Script 2: LÓGICA MAESTRA (FACTURACIÓN + ALERTAS + SPA) --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-  {{-- Script para manejo móvil --}}
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const toggle = document.getElementById('mobile-menu-toggle');
-      const sidebar = document.querySelector('.sidebar');
-      
-      if (toggle && sidebar) {
-        // Toggle sidebar en móvil
-        toggle.addEventListener('click', function() {
-          sidebar.classList.toggle('mobile-visible');
-          sidebar.classList.toggle('mobile-hidden');
-        });
+    document.addEventListener('DOMContentLoaded', () => {
         
-        // Cerrar al hacer clic en el sidebar en móvil
-        sidebar.addEventListener('click', function(e) {
-          if (window.innerWidth <= 600 && e.target === sidebar) {
-            sidebar.classList.add('mobile-hidden');
-            sidebar.classList.remove('mobile-visible');
-          }
-        });
+        // ============================================================
+        // 1. INICIALIZACIÓN (Ejecutar al cargar F5)
+        // ============================================================
+        executeScrollLogic();
+        checkAndShowAlerts();
         
-        // Inicializar estado móvil
-        function handleResize() {
-          if (window.innerWidth <= 600) {
-            sidebar.classList.add('mobile-hidden');
-            sidebar.classList.remove('mobile-visible');
-          } else {
-            sidebar.classList.remove('mobile-hidden', 'mobile-visible');
-          }
+        // Reintento por si la carga es lenta
+        setTimeout(() => {
+            executeScrollLogic();
+        }, 500);
+
+        // ============================================================
+        // 2. OBSERVADOR SPA (Detectar navegación sin recarga)
+        // ============================================================
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            const observer = new MutationObserver(() => {
+                // Esperamos un poco a que el HTML nuevo se pinte
+                setTimeout(() => {
+                    executeScrollLogic();
+                    checkAndShowAlerts();
+                }, 300);
+            });
+            observer.observe(mainContent, { childList: true, subtree: true });
         }
-        
-        window.addEventListener('resize', handleResize);
-        handleResize();
-      }
+
+        // ============================================================
+        // 3. DELEGACIÓN DE EVENTOS (Clicks Globales)
+        // ============================================================
+        document.addEventListener('click', (e) => {
+            
+            // --- A. ABRIR MODAL (Solo botones de Facturación) ---
+            const addBtn = e.target.closest('.js-trigger-factura');
+            if (addBtn) {
+                e.preventDefault();
+                
+                // Buscamos el modal en el contenido nuevo
+                let newModal = document.querySelector('#main-content #modalFactura');
+                // Buscamos si quedó un modal viejo en el body
+                const zombieModal = document.querySelector('body > #modalFactura');
+
+                if (newModal) {
+                    if (zombieModal) zombieModal.remove(); // Matar zombi
+                    document.body.appendChild(newModal);   // Mover nuevo al body (fix scroll)
+                } else if (zombieModal) {
+                    newModal = zombieModal;
+                }
+
+                if (newModal) fillAndOpenModal(newModal, addBtn);
+                return;
+            }
+
+            // --- B. CERRAR MODAL ---
+            if (e.target.closest('.close') || e.target.classList.contains('modal')) {
+                const modal = e.target.closest('.modal');
+                // Candado: Solo cerrar si es el de facturación
+                if (modal && modal.id === 'modalFactura') closeFacturaModal(modal);
+            }
+
+            // --- C. TOGGLE DETALLES (Ver Abonos) ---
+            const toggleBtn = e.target.closest('.icon-toggle');
+            if (toggleBtn) {
+                const row = toggleBtn.closest('tr');
+                const detailsRow = row.nextElementSibling;
+                if (detailsRow && detailsRow.classList.contains('payment-details-row')) {
+                    const isHidden = window.getComputedStyle(detailsRow).display === 'none';
+                    detailsRow.style.display = isHidden ? 'table-row' : 'none';
+                }
+            }
+        });
+
+        // ESCAPE para cerrar
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.querySelector('body > #modalFactura[style*="flex"]');
+                if (modal) closeFacturaModal(modal);
+            }
+        });
+
+
+        // ============================================================
+        // 4. FUNCIONES LÓGICAS
+        // ============================================================
+
+        // --- Función de Alertas (Semáforo) ---
+        function checkAndShowAlerts() {
+            const dataDiv = document.getElementById('billing-alerts-data');
+            
+            if (dataDiv && !dataDiv.dataset.shown) {
+                try {
+                    const alertas = JSON.parse(dataDiv.dataset.alerts);
+                    
+                    if (alertas.length > 0) {
+                        // Prioridad: Error > Warning > Info
+                        let alerta = alertas.find(a => a.tipo === 'error');
+                        if (!alerta) alerta = alertas.find(a => a.tipo === 'warning');
+                        if (!alerta) alerta = alertas[0];
+
+                        Swal.fire({
+                            title: alerta.titulo,
+                            text: alerta.mensaje,
+                            icon: alerta.tipo,
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#223F70',
+                            backdrop: `rgba(0,0,0,0.5) left top no-repeat`
+                        });
+                    }
+                    // Marcar como mostrado
+                    dataDiv.dataset.shown = "true"; 
+                } catch (e) { console.error('Error alertas:', e); }
+            }
+        }
+
+        // --- Función de Scroll y Limpieza URL ---
+        function executeScrollLogic() {
+            let hash = window.location.hash;
+            
+            // Compatibilidad con ?_fragment=
+            if (!hash) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const fragment = urlParams.get('_fragment');
+                if (fragment) hash = '#' + fragment;
+            }
+
+            // Candado: Solo actuar si es un target de factura
+            if (!hash || !hash.startsWith('#factura-target-')) return;
+
+            try {
+                const targetElement = document.querySelector(hash);
+                if (targetElement) {
+                    // Abrir acordeones (Recursivo hacia arriba)
+                    if (targetElement.tagName === 'DETAILS') targetElement.open = true;
+                    let parent = targetElement.parentElement;
+                    while (parent) {
+                        if (parent.tagName === 'DETAILS') parent.open = true;
+                        parent = parent.parentElement;
+                    }
+
+                    // Scroll, Resalte y Limpieza
+                    setTimeout(() => {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        const summary = targetElement.querySelector('summary');
+                        if(summary) {
+                            summary.style.transition = "background-color 0.5s";
+                            summary.style.backgroundColor = "#fff3cd"; 
+                            setTimeout(() => { summary.style.backgroundColor = ""; }, 2000);
+                        }
+
+                        // Limpiar URL
+                        const cleanUrl = window.location.pathname + window.location.search.replace(/[\?&]_fragment=[^&]+/, '').replace(/^&/, '?');
+                        history.replaceState(null, null, cleanUrl);
+                    }, 150);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Funciones del Modal ---
+        function fillAndOpenModal(modal, btn) {
+            const form = modal.querySelector('form');
+            if (form) {
+                if (!form.dataset.originalAction) form.dataset.originalAction = form.action;
+                form.reset(); 
+                const setVal = (sel, val) => { const el = modal.querySelector(sel); if(el) el.value = val; };
+                const setText = (sel, val) => { const el = modal.querySelector(sel); if(el) el.textContent = val; };
+
+                setVal('#modal_user_id', btn.dataset.userId || '');
+                setText('#modalTitle', `Agregar Factura a: ${btn.dataset.userName || 'Usuario'}`);
+                
+                const fechaVal = btn.dataset.date || new Date().toISOString().split('T')[0];
+                setVal('#modal_fecha', fechaVal);
+                const [y, m, d] = fechaVal.split('-');
+                setText('#texto_fecha_vencimiento', `${d}/${m}/${y}`);
+
+                if (btn.dataset.periodId) setVal('#modal_period_id', btn.dataset.periodId);
+            }
+            document.body.style.overflow = 'hidden'; 
+            modal.style.display = 'flex';
+        }
+
+        function closeFacturaModal(modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; 
+        }
     });
   </script>
   @stack('scripts')
 
-  
+
 </body>
 </html>

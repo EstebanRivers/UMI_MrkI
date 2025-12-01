@@ -1,0 +1,490 @@
+/* =========================================
+   1. ESTILOS GENERALES Y ESTRUCTURA
+   ========================================= */
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.main {
+    flex-grow: 1;
+    padding: 30px 40px;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.main-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #223F70;
+}
+
+/* =========================================
+   2. BARRA DE CONTROLES (FILTROS)
+   ========================================= */
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.filter-group {
+    display: flex;
+    align-items: flex-end; /* Alinea los inputs abajo */
+    gap: 15px;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.filter-item label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #223F70;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* Estilos compartidos para Inputs y Selects */
+.search-input,
+.filter-select {
+    height: 42px; /* Altura uniforme */
+    padding: 8px 14px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+.search-input { min-width: 250px; }
+
+.filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236c757d'%3E%3Cpath fill-rule='evenodd' d='M8 10.793l-4.646-4.647-.708.708L8 12.207l5.354-5.353-.708-.708L8 10.793z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.search-input:focus,
+.filter-select:focus {
+    border-color: #223F70;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(34, 63, 112, 0.15);
+}
+
+/* Grupo de Botones de Acción */
+.action-group {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.action-group .btn {
+    height: 42px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-group .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.btn-primary { background-color: #223F70; color: white; }
+.btn-primary:hover { background-color: #1a3055; }
+
+.btn-secondary { background-color: #6c757d; color: white; text-decoration: none; }
+.btn-secondary:hover { background-color: #5a6268; }
+
+.export-btn { background-color: #f8f9fa; color: #343a40; border: 1px solid #ced4da; }
+.export-btn:hover { background-color: #e9ecef; }
+
+/* =========================================
+   3. TABLA DE DATOS
+   ========================================= */
+.table-container {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+table { width: 100%; border-collapse: collapse; }
+table thead { background: #223F70; color: white; }
+
+table th {
+    padding: 16px 14px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+table td {
+    padding: 14px;
+    text-align: center;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+    border-top: 1px solid #e9ecef;
+}
+
+table tbody tr:nth-child(even) { background: #FAFAFA; }
+table tbody tr.billing-main-row:hover { background-color: #f1f3f5; }
+
+/* Iconos de Acciones */
+.acciones .icono {
+    width: 22px; height: 22px; margin: 0 4px; cursor: pointer;
+    transition: transform 0.2s; vertical-align: middle;
+}
+.acciones .icono:hover { transform: scale(1.1); }
+.acciones a, .acciones button { vertical-align: middle; }
+.acciones .icon-toggle { cursor: pointer; }
+
+/* Estados (Badges) */
+.estado { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.estado-icono { width: 14px; height: 14px; }
+.estado .pagada { color: #28a745; font-weight: 500; }
+.estado .pendiente { color: #dc3545; font-weight: 500; }
+.estado .abonado { color: #ffc107; font-weight: 500; }
+
+/* =========================================
+   4. MODAL DE FACTURA
+   ========================================= */
+.modal {
+    display: none; position: fixed; z-index: 999;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4); overflow-y: auto;
+}
+
+.modal.is-open {
+    display: flex; align-items: center; justify-content: center;
+}
+
+.modal-content {
+    background: #fff; width: 450px; max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 0; border-radius: 12px; margin: 5vh auto;
+    display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;
+}
+
+.modal-content h2 {
+    flex-shrink: 0; padding: 25px; margin: 0;
+    color: #223F70; text-align: center; font-size: 1.2rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-content form {
+    flex-grow: 1; overflow-y: auto; padding: 10px 30px 25px;
+}
+
+.modal-content label {
+    display: block; margin-top: 18px; margin-bottom: 8px;
+    font-weight: 600; font-size: 14px; color: #333;
+}
+.modal-content label:first-child { margin-top: 0; }
+
+/* Inputs del Modal */
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="date"],
+.modal-content select {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
+    box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-content input:focus, 
+.modal-content select:focus {
+    border-color: #223F70; outline: none;
+    box-shadow: 0 0 0 3px rgba(34, 63, 112, 0.15);
+}
+
+/* Input de Archivo */
+.modal-content input[type="file"] {
+    font-size: 13px; color: #555; padding: 6px;
+    border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box;
+}
+.modal-content input[type="file"]::file-selector-button {
+    background: #f8f9fa; color: #343a40; border: none;
+    border-right: 1px solid #ced4da; border-radius: 6px 0 0 6px;
+    padding: 8px 12px; margin: -6px 12px -6px -6px; cursor: pointer;
+    transition: background-color 0.2s;
+}
+.modal-content input[type="file"]::file-selector-button:hover { background-color: #e9ecef; }
+
+.modal-content button.guardar {
+    flex-shrink: 0; background: #223F70; color: #fff;
+    border: none; padding: 12px; width: 100%; border-radius: 0 0 12px 12px;
+    cursor: pointer; font-size: 16px; font-weight: bold;
+    margin-top: 0; border-top: 1px solid #eee; transition: background-color 0.2s;
+}
+.modal-content button.guardar:hover { background: #1a3055; }
+
+.modal .close {
+    position: absolute; top: 18px; right: 20px; z-index: 10;
+    font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa; line-height: 1;
+}
+.modal .close:hover { color: #333; }
+
+/* =========================================
+   5. ACORDEONES (PERIODOS Y USUARIOS)
+   ========================================= */
+.period-accordion {
+    margin-top: 30px; border-radius: 16px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05); overflow: hidden;
+}
+
+/* Estilos comunes para Summary */
+.period-accordion summary,
+.user-accordion summary {
+    cursor: pointer; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center;
+    list-style: none; transition: background-color 0.2s;
+}
+summary::-webkit-details-marker, summary::marker { display: none; }
+
+/* Acordeón de Periodo (Nivel 1) */
+.period-accordion summary {
+    padding: 18px 25px; font-size: 1.1rem;
+    background-color: #f8f9fa; color: #333;
+    border-bottom: 1px solid #e0e0e0;
+}
+.period-accordion details:last-child summary { border-bottom: none; }
+.period-accordion summary:hover { background-color: #f1f3f5; }
+.period-accordion details[open] > summary {
+    background-color: #f1f3f5; border-bottom: 1px solid #e0e0e0;
+}
+
+.period-accordion .period-name { color: #223F70; }
+.period-accordion .period-info { font-size: 0.9rem; font-weight: 400; color: #666; }
+.period-accordion .period-details { padding: 15px; background-color: #fff; }
+
+/* Acordeón de Usuarios (Nivel 2 - Anidado) */
+.period-details .user-accordion {
+    margin-top: 0; box-shadow: none; border-radius: 8px; border: 1px solid #e9ecef;
+}
+
+.user-accordion summary {
+    padding: 14px 20px;
+    background-color: #223F70; color: #FFFFFF;
+}
+.user-accordion summary:hover { background-color: #1a3055; }
+.user-accordion details[open] > summary {
+    background-color: #1a3055; border-bottom: 1px solid #152744;
+}
+
+.user-accordion .user-name { font-weight: 600; color: #FFFFFF; }
+.user-accordion .user-email { font-size: 0.9em; color: #e9ecef; margin-left: 10px; }
+.user-accordion .user-role {
+    font-size: 0.8em; color: #223F70; background-color: #e9ecef;
+    padding: 3px 8px; border-radius: 4px; margin-left: auto; white-space: nowrap;
+}
+
+.user-accordion .user-details {
+    padding: 20px; background-color: #fdfdfd; border-top: 1px solid #e9ecef;
+}
+
+/* --- FLECHAS (TRIÁNGULOS) --- */
+/* Esto hace que la flecha sea un bloque que puede rotar */
+.arrow-icon {
+    transition: transform 0.2s ease-in-out; /* <--- Aquí estaba el error */
+    display: inline-block;                  /* <--- Esta línea se había mezclado */
+    font-size: 1em;
+    color: #6c757d;
+}
+/* Flecha gris para periodos, blanca para usuarios */
+.period-accordion > details > summary .arrow-icon { color: #6c757d; }
+.user-accordion > details > summary .arrow-icon { margin-left: 15px; color: #FFFFFF; font-size: 1.1em; }
+
+/* Regla universal de rotación cuando está abierto */
+details[open] > summary .arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Botón Agregar Factura */
+.add-invoice-btn {
+    margin-bottom: 15px; padding: 10px 20px; font-size: 0.85rem;
+    background-color: #28a745; color: white; border: none; border-radius: 6px;
+    cursor: pointer; transition: background-color 0.2s;
+    display: inline-flex; align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.add-invoice-btn:hover { background-color: #218838; }
+
+/* =========================================
+   6. SECCIÓN DE PAGOS Y ABONOS
+   ========================================= */
+.payment-details-row { display: none; }
+.payment-details-row.show { display: table-row; }
+
+.payment-details-cell {
+    padding: 25px 40px !important;
+    background-color: #fdfdfd; text-align: left; white-space: normal;
+}
+.payment-details-cell .clearfix::after {
+    content: ""; clear: both; display: table;
+}
+
+/* Cajas de Historial y Formulario (Lado a lado) */
+.payment-history {
+    width: 55%; float: left; padding-right: 20px; box-sizing: border-box;
+}
+.add-payment-form {
+    width: 45%; float: right; padding-left: 20px; box-sizing: border-box;
+}
+
+.payment-history h4, .add-payment-form h4 {
+    margin: 0 0 10px 0; color: #223F70;
+    border-bottom: 1px solid #eee; padding-bottom: 5px;
+}
+
+/* Lista de Pagos */
+.payment-history ul {
+    list-style: none; padding-left: 0; margin: 0;
+    max-height: 150px; overflow-y: auto;
+}
+.payment-history li {
+    display: flex; justify-content: space-between;
+    padding: 10px 5px; border-bottom: 1px dashed #eee; font-size: 14px;
+}
+.payment-history li:last-child { border-bottom: none; }
+.payment-history .payment-date { font-size: 0.9em; color: #666; }
+.payment-history .payment-amount { font-weight: 600; color: #e8a800; }
+.payment-history p { color: #777; font-style: italic; font-size: 14px; }
+
+/* Formulario de Abono */
+.add-payment-form label {
+    display: block; margin-top: 10px; margin-bottom: 5px;
+    font-weight: 600; font-size: 14px;
+}
+.add-payment-form input, 
+.add-payment-form textarea {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid #ccc; border-radius: 5px;
+    box-sizing: border-box; font-size: 14px;
+}
+.add-payment-form textarea { resize: vertical; min-height: 50px; }
+
+.add-payment-form .guardar-abono {
+    background: #28a745; color: white; padding: 10px 15px;
+    border: none; border-radius: 5px; cursor: pointer;
+    margin-top: 15px; font-weight: 600; width: 100%;
+    transition: background-color 0.2s;
+}
+.add-payment-form .guardar-abono:hover { background-color: #218838; }
+
+/* =========================================
+   7. RESPONSIVE (MÓVIL)
+   ========================================= */
+@media (max-width: 992px) {
+    .filter-controls, .filter-group {
+        flex-direction: column; align-items: stretch; width: 100%;
+    }
+    .search-input { min-width: 100%; }
+    .action-group { flex-direction: row; width: 100%; }
+    .action-group .btn { flex-grow: 1; text-align: center; }
+}
+
+@media (max-width: 768px) {
+    .main { padding: 20px 15px; }
+    .period-accordion summary, .user-accordion summary {
+        flex-direction: column; align-items: flex-start; gap: 5px;
+    }
+    .user-accordion .user-role { margin-left: 0; margin-top: 5px; }
+    .user-accordion .user-details table {
+        display: block; overflow-x: auto; white-space: nowrap;
+    }
+    .payment-history, .add-payment-form {
+        width: 100%; float: none; padding: 0;
+    }
+    .add-payment-form { margin-top: 20px; }
+}
+
+/* =========================================
+   BOTONES ESTILO "ASISTENCIAS" (AZUL REDONDEADO)
+   ========================================= */
+
+/* Clase base para ambos botones (Grande y Pequeño) */
+.js-trigger-factura { /* Mantenemos ambos selectores por compatibilidad */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Color y Fondo */
+    background-color: #223F70; /* Azul oscuro institucional */
+    color: #FFFFFF;
+    border: none;
+    
+    /* Tipografía */
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 14px;  /* Ajustado para web (18px es muy grande para botones internos) */
+    line-height: 1.5;
+    
+    /* Forma */
+    border-radius: 36px; /* Bordes muy redondeados como en la imagen */
+    padding: 8px 24px;   /* Relleno cómodo */
+    
+    /* Comportamiento */
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 2px 5px rgba(34, 63, 112, 0.2); /* Sombra suave azul */
+    text-decoration: none;
+}
+
+/* Efecto Hover */
+.js-trigger-factura:hover,
+.add-invoice-btn:hover {
+    background-color: #1a3055; /* Azul un poco más oscuro */
+    box-shadow: 0 4px 8px rgba(34, 63, 112, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Ajustes específicos para el botón pequeño (dentro del mes) */
+button.btn-sm-add {
+    padding: 5px 15px;      /* Más compacto */
+    font-size: 12px;        /* Letra más pequeña */
+    border-radius: 20px;    /* Redondeo proporcional */
+    height: auto;           /* Altura automática */
+    min-width: auto;        /* Sin ancho mínimo forzado */
+    background-color: #223F70; /* Aseguramos el azul */
+}
+
+/* Ajuste específico para el botón grande (dentro del usuario) */
+/* Si quieres que sea exactamente de 149px x 43px como en tu diseño: */
+.user-details > .js-trigger-factura {
+    min-width: 149px;
+    height: 43px;
+    font-size: 15px; /* Un poco más grande para el botón principal */
+}
