@@ -11,15 +11,16 @@ use App\Models\Users\CorporateProfile;
 use App\Models\Users\Department;
 use App\Models\Users\Workstation;
 use App\Models\Users\Career;
+use App\Models\Users\Period; 
+use App\Models\Facturacion\Billing;
+use App\Models\Facturacion\Payment;
+use App\Models\Users\Address;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\ModelNotFoundException; // Añadido para manejo de errores
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         try {
@@ -32,7 +33,6 @@ class UserSeeder extends Seeder
             $universidadMI = Institution::where('name', 'Universidad Mundo Imperial')->firstOrFail();
             $palacioMI = Institution::where('name', 'Palacio Mundo Imperial')->firstOrFail();
             
-            // Busca TODAS las instituciones a las que asignarás el master
             $allInstitutions = Institution::whereIn('name', [
                 'Palacio Mundo Imperial',
                 'Universidad Mundo Imperial',
@@ -44,9 +44,11 @@ class UserSeeder extends Seeder
                  throw new \Exception('Error Crítico: No se encontró ninguna institución para asignar al usuario Master.');
             }
 
-
-            // --- 3. Crear Carreras, Departamentos y Puestos (Si no existen) ---
-            Career::firstOrCreate(['name' => 'Ingenieria en Sistemas', 'institution_id' => $universidadMI->id]);
+            // --- 3. Crear Carreras, Departamentos y Puestos ---
+            $carreraSistemas = Career::firstOrCreate(
+                ['name' => 'Ingenieria en Sistemas', 'institution_id' => $universidadMI->id],
+                ['official_id' => 'ING-SYS', 'semesters' => 9, 'type' => 'Presencial']
+            );
             Career::firstOrCreate(['name' => 'Administracion de Empresas', 'institution_id' => $universidadMI->id]);
             
             $talentoHumanoDep = Department::firstOrCreate(
@@ -54,14 +56,14 @@ class UserSeeder extends Seeder
             );
             Department::firstOrCreate(['name' => 'Calidad', 'institution_id' => $palacioMI->id]);
 
-            Workstation::firstOrCreate(
+            $reclutadorWorkstation = Workstation::firstOrCreate(
                 ['name' => 'Reclutador', 'department_id' => $talentoHumanoDep->id, 'institution_id' => $palacioMI->id]
             );
             Workstation::firstOrCreate(
                 ['name' => 'Analista de Nomina', 'department_id' => $talentoHumanoDep->id, 'institution_id' => $palacioMI->id]
             );
 
-            // --- 4. Crear Usuario Master ---
+            // --- 4. Crear Usuario Master (Esteban) ---
             $masterUser = User::firstOrCreate(
                 ['email' => 'master@UMI.com'],
                 [
@@ -70,14 +72,12 @@ class UserSeeder extends Seeder
                     'apellido_materno' => 'Molina',
                     'password' => Hash::make('master1234'),
                     'RFC' => 'XAXX010101000',
-                    'role_id' => $masterRole->id, // Asigna rol principal
-                    // !! CORRECCIÓN: Volvemos a añadir institution_id !!
-                    // Asigna una institución primaria (ej. la primera encontrada)
+                    'role_id' => $masterRole->id,
                     'institution_id' => $allInstitutions->first()->id, 
+                    'is_active' => 1
                 ]
             );
 
-            // Asignar Master a TODAS sus instituciones (Ambas tablas pivote)
             foreach ($allInstitutions as $institution) {
                 DB::table('user_roles_institution')->updateOrInsert(
                    ['user_id' => $masterUser->id, 'institution_id' => $institution->id],
@@ -87,10 +87,6 @@ class UserSeeder extends Seeder
             }
 
             // --- 5. Crear Usuario Multi-Rol (Tribilin) ---
-            $ingenieriaCareer = Career::where('name', 'Ingenieria en Sistemas')->where('institution_id', $universidadMI->id)->firstOrFail();
-            $talentoHumanoDep = Department::where('name', 'Talento Humano')->where('institution_id', $palacioMI->id)->firstOrFail();
-            $reclutadorWorkstation = Workstation::where('name', 'Reclutador')->where('department_id', $talentoHumanoDep->id)->firstOrFail();
-
             $multiRoleUser = User::firstOrCreate(
                 ['email' => 'multirol@UMI.com'],
                 [
@@ -99,15 +95,15 @@ class UserSeeder extends Seeder
                     'apellido_materno' => 'Loquendo',
                     'password' => Hash::make('contrasena'),
                     'RFC' => 'GAPX010101XYZ',
-                    'role_id' => $alumnoRole->id, // Rol principal default
-                     
+                    'role_id' => $alumnoRole->id,
                     'institution_id' => $universidadMI->id,
                     'department_id' => $talentoHumanoDep->id, 
-                    'workstation_id' => $reclutadorWorkstation->id 
+                    'workstation_id' => $reclutadorWorkstation->id,
+                    'is_active' => 1
                 ]
             );
 
-            // Asignar rol de "estudiante" en la Universidad
+            // Asignar rol estudiante
             DB::table('user_roles_institution')->updateOrInsert(
                 ['user_id' => $multiRoleUser->id, 'institution_id' => $universidadMI->id],
                 ['role_id' => $alumnoRole->id, 'created_at' => now(), 'updated_at' => now()]
@@ -115,10 +111,10 @@ class UserSeeder extends Seeder
             $multiRoleUser->institutions()->syncWithoutDetaching($universidadMI->id);
             AcademicProfile::updateOrInsert(
                 ['user_id' => $multiRoleUser->id],
-                ['career_id' => $ingenieriaCareer->id]
+                ['career_id' => $carreraSistemas->id, 'semestre' => 1, 'status' => 'Aspirante']
             );
 
-            // Asignar rol de "anfitrion" en el Palacio
+            // Asignar rol anfitrión
             DB::table('user_roles_institution')->updateOrInsert(
                 ['user_id' => $multiRoleUser->id, 'institution_id' => $palacioMI->id],
                 ['role_id' => $anfitrionRole->id, 'created_at' => now(), 'updated_at' => now()]
@@ -126,22 +122,117 @@ class UserSeeder extends Seeder
             $multiRoleUser->institutions()->syncWithoutDetaching($palacioMI->id);
             CorporateProfile::updateOrInsert(
                 ['user_id' => $multiRoleUser->id],
+                ['department_id' => $talentoHumanoDep->id, 'workstation_id' => $reclutadorWorkstation->id]
+            );
+
+            // ====================================================================
+            // 6. GENERACIÓN DE ALUMNOS DE PRUEBA (CORREGIDO)
+            // ====================================================================
+            
+            // Asegurar Periodo Activo CON institución
+            $periodo = Period::firstOrCreate(
+                ['is_active' => 1],
                 [
-                    'department_id' => $talentoHumanoDep->id,
-                    'workstation_id' => $reclutadorWorkstation->id,
+                    'name' => 'AGO 2025 - DIC 2025', 
+                    'start_date' => now(), 
+                    'end_date' => now()->addMonths(6),
+                    'institution_id' => $universidadMI->id // <--- ¡AQUÍ ESTABA EL ERROR!
                 ]
             );
+
+            // A) CASO: ASPIRANTES NUEVOS (SIN PAGAR)
+            for ($i = 1; $i <= 3; $i++) {
+                $this->crearAlumnoPrueba(
+                    "Aspirante", "Nuevo $i", 'aspirante'.$i.'@umi.edu.mx', 
+                    $carreraSistemas->id, $periodo, 'Pendiente', $universidadMI->id, $alumnoRole->id
+                );
+            }
+
+            // B) CASO: LISTOS PARA MATRÍCULA (YA PAGARON)
+            for ($i = 1; $i <= 3; $i++) {
+                $this->crearAlumnoPrueba(
+                    "Pagador", "Listo $i", 'pagado'.$i.'@umi.edu.mx', 
+                    $carreraSistemas->id, $periodo, 'Pagada', $universidadMI->id, $alumnoRole->id
+                );
+            }
+
+            // C) CASO: ALUMNOS ACTIVOS
+            for ($i = 1; $i <= 3; $i++) {
+                $u = $this->crearAlumnoPrueba(
+                    "Alumno", "Activo $i", 'activo'.$i.'@umi.edu.mx', 
+                    $carreraSistemas->id, $periodo, 'Pagada', $universidadMI->id, $alumnoRole->id
+                );
+                $u->academicProfile->update([
+                    'matricula' => '2025-SYS-00' . $i,
+                    'status' => 'Alumno Activo'
+                ]);
+            }
             
-            $this->command->info('UserSeeder ejecutado exitosamente!');
+            $this->command->info('UserSeeder ejecutado exitosamente! (Incluyendo alumnos de prueba)');
 
         } catch (ModelNotFoundException $e) {
-            $this->command->error("Error en UserSeeder: No se encontró un modelo necesario (Rol, Institución, Carrera, etc.). Verifica los nombres y que los Seeders anteriores se hayan ejecutado.");
-            $this->command->error($e->getMessage());
+            $this->command->error("Error en UserSeeder: " . $e->getMessage());
         } catch (\Exception $e) {
-            $this->command->error("Error inesperado en UserSeeder:");
-            $this->command->error($e->getMessage());
-             // Añade esto para más detalles si el error persiste
-             \Log::error("Error en UserSeeder: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->command->error("Error inesperado en UserSeeder: " . $e->getMessage());
+            \Log::error("Error en UserSeeder: " . $e->getMessage());
         }
+    }
+
+    // Función auxiliar
+    private function crearAlumnoPrueba($nombre, $apellido, $email, $carreraId, $periodo, $statusFactura, $instId, $roleId)
+    {
+        $addr = Address::create(['calle' => 'Calle Test', 'colonia' => 'Colonia Test', 'ciudad' => 'Acapulco', 'estado' => 'GRO', 'codigo_postal' => '39000']);
+
+        // RFC Único
+        $rfcAleatorio = 'TEST' . strtoupper(substr(uniqid(), -9));
+
+        $user = User::create([
+            'nombre' => $nombre,
+            'apellido_paterno' => $apellido,
+            'apellido_materno' => 'Prueba',
+            'email' => $email,
+            'password' => Hash::make('password'),
+            'RFC' => $rfcAleatorio, 
+            'telefono' => '7440000000',
+            'fecha_nacimiento' => '2000-01-01',
+            'edad' => 25,
+            'address_id' => $addr->id,
+            'institution_id' => $instId,
+            'is_active' => 1,
+            'role_id' => $roleId
+        ]);
+
+        $user->roles()->attach($roleId, ['institution_id' => $instId]);
+
+        AcademicProfile::create([
+            'user_id' => $user->id,
+            'career_id' => $carreraId,
+            'semestre' => 1,
+            'status' => 'Aspirante',
+            'is_anfitrion' => false,
+        ]);
+
+        $monto = 1500.00;
+        $billing = Billing::create([
+            'user_id' => $user->id,
+            'period_id' => $periodo->id,
+            'factura_uid' => 'INS-' . strtoupper(uniqid()),
+            'concepto' => 'Inscripción Nuevo Ingreso',
+            'monto' => $monto,
+            'fecha_vencimiento' => now()->addDays(7),
+            'status' => $statusFactura,
+        ]);
+
+        if ($statusFactura === 'Pagada') {
+            Payment::create([
+                'billing_id' => $billing->id,
+                'user_id' => 1, 
+                'monto' => $monto,
+                'fecha_pago' => now(),
+                'nota' => 'Pago automático por seeder'
+            ]);
+        }
+
+        return $user;
     }
 }

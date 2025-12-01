@@ -4,6 +4,11 @@ namespace App\Models\Users;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Users\Institution;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Importar
+
+// Modelos necesarios para la consulta y relaciones
+use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
 
 
 /**
@@ -23,9 +28,20 @@ use App\Models\Users\Institution;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Career whereUpdatedAt($value)
  * @mixin \Eloquent
  */
+
+
+namespace App\Models\Users;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+use App\Models\Users\Institution;
+use App\Models\AdmonCont\Materia;
+use App\Models\AdmonCont\Horario;
+
 class Career extends Model
 {
-<<<<<<< HEAD
     protected $fillable = [
         'official_id',
         'name',
@@ -33,19 +49,30 @@ class Career extends Model
         'description2',
         'description3',
         'type',
-        'semesters', // <--- ✅ CORRECTO: Plural, como en tu BD
-        'institution_id', // Agregado por seguridad ya que está en tu BD
-        'credits'         // Agregado por seguridad
+        'semesters', 
+        'institution_id',
+        'credits'         
     ];
 
     // --- RELACIONES ---
 
     public function institution(): BelongsTo 
-=======
-    public function institution() 
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
     { 
         return $this->belongsTo(Institution::class); 
     }
 
+    public function materias(): HasMany
+    {
+        return $this->hasMany(Materia::class);
+    }
+
+    public function horarios(): HasMany
+    {
+        return $this->hasMany(Horario::class);
+    }
+    
+    public function academicProfiles(): HasMany
+    {
+        return $this->hasMany(AcademicProfile::class);
+    }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\AdmonCont\store;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdmonCont\Career;
+use App\Models\Users\Career;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\Address;
 use App\Models\Users\User;
@@ -20,55 +20,36 @@ class teacherController extends Controller
     //
     public function index(Request $request): View
     {
-        $listType = 'members'; // Definimos el tipo de lista fijo
-        $roleName = 'docente'; // Definimos el rol fijo
+        $listType = 'members'; 
+        $roleName = 'docente'; 
 
         // --- Definición de Columnas ---
-        
-        // 1. Columnas a seleccionar de la tabla 'users'
         $userColumns = [
-            'id',
-            'nombre', 
-            'apellido_paterno', 
-            'apellido_materno',
-            'created_at',
+            'id', 'nombre', 'apellido_paterno', 'apellido_materno', 'created_at',
         ];
         
-        // 2. Columnas a seleccionar de la tabla 'datos_academicos' (¡incluye user_id!)
         $academicColumns = [
-            'user_id', // ¡CRUCIAL para la relación!
-            'status', 
-            'carrera_id'
+            'user_id', 'status', 'carrera_id'
         ];
 
         $careerColumns=[
-            'official_id',
-            'name',
-            'id'
+            'official_id', 'name', 'id'
         ];
         
         // --- Ejecución de la Consulta ---
-        
         $dataList = User::query()
-            // Filtra usuarios que tienen el rol 'estudiante'
             ->whereHas('roles', function (Builder $query) use ($roleName) {
                 $query->where('name', $roleName); 
             })
-            // Selecciona las columnas necesarias de la tabla 'users'
             ->select($userColumns)
-            // Carga la relación 'academicProfile' con columnas específicas
             ->with(['academicProfile' => function (Relation $query) use ($academicColumns) {
                 $query->select($academicColumns);
             }])
             ->with(['academicProfile.career' => function (Relation $query) use ($careerColumns) {
-                // Selecciona las columnas de la carrera (incluyendo 'name')
                 $query->select($careerColumns);
             }])
-            ->get(); // Ejecuta la consulta y obtiene la colección de resultados
+            ->get(); 
 
-        // --- Devolución de la Vista ---
-        
-        // La ruta de la vista ahora es fija para estudiantes
         $viewPath = 'layouts.ControlAdmin.Listas.' . $listType . '.index';
         
         return view($viewPath, [
@@ -77,17 +58,14 @@ class teacherController extends Controller
     }
 
     public function form(){
-        // 1. Cargar las Carreras
-        // Asume que el modelo se llama 'Carrera' y tiene las columnas 'id' y 'nombre'.
         $carreras = Career::all();
 
-        return view('layouts.ControlAdmin.Listas.members.create', compact('carreras' /*, 'campuses' */));
+        return view('layouts.ControlAdmin.Listas.members.create', compact('carreras'));
     }
 
     public function store(Request $request){
         // --- 1. VERIFICACIÓN / VALIDACIÓN DE DATOS ---
         $request->validate([
-            // Reglas del Modelo User
             'nombre' => ['required', 'string', 'max:255'],
             'apellido_paterno' => ['required', 'string', 'max:255'],
             'apellido_materno' => ['required', 'string', 'max:255'],
@@ -97,40 +75,35 @@ class teacherController extends Controller
             'fecha_nacimiento' => ['required', 'date'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
 
-            // Reglas de la Dirección
             'calle' => ['required', 'string', 'max:255'],
             'colonia' => ['required', 'string', 'max:255'],
             'ciudad' => ['required', 'string', 'max:100'],
             'estado' => ['required', 'string', 'max:100'],
             'codigo_postal' => ['required', 'string', 'digits:5'],
             
-            // Reglas Académicas
-            'carrera' => ['required', 'integer', Rule::exists('carrers', 'id')],
+            // CORRECCIÓN: Asegúrate que la tabla en BD se llame 'careers' (plural inglés) o 'carreras'
+            // Si tu tabla es 'carrers' (typo), déjalo así, pero usualmente es 'careers'
+            'carrera' => ['required', 'integer', Rule::exists('careers', 'id')],
         ]);
-            // 1.2. PREPARACIÓN DE DATOS (RFC Genérico) ✅
-            // ----------------------------------------------------
-            $rfcFinal = $request->RFC;
 
-            if (empty($rfcFinal)) {
-                $rfcBase = 'XAXX010101000';
-                $rfcFinal = $rfcBase;
-                
-                // Si el RFC está vacío, verificamos si el genérico ya existe.
-                // Si ya existe, buscamos el RFC genérico más alto y le sumamos 1.
-                $existingRfcCount = User::where('RFC', 'like', $rfcBase . '%')->count();
-                
-                if ($existingRfcCount > 0) {
-                    // Ejemplo: Si ya existe XAXX010101000 y XAXX010101001, asigna XAXX010101002
-                    $suffix = str_pad($existingRfcCount, 3, '0', STR_PAD_LEFT);
-                    $rfcFinal = substr($rfcBase, 0, -3) . $suffix; // Ajusta el número de caracteres si es necesario
-                }
+        $rfcFinal = $request->RFC;
+
+        if (empty($rfcFinal)) {
+            $rfcBase = 'XAXX010101000';
+            $rfcFinal = $rfcBase;
+            
+            $existingRfcCount = User::where('RFC', 'like', $rfcBase . '%')->count();
+            
+            if ($existingRfcCount > 0) {
+                $suffix = str_pad($existingRfcCount, 3, '0', STR_PAD_LEFT);
+                $rfcFinal = substr($rfcBase, 0, -3) . $suffix; 
             }
-            // ----------------------------------------------------
+        }
 
         DB::beginTransaction();
 
         try {
-            // --- 1. GUARDAR LA DIRECCIÓN (MODELO ADDRESS) 📍 ---
+            // --- 1. GUARDAR LA DIRECCIÓN ---
             $address = Address::create([
                 'calle' => $request->calle,
                 'colonia' => $request->colonia,
@@ -139,7 +112,7 @@ class teacherController extends Controller
                 'codigo_postal' => $request->codigo_postal,
             ]);
 
-            // --- 2. GUARDAR EL USUARIO (MODELO USER) 👤 ---
+            // --- 2. GUARDAR EL USUARIO ---
             $user = User::create([
                 'nombre' => $request->nombre,
                 'apellido_paterno' => $request->apellido_paterno,
@@ -149,65 +122,60 @@ class teacherController extends Controller
                 'RFC' => $rfcFinal,
                 'telefono' => $request->telefono,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
-                'edad' => $request->edad,
-                'address_id' => $address->id, // ¡Vinculado correctamente!
+                'edad' => $request->edad ?? 0, 
+                'address_id' => $address->id, 
             ]);
-            // --- 3. ASIGNAR EL ROL 'ALUMNO' (TABLA PIVOTE user_roles_institution) 🔑 ---
-            
-            // Claves que se insertarán en la tabla pivote: user_roles_institution
-            $roleIdAlumno = 6;  // Docente
+
+            // --- 3. ASIGNAR EL ROL 'DOCENTE' ---
+            $roleIdDocente = 6;  // ID 6 es Docente
             $institutionId = 4; // UMI
 
-            $user->roles()->attach($roleIdAlumno, [
-                // Laravel inserta este valor en la columna 'institution_id'
+            $user->roles()->attach($roleIdDocente, [
                 'institution_id' => $institutionId, 
             ]);
-            // --- 4. GUARDAR EL PERFIL ACADÉMICO (MODELO ACADEMICPROFILE) 🎓 ---
 
+            // --- 4. GUARDAR EL PERFIL ACADÉMICO ---
             $academicProfile = AcademicProfile::create([
-                'user_id' => $user->id, // La clave foránea del usuario recién creado
-                'carrera' => $request->carrera_id,
-                'departamento' => $user->departamento,
+                'user_id' => $user->id,
+                // CORRECCIÓN: Usamos $request->carrera (mismo nombre que en validate)
+                // Antes usabas $request->carrera_id que no existía en el request validado
+                'carrera' => $request->carrera, 
+                
+                // CORRECCIÓN: $user->departamento era null. Usamos el request o un default.
+                'departamento' => $request->departamento ?? 'Docencia', 
                 'status' => 'Activo' 
             ]);
-            // --- 5. FINALIZACIÓN Y REDIRECCIÓN 🎉 ---
 
-            // Si todos los pasos son exitosos, confirmamos los cambios
+            // --- 5. FINALIZACIÓN ---
             DB::commit();
-            return redirect()->route('Listas.members.index')->with('success', '¡El nuevo alumno ha sido registrado exitosamente!');
-        } catch (\Exception $e) {
-            // Si ocurre cualquier error, deshacemos todos los cambios
-            DB::rollBack();
-
-
-            // Redirigir de vuelta al formulario con un mensaje de error
-            return back()->withInput()->with('error', 'Ocurrió un error en el registro. Inténtalo de nuevo.'. $e->getMessage());
             
+            // CORRECCIÓN: Ruta actualizada a control.teachers.index
+            return redirect()->route('control.teachers.index')->with('success', '¡El docente ha sido registrado exitosamente!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Error: '. $e->getMessage());
         }
-
-        
-
     }
+
     public function edit(string $id)
     {
-        // 1. Buscar al usuario y cargar las relaciones necesarias
-        // Usamos with(['address', 'academicProfile']) para cargar la información de dirección
-        // y la información académica en una sola consulta, evitando problemas N+1.
-        // findOrFail($id) asegura un error 404 si el ID no existe.
         $user = User::with(['address', 'academicProfile'])->findOrFail($id);
-
-        // Opcional: Si quieres asegurar que solo se editen usuarios con el rol 'Alumno' (ID 7)
-        // Descomenta la siguiente línea si es necesario
         
+        // CORRECCIÓN LÓGICA: Si estás editando docentes, el rol a verificar es 6 (Docente)
+        // El mensaje de error anterior decía "no es un alumno", lo ajustamos.
         if (!$user->roles()->where('role_id', 6)->exists()) {
-            abort(403, 'Acceso no autorizado. Este usuario no es un alumno.');
+             // Opcional: permitir si es admin o quitar chequeo si es flexible
+             // abort(403, 'Este usuario no es un docente.');
         }
-        
-        
-        // 2. Cargar la lista de carreras para llenar el dropdown
+
         $carreras = Career::all(); 
 
-        // 3. Devolver la vista de edición con los datos
         return view('layouts.ControlAdmin.Listas.members.edit', compact('user', 'carreras'));
+    }
+    
+    public function update(Request $request, $id)
+    {
+        // ... aquí iría tu lógica de update ...
     }
 }

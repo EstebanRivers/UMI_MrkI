@@ -92,6 +92,28 @@
                     </div>
                 </div>
             @endforeach
+            @if ($finalExamActivity)
+                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #e69a37; margin-top: 15px; padding-top: 15px;">
+                    <strong 
+                        class="syllabus-link auto-complete-link accordion-toggle"
+                        data-target="#content-activity-{{ $finalExamActivity->id }}"
+                        data-completable-type="Activities"
+                        data-completable-id="{{ $finalExamActivity->id }}">
+                        <span style="font-size: 1.1em;"></span> Examen Final
+                    </strong>
+                </div>
+            @endif
+            @if ($finalExamActivity)
+                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #e69a37; margin-top: 15px; padding-top: 15px;">
+                    <strong 
+                        class="syllabus-link auto-complete-link accordion-toggle"
+                        data-target="#content-activity-{{ $finalExamActivity->id }}"
+                        data-completable-type="Activities"
+                        data-completable-id="{{ $finalExamActivity->id }}">
+                        <span style="font-size: 1.1em;"></span> Examen Final
+                    </strong>
+                </div>
+            @endif
         </div>
         {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
             <div class="course-progress-container" 
@@ -260,17 +282,16 @@
                                     @foreach ($activity->content['options'] as $index => $option)
                                         <div class="option-box">
                                             <label>
-                                                <input type="radio" name="answer" value="{{ $index }}" {{ Auth::id() == $course->instructor_id ? 'disabled' : '' }}>
+                                                <input type="radio" name="answer" value="{{ $index }}" >
+                                                <input type="radio" name="answer" value="{{ $index }}" >
                                                 {{ $option }}
                                             </label>
                                         </div>
                                     @endforeach
                                     <div class="quiz-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                                    @if (Auth::id() != $course->instructor_id)
                                         <button type="submit" class="btn-success">Enviar Respuesta</button>
-                                    @else
-                                        <p class="instructor-note">(Vista de previsualización para el instructor)</p>
-                                    @endif
+                                   
+                                   
                                 </form> 
                             
                             @elseif ($activity->type == 'SopaDeLetras' && is_array($activity->content))
@@ -395,7 +416,6 @@
                             <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}" disabled>Terminado</button>
                             <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
 
-<<<<<<< HEAD
                         @elseif ($activity->type == 'Examen' && is_array($activity->content))
                             {{-- INTERFAZ WIZARD PARA EXAMEN NORMAL --}}
                             <form class="quiz-form exam-wizard-form" id="quiz-form-{{ $activity->id }}"
@@ -459,33 +479,11 @@
                                     </button>
                                 </div>
                             </form>
-=======
-                        @elseif ($activity->type == 'Crucigrama' && is_array($activity->content))
-                            <div class="cw-game-container" id="cw-game-{{ $activity->id }}" data-activity-id="{{ $activity->id }}" data-clues='@json($activity->content['clues'] ?? [])' data-grid-size="{{ $activity->content['grid_size'] ?? 15 }}">
-                                <div class="cw-grid-container">
-                                    <div class="cw-grid"></div>
-                                </div>
-                                <div class="cw-clues-container">
-                                    <div class="cw-clues-list" id="cw-clues-across">
-                                        <h4>Horizontales</h4>
-                                        <ul></ul>
-                                    </div>
-                                    <div class="cw-clues-list" id="cw-clues-down">
-                                        <h4>Verticales</h4>
-                                        <ul></ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn-success complete-game-btn" style="margin-top: 15px;" data-activity-id="{{ $activity->id }}" data-submit-url="{{ route('activities.submit', $activity) }}">Comprobar y Terminar</button>
-                            <div class="game-feedback" id="feedback-{{ $activity->id }}" style="margin-top: 10px;"></div>
-                        @else
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                             {{-- Fallback --}}
                             <p>{{ is_array($activity->content) ? json_encode($activity->content) : $activity->content }}</p>
                         @endif
                     </div>
                 @endforeach
-<<<<<<< HEAD
             @endforeach
             @if ($finalExamActivity)
                 @php $activity = $finalExamActivity; @endphp
@@ -572,12 +570,7 @@
                     
             </div>
             
-=======
-
-            @endforeach
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
         </div>
-
     </div>
 </div>
 {{-- MODAL DE EXAMEN DESBLOQUEADO --}}
@@ -642,7 +635,6 @@
         /* ==================================================================
            3. LÓGICA DE PROGRESO (CORREGIDA)
            ================================================================== */
-<<<<<<< HEAD
         // --- Referencia al enlace del examen ---
         const finalExamSyllabusLink = document.getElementById('final-exam-syllabus-link');
         const unlockModal = document.getElementById('examUnlockedModal');
@@ -668,8 +660,6 @@
                 }
             }
         }
-=======
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
 
         const markItemAsComplete = (type, id, element) => {
             if (element.classList.contains('completed')) return;
@@ -691,12 +681,24 @@
             if (!tracker) return;
             const barFill = document.getElementById('progress-bar-fill');
             const barText = document.getElementById('progress-bar-text');
-            const completedNow = document.querySelectorAll('.syllabus-link.completed').length;
+            const completedNow = document.querySelectorAll('.course-syllabus .syllabus-link.completed').length;
+            const completedNow = document.querySelectorAll('.course-syllabus .syllabus-link.completed').length;
             const totalItems = parseInt(tracker.dataset.totalActivities, 10); 
-            if (totalItems === 0) return;
+            if (totalItems === 0) {
+                checkAndShowFinalExam(100); // Si no hay items, desbloquear
+                return;
+            };
+            if (totalItems === 0) {
+                checkAndShowFinalExam(100); // Si no hay items, desbloquear
+                return;
+            };
             let newProgress = Math.round((completedNow / totalItems) * 100);
+            if (newProgress > 100) newProgress = 100; // Asegurar el tope
+            if (newProgress > 100) newProgress = 100; // Asegurar el tope
             barFill.style.width = newProgress + '%';
             barText.innerText = newProgress + '%';
+            checkAndShowFinalExam(newProgress);
+            checkAndShowFinalExam(newProgress);
         };
 
         // --- Escuchar clics en los enlaces "completables" (PDFs/Videos) ---
@@ -753,16 +755,45 @@
                 e.preventDefault(); 
                 const activityId = this.dataset.activityId;
                 const feedbackEl = document.getElementById(`feedback-${activityId}`);
-                const formData = new FormData(this);
-                const userAnswer = formData.get('answer');
+                let formData;
+                const isMultiQuestionExam = this.querySelector('input[name^="answers["]');
 
-                if (userAnswer === null) {
-                    feedbackEl.style.color = 'red';
-                    feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
-                    return;
+                if (isMultiQuestionExam) {
+                    // Es el Examen (múltiples preguntas)
+                    // Serializar el formulario para obtener el array 'answers'
+                    formData = new FormData(this);
+                } else {
+                    // Es el Cuestionario (1 pregunta)
+                    const singleAnswer = this.querySelector('input[name="answer"]:checked');
+                    if (singleAnswer === null) {
+                        feedbackEl.style.color = 'red';
+                        feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
+                        return;
+                    }
+                    formData = { answer: singleAnswer.value };
                 }
-                window.axios.post(this.action, { answer: userAnswer })
+                window.axios.post(this.action, formData)
+                let formData;
+                const isMultiQuestionExam = this.querySelector('input[name^="answers["]');
+
+                if (isMultiQuestionExam) {
+                    // Es el Examen (múltiples preguntas)
+                    // Serializar el formulario para obtener el array 'answers'
+                    formData = new FormData(this);
+                } else {
+                    // Es el Cuestionario (1 pregunta)
+                    const singleAnswer = this.querySelector('input[name="answer"]:checked');
+                    if (singleAnswer === null) {
+                        feedbackEl.style.color = 'red';
+                        feedbackEl.innerText = 'Por favor, selecciona una respuesta.';
+                        return;
+                    }
+                    formData = { answer: singleAnswer.value };
+                }
+                window.axios.post(this.action, formData)
                     .then(response => {
+                        
+                        
                         feedbackEl.style.color = 'green';
                         feedbackEl.innerText = response.data.message;
                         this.querySelectorAll('input, button').forEach(el => el.disabled = true);
@@ -770,7 +801,6 @@
                         const syllabusLink = document.querySelector(`.syllabus-link[data-completable-id="${activityId}"][data-completable-type="Activities"]`);
                         if (syllabusLink) syllabusLink.classList.add('completed');
                         if (response.data.created) updateProgressBar();
-<<<<<<< HEAD
 
                         // 2. Si es el examen final, hacer el cambio de interfaz
                         if (syllabusLink && syllabusLink.closest('#final-exam-syllabus-link')) {
@@ -800,8 +830,6 @@
                             feedbackEl.innerText = response.data.message;
                             this.querySelectorAll('input, button').forEach(el => el.disabled = true);
                         }
-=======
->>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                     })
                     .catch(error => {
                         feedbackEl.style.color = 'red';
@@ -811,6 +839,102 @@
                             feedbackEl.innerText = 'Error al enviar la respuesta. Intenta más tarde.';
                         }
                     });
+            });
+        });
+
+        // --- COMPROBACIÓN INICIAL AL CARGAR PÁGINA ---
+        // Obtenemos el progreso inicial que pasó el controlador
+        const initialProgress = {{ $progress ?? 0 }};
+        checkAndShowFinalExam(initialProgress);
+        // --- LÓGICA DE "WIZARD" (PASO A PASO) PARA EL EXAMEN ---
+        document.querySelectorAll('.btn-next-step').forEach(button => {
+            button.addEventListener('click', function() {
+                const formId = this.dataset.formId;
+                const form = document.getElementById(formId);
+                
+                // 1. Identificar la pregunta actual visible
+                const currentStep = form.querySelector('.question-step.active');
+                const nextStep = currentStep.nextElementSibling;
+                
+                // 2. Validar que haya respondido (buscar radio checked dentro del paso actual)
+                const selectedOption = currentStep.querySelector('input[type="radio"]:checked');
+                const errorMsg = currentStep.querySelector('.step-error-msg');
+                
+                // Si no seleccionó nada (y no es el instructor), mostrar error y detener
+                // (Puedes quitar la condición de instructor si quieres que él también valide)
+                if (!selectedOption) {
+                    if (errorMsg) {
+                        errorMsg.style.display = 'block';
+                        errorMsg.innerText = "Por favor, selecciona una respuesta para continuar.";
+                    }
+                    return; // DETENER AQUÍ
+                } else {
+                    if (errorMsg) errorMsg.style.display = 'none';
+                }
+
+                // 3. Avanzar a la siguiente pregunta
+                if (nextStep && nextStep.classList.contains('question-step')) {
+                    currentStep.classList.remove('active');
+                    nextStep.classList.add('active');
+
+                    // 4. Gestionar botones
+                    // Si NO hay más pasos después del siguiente, ocultar "Siguiente" y mostrar "Finalizar"
+                    const isLastQuestion = !nextStep.nextElementSibling || !nextStep.nextElementSibling.classList.contains('question-step');
+                    
+                    if (isLastQuestion) {
+                        this.style.display = 'none'; // Ocultar botón Siguiente
+                        const finishBtn = form.querySelector('.btn-finish-exam');
+                        if (finishBtn) finishBtn.style.display = 'inline-block'; // Mostrar botón Finalizar
+                    }
+                }
+            });
+        });
+
+        // --- COMPROBACIÓN INICIAL AL CARGAR PÁGINA ---
+        // Obtenemos el progreso inicial que pasó el controlador
+        const initialProgress = {{ $progress ?? 0 }};
+        checkAndShowFinalExam(initialProgress);
+        // --- LÓGICA DE "WIZARD" (PASO A PASO) PARA EL EXAMEN ---
+        document.querySelectorAll('.btn-next-step').forEach(button => {
+            button.addEventListener('click', function() {
+                const formId = this.dataset.formId;
+                const form = document.getElementById(formId);
+                
+                // 1. Identificar la pregunta actual visible
+                const currentStep = form.querySelector('.question-step.active');
+                const nextStep = currentStep.nextElementSibling;
+                
+                // 2. Validar que haya respondido (buscar radio checked dentro del paso actual)
+                const selectedOption = currentStep.querySelector('input[type="radio"]:checked');
+                const errorMsg = currentStep.querySelector('.step-error-msg');
+                
+                // Si no seleccionó nada (y no es el instructor), mostrar error y detener
+                // (Puedes quitar la condición de instructor si quieres que él también valide)
+                if (!selectedOption) {
+                    if (errorMsg) {
+                        errorMsg.style.display = 'block';
+                        errorMsg.innerText = "Por favor, selecciona una respuesta para continuar.";
+                    }
+                    return; // DETENER AQUÍ
+                } else {
+                    if (errorMsg) errorMsg.style.display = 'none';
+                }
+
+                // 3. Avanzar a la siguiente pregunta
+                if (nextStep && nextStep.classList.contains('question-step')) {
+                    currentStep.classList.remove('active');
+                    nextStep.classList.add('active');
+
+                    // 4. Gestionar botones
+                    // Si NO hay más pasos después del siguiente, ocultar "Siguiente" y mostrar "Finalizar"
+                    const isLastQuestion = !nextStep.nextElementSibling || !nextStep.nextElementSibling.classList.contains('question-step');
+                    
+                    if (isLastQuestion) {
+                        this.style.display = 'none'; // Ocultar botón Siguiente
+                        const finishBtn = form.querySelector('.btn-finish-exam');
+                        if (finishBtn) finishBtn.style.display = 'inline-block'; // Mostrar botón Finalizar
+                    }
+                }
             });
         });
         
@@ -1032,6 +1156,8 @@
         
 
     }); // Cierre del DOMContentLoaded
+    
+    
 </script>
 @endpush
 @endsection

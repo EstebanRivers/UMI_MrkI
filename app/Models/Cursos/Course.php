@@ -68,6 +68,11 @@ class Course extends Model
         'institution_id',
         'image',
         'guide_material_path',
+        'cert_bg_path',
+        'cert_sig_1_path',
+        'cert_sig_2_path',
+        'cert_sig_1_name',
+        'cert_sig_2_name',
 
     ];
 
@@ -112,6 +117,12 @@ class Course extends Model
         // Asumiendo que tu modelo de usuario es 'User'
         // Usa App\Models\Users\User::class
         return $this->belongsToMany(User::class, 'course_user');
+    }
+
+    public function finalExam()
+    {
+        return $this->hasOne(Activities::class)
+                    ->where('is_final_exam', true);
     }
 
 }
