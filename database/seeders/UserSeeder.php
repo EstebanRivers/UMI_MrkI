@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// Keep all your existing 'use' statements
 use App\Models\Users\Institution;
 use Illuminate\Database\Seeder;
 use App\Models\Users\User;

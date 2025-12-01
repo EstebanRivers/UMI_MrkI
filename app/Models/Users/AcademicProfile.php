@@ -2,7 +2,6 @@
 
 namespace App\Models\Users;
 
-use App\Models\Users\Career;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,13 +38,10 @@ class AcademicProfile extends Model
     protected $fillable = [
         'user_id',
         'campus',
-        'semestre',
-        'status',
-        'carrera_id',
+        'carrera',
         'departamento',
         'modules',
         'documentos',
-        'rol',
     ];
 
     protected $casts = [
@@ -60,13 +56,9 @@ class AcademicProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function carreraDetails(): BelongsTo
+
+    public function career()
     {
         return $this->belongsTo(Career::class);
-    }
-
-    public function career(): BelongsTo
-    {
-        return $this->belongsTo(Career::class,'carrera_id', 'id');
     }
 }

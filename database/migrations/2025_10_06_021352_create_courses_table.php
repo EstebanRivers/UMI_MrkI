@@ -19,14 +19,6 @@ return new class extends Migration
             $table->integer('hours')->default(0);
             $table->string('image')->nullable();
             $table->string('guide_material_path')->nullable();
-            // Ruta para la imagen de fondo del certificado
-            $table->string('cert_bg_path')->nullable();
-            // Rutas para las firmas (2)
-            $table->string('cert_sig_1_path')->nullable();
-            $table->string('cert_sig_2_path')->nullable();
-            // Nombres/cargos de quienes firman
-            $table->string('cert_sig_1_name')->nullable();
-            $table->string('cert_sig_2_name')->nullable();
 
             // --- RELACIONES BASE ---
             

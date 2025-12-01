@@ -11,12 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('completions', function (Blueprint $table) {
+        // Este archivo solo debe crear la tabla 'billings'
+        Schema::create('billings', function (Blueprint $table) {
             $table->id();
+            $table->string('factura_uid')->unique();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->morphs('completable');
+            $table->string('concepto');
+            $table->decimal('monto', 10, 2);
+            $table->date('fecha_vencimiento');
+            $table->string('archivo_path')->nullable();
+            $table->enum('status', ['Pendiente', 'Pagada'])->default('Pendiente');
             $table->timestamps();
-            $table->unique(['user_id', 'completable_id', 'completable_type'], 'user_completion_unique');
         });
     }
 
@@ -25,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('completions');
+        Schema::dropIfExists('billings');
     }
 };

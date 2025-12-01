@@ -1,10 +1,4 @@
-import './bootstrap';
-import axios from 'axios';
-
-window.axios = axios;
-
 // Navegación SPA optimizada y simplificada
-
 class SimpleSPANavigation {
     constructor() {
         this.cache = new Map();
@@ -82,36 +76,17 @@ class SimpleSPANavigation {
             }
         });
 
-        // Manejar botón atrás/adelante del navegador
+        // --- Popstate (sin cambios) ---
         window.addEventListener('popstate', (e) => {
-            if (!(e.target instanceof Element)) return;
-            if (e.state && e.state.page) {
-                this.loadPage(e.state.page, false);
-            }
+            // (Tu lógica de popstate, si tenías una, iría aquí)
+            // Por ejemplo, recargar la página si la navegación SPA no lo maneja
             this.navigate(window.location.href);
         });
-
-        // Precargar al hacer hover (optimizado)
-        let hoverTimeout;
-        document.addEventListener('mouseenter', (e) => {
-            if (!(e.target instanceof Element)) return;
-            const link = e.target.closest('.menu a');
-            if (link && this.shouldIntercept(link)) {
-                clearTimeout(hoverTimeout);
-                hoverTimeout = setTimeout(() => {
-                    this.preloadPage(link.href);
-                }, 200);
-            }
-        }, true);
-
-        document.addEventListener('mouseleave', (e) => {
-            if (!(e.target instanceof Element)) return;
-            const link = e.target.closest('.menu a');
-            if (link) {
-                clearTimeout(hoverTimeout);
-            }
-        }, true);
     }
+
+    // !! ========================================================== !!
+    // !! NUEVA FUNCIÓN DE AYUDA (Pégala aquí, dentro de la clase) !!
+    // !! ========================================================== !!
     getSiblings(elem) {
         let siblings = [];
         if (!elem.parentNode) return siblings;
@@ -124,6 +99,12 @@ class SimpleSPANavigation {
         }
         return siblings;
     }
+
+    // ==================================================
+    // EL RESTO DE TU ARCHIVO (setImmediateActivate, 
+    // shouldIntercept, navigate, loadPage, parsePageContent, 
+    // etc.) VA AQUÍ SIN CAMBIOS.
+    // ==================================================
 
     setImmediateActivate(link) {
         document.querySelectorAll('.menu li').forEach(li => {
@@ -163,17 +144,25 @@ class SimpleSPANavigation {
         }
     }
 
-    async loadPage(url, updateHistory = true) {
+async loadPage(url, updateHistory = true) {
         const cacheKey = this.getCacheKey(url);
-        if (this.cache.has(cacheKey)) {
+        
+        // LISTA NEGRA: Estas páginas NUNCA se guardan en memoria
+        const noCachePaths = ['/facturacion']; 
+        const currentPath = new URL(url, window.location.origin).pathname;
+        
+        // Si la URL contiene algo de la lista negra, NO usamos caché
+        const shouldUseCache = !noCachePaths.some(path => currentPath.includes(path));
+
+        if (shouldUseCache && this.cache.has(cacheKey)) {
             const cached = this.cache.get(cacheKey);
-            if (Date.now() - cached.timestamp < 300000) { // 5 minutos
-                if (updateHistory) {
-                    history.pushState({ page: url }, '', url);
-                }
+            if (Date.now() - cached.timestamp < 300000) { 
+                if (updateHistory) history.pushState({ page: url }, '', url);
                 return cached.content;
             }
         }
+        
+        // Si es facturación, esto pedirá datos frescos al servidor
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -183,35 +172,25 @@ class SimpleSPANavigation {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'text/html',
                     'X-CSRF-TOKEN': this.getCSRFToken(),
-                    'Cache-Control': 'no-cache'
+                    'Cache-Control': 'no-cache' // Forzar al servidor
                 },
-                credentials: 'same-origin',
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
             const html = await response.text();
             const content = this.parsePageContent(html);
-            if (!content) {
-                throw new Error('Invalid page structure');
-            }
-            this.cache.set(cacheKey, {
-                content: content,
-                timestamp: Date.now()
-            });
-            if (this.cache.size > 15) {
-                this.cleanupCache();
-            }
-            if (updateHistory) {
-                history.pushState({ page: url }, content.title, url);
-            }
+            if (!content) throw new Error('Invalid structure');
+
+            // Guardamos en caché (pero la próxima vez el 'shouldUseCache' lo ignorará si es necesario)
+            this.cache.set(cacheKey, { content: content, timestamp: Date.now() });
+            if (this.cache.size > 15) this.cleanupCache();
+
+            if (updateHistory) history.pushState({ page: url }, content.title, url);
             return content;
         } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout');
-            }
+            if (error.name === 'AbortError') throw new Error('Timeout');
             throw error;
         }
     }
@@ -308,7 +287,7 @@ class SimpleSPANavigation {
     }
 
     preloadCriticalPages() {
-        const criticalPages = ['/cursos', '/mi-informacion', '/ajustes'];
+        const criticalPages = ['/dashboard', '/mi-informacion', '/ajustes'];
         setTimeout(() => {
             criticalPages.forEach(page => {
                 if (page !== this.currentPage) {
@@ -373,29 +352,6 @@ class SimpleSPANavigation {
 document.addEventListener('DOMContentLoaded', () => {
     window.spaNav = new SimpleSPANavigation();
     window.navigateTo = (url) => window.spaNav.navigateTo(url);
-
-    /**
-     * Función reutilizable para marcar una actividad como completada (vía AJAX)
-     */
-        // --- 1. Para LINKS (PDF, Texto, Quiz) ---
-        document.body.addEventListener('click', function(event) {
-            // 'event.target.closest' es la forma moderna de delegar eventos
-            const link = event.target.closest('.auto-complete-link');
-            if (link) {
-                const activityId = link.dataset.activityId;
-                markActivityAsComplete(activityId);
-                // La navegación al link (href) ocurre de forma natural
-            }
-        });
-
-        // --- 2. Para VIDEOS (al finalizar) ---
-        const videoPlayers = document.querySelectorAll('.auto-complete-video');
-        videoPlayers.forEach(video => {
-            video.addEventListener('ended', (event) => {
-                const activityId = event.currentTarget.dataset.activityId;
-                markActivityAsComplete(activityId);
-            });
-        });
 });
 
 // Limpiar al cerrar

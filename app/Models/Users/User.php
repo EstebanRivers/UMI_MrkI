@@ -14,7 +14,6 @@ use App\Models\Users\Institution;
 use App\Models\Users\Address;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
-use App\Models\AdmonCont\Horario;
 use Illuminate\Support\Facades\DB;
 use App\Models\Cursos\Course;
 use App\Models\Cursos\Completion;
@@ -66,7 +65,24 @@ use App\Models\Cursos\Activities;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
+    
     use HasFactory, Notifiable;
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
+    }
+
+    public function billings()
+    {
+        return $this->hasMany(\App\Models\Facturacion\Billing::class);
+    }
+
 
     /**
      * Verifica si el rol ACTIVO en la sesión coincide con el nombre dado.
@@ -94,7 +110,6 @@ class User extends Authenticatable
         ->join('roles', 'user_roles_institution.role_id', '=', 'roles.id')
         ->where('user_roles_institution.user_id', $this->id)
         ->where('roles.name', $roleName)
-        ->where('user_roles_institution.is_active', true)
         ->exists();    
     }
 
@@ -108,7 +123,6 @@ class User extends Authenticatable
         ->join('roles', 'user_roles_institution.role_id', '=', 'roles.id')
         ->where('user_roles_institution.user_id', $this->id)
         ->whereIn('roles.name', $roles)
-        ->where('user_roles_institution.is_active', true)
         ->exists();
     }
 
@@ -161,7 +175,6 @@ class User extends Authenticatable
         'fecha_nacimiento',
         'edad',
         'address_id',
-        'institution_id',
         'department_id',
         'workstation_id',
         'role_id',
@@ -187,8 +200,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'created_at' => 'datetime', 
-            'updated_at' => 'datetime',
         ];
     }
 
