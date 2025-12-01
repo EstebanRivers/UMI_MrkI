@@ -23,6 +23,7 @@ class BillingConceptController extends Controller
             });
         }
 
+        // Esto trae TODOS los registros y soluciona que no veas los demás.
         $conceptos = $query->orderBy('created_at', 'desc')->get(); 
 
         $page_title = 'Conceptos y Montos de Facturación';
@@ -50,6 +51,7 @@ class BillingConceptController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['message' => 'Guardado correctamente']);
             }
+            // Redirige a la ruta INDEX (que usa el controlador corregido arriba)
             return redirect()->route('facturacion.conceptos.index')->with('success', 'Concepto creado.');
 
         } catch (\Exception $e) {

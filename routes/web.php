@@ -231,4 +231,4 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
 
     }); // Fin Middleware Administrativo
 
-});
+}); // Fin Middleware Auth + Ajax + SPA

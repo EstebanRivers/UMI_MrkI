@@ -28,8 +28,8 @@
                 <div class="toolbar__actions">
                     @if(Auth::user()->hasAnyRole(['master']))
                         {{-- Se cambia <button> por <a> y se usa la directiva route() de Blade --}}
-                        <a href="{{ route('control.teachers.form') }}" class="data-action-btn data-btn-edit">
-                        Agregar Docente
+                        <a href="{{ route('control.teachers.form') }}" class="action-button">
+                            Agregar Docente
                         </a>
                     @endif
                 </div>
@@ -63,7 +63,7 @@
                         </td>
                         <td data-label="Acciones" class="data-actions-cell">
                             <a href="#" class="data-action-btn data-btn-view"><img src="{{asset('images/icons/eye-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
-                            <a href="{{ route('control.teachers.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
+                            <a href="{{ route('Listas.members.edit', $user->id) }}" class="data-action-btn data-btn-edit"><img src="{{asset('images/icons/pen-to-square-solid-full.svg')}}" alt="" style="width:27;height:27px" loading="lazy"></a>
                             <form action="#" method="POST" class="data-action-form">
                                 @csrf
                                 @method('DELETE')

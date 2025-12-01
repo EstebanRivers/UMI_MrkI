@@ -49,9 +49,9 @@ class Career extends Model
         'description2',
         'description3',
         'type',
-        'semesters', 
-        'institution_id',
-        'credits'         
+        'semesters', // <--- ✅ CORRECTO: Plural, como en tu BD
+        'institution_id', // Agregado por seguridad ya que está en tu BD
+        'credits'         // Agregado por seguridad
     ];
 
     // --- RELACIONES ---
