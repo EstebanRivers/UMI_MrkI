@@ -105,7 +105,6 @@
                 <form id="activity-form" action="{{route('activities.store')}}" method="POST">
                     @csrf
                     <input type="hidden" name="course_id" value="{{ $course->id }}">
-                    <input type="hidden" name="course_id" value="{{ $course->id }}">
                     <input type="hidden" name="subtopic_id" id="activity-subtopic-id">
                     <input type="hidden" name="topic_id" id="activity-topic-id">
 
@@ -116,18 +115,6 @@
                     
                     <div class="form-group">
                         <input type="text" name="title" placeholder="Título de la actividad" required>
-                    </div>
-
-                    <div class="form-group-exam">
-                        <details>
-                            <summary class="exam-label">
-                                <input type="checkbox" name="is_final_exam" value="1" id="is_final_exam_checkbox">
-                                <strong>Marcar como Examen Final</strong>
-                            </summary>
-                            <small class="exam-note">
-                                Si se marca, esta actividad se ocultará hasta que se complete el 100% del curso.
-                            </small>
-                        </details>
                     </div>
 
                     <div class="form-group-exam">
@@ -157,10 +144,8 @@
                         <div id="template-Cuestionario" class="activity-template" style="display: none;">
                             <div class="activity-fields-container">
                                  <div class="form-group">
-                                 <div class="form-group">
                                         <label>Pregunta del cuestionario:</label>
                                         <input type="text" name="content[question]" class="form-field-cuestionario" placeholder="Escribe la pregunta aquí" disabled>
-                                    
                                     
                                 </div>
                                 <label>Opciones de respuesta (marca la correcta):</label>
