@@ -60,7 +60,7 @@
 
                     {{-- Archivo --}}
                     <div class="form-group">
-                        <label for="file">Adjuntar Archivo (PDF, Word, PPT o Video)</label>
+                        <label for="file">Adjuntar Archivo (PDF o Video)</label>
                         <input type="file" id="file" name="file">
                     </div>
                      <button type="submit" class="btn-successs">+ Añadir Tema </button>
@@ -92,7 +92,7 @@
                     </div>
                     {{-- Archivo --}}
                     <div class="form-group">
-                        <label for="subtopic-file">Adjuntar Archivo (PDF, Word, PPT o Video)</label>
+                        <label for="subtopic-file">Adjuntar Archivo (PDF o Video)</label>
                         <input type="file" id="subtopic-file" name="file">
                     </div>
                     <button type="submit" class="btn-successs"> Añadir Subtema </button>
@@ -232,7 +232,7 @@
                     </div>
 
                     <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn-success">Guardar Cambios</button>
+                        <button type="submit" class="btn-successs">Guardar Cambios</button>
                         <button type="button" id="cancel-edit-btn" class="btn-secondary">Cancelar</button>
                     </div>
                 </form>
@@ -329,7 +329,7 @@
                         @if ($topic->file_path)
                             <div class="topic-file">
                                 <a href="{{ asset('storage/' . $topic->file_path) }}" target="_blank" class="text-decoration-none">
-                                    📎 Ver Archivo Adjunto
+                                     Ver Archivo Adjunto
                                 </a>
                             </div>
                         @endif
@@ -388,7 +388,7 @@
                                     @if ($subtopic->file_path)
                                         <div class="topic-file">
                                             <a href="{{ asset('storage/' . $subtopic->file_path) }}" target="_blank" class="text-decoration-none">
-                                                📎 Ver Archivo Adjunto
+                                                 Ver Archivo Adjunto
                                             </a>
                                         </div>
                                     @endif

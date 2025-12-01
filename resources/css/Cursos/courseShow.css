@@ -371,3 +371,57 @@
         margin-bottom: 15px;
         display: block;
     }
+
+    @media (width: 1920px) {
+
+    .course-viewer-container {
+        max-width: 1600px;
+        padding: 20px 40px;
+    }
+
+    .course-layout {
+        gap: 30px;
+    }
+
+    .course-menu {
+        flex: 1.2;
+    }
+
+    .content-viewer {
+        flex: 3.5;
+        padding: 20px 30px;
+        font-size: 1.05em;
+    }
+
+    .course-syllabus {
+        max-height: 78%;
+        padding: 15px;
+    }
+
+    .course-syllabus h3 {
+        font-size: 22px;
+    }
+
+    .syllabus-link {
+        font-size: 1.05em;
+        padding: 6px 2px;
+    }
+
+    .course-guide-material {
+        padding: 20px;
+    }
+
+    .question-text {
+        font-size: 1.2em;
+    }
+
+    .ws-grid {
+        grid-template-columns: repeat(var(--ws-grid-size), 35px);
+    }
+
+    .ws-cell {
+        width: 35px;
+        height: 35px;
+        font-size: 1.2em;
+    }
+}
