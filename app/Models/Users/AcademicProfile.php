@@ -45,6 +45,7 @@ class AcademicProfile extends Model
         'departamento',
         'modules',
         'documentos',
+        'matricula',
         'rol',
     ];
 

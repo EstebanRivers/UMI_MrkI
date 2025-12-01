@@ -6,7 +6,7 @@
   padding: 0;
   margin-bottom: var(--spacing-lg);
   border-bottom: 0px solid var(--border);
-  flex-shrink: 0; /* No se comprime */
+  flex-shrink: 0; 
   cursor: default;
  
 }
@@ -106,7 +106,7 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
   gap: var(--spacing-md);
   padding-top: var(--spacing-lg);
   border-top: 1px solid var(--border);
-  flex-shrink: 0; /* No se comprime */
+  flex-shrink: 0; 
   margin-top: auto;
 }
 
@@ -177,46 +177,40 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
 /* --- ESTILOS PARA SUBMENÚS (NIVEL 1 Y 2) --- */
 /* ================================================= */
 
-/* 1. Ancla para el Nivel 1 (ej. "Ajustes") */
+
 .menu ul li.has-submenu {
     position: relative; 
 }
 
-/* !! =============================================== !! */
-/* !! ESTE ES EL BLOQUE QUE FALTABA PARA EL NIVEL 1 !! */
-/* !! =============================================== !! */
+
 .menu ul li.has-submenu > .submenu {
     position: absolute;   
-    top: 100%;            /* Se alinea 100% hacia abajo */
-    left: 0;              /* Se alinea a la izquierda */
+    top: 100%;           
+    left: 0;             
     
     width: 100%;          
     background-color: var(--pill-bg, #ffffff); 
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     border-radius: var(--border-radius-md); 
-    z-index: 1000;        /* Flota sobre "Cerrar sesión" */
+    z-index: 1000;        
 
-    display: none;        /* Oculto por defecto */
+    display: none;        
     list-style: none;
     margin-top: 5px;
     padding: 5px;
 }
-/* !! =============================================== !! */
-/* !! FIN DEL BLOQUE FALTANTE !! */
-/* !! =============================================== !! */
 
 
-/* 3. El <li> del Nivel 2 (ej. "Control Académico") es el ancla nueva */
+
 .menu ul li .submenu li.has-submenu {
     position: relative;
 }
 
-/* 4. El submenú de Nivel 2 (ej. "Carreras") */
-/* Este se abre HACIA LA DERECHA */
+
 .menu ul li .submenu li.has-submenu > .submenu {
     position: absolute;   
-    top: -5px;            /* Se alinea 5px arriba de su padre */
-    left: 100%;           /* FLOTA 100% A LA DERECHA */
+    top: -5px;            
+    left: 100%;           
     
     width: 250px; 
     background-color: var(--pill-bg, #ffffff);
@@ -230,8 +224,7 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
     padding: 5px;
 }
 
-/* 5. Muestra el submenú (Nivel 1 o Nivel 2) cuando el <li> padre tiene la clase 'open' */
-/* Esta clase la añade tu app.js al hacer hover */
+
 .menu ul li.has-submenu.open > .submenu {
     display: block;
 }
@@ -240,7 +233,7 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
   display: block;
 }
 
-/* 6. Flecha Nivel 1 (Ajustes) - Hacia abajo */
+
 .menu ul li.has-submenu > a::after {
     font-size: 0.7em;
     margin-left: auto;
@@ -248,24 +241,24 @@ filter: brightness(0) saturate(100%) invert(71%) sepia(26%) saturate(936%) hue-r
     display: inline-block;
     transition: transform 0.3s ease-out;
 }
-/* La flecha del Nivel 1 ya no necesita rotar */
+
 .menu ul li.has-submenu.open > a::after {
     transform: rotate(0deg); 
 }
 
-/* 7. Flecha Nivel 2 (Control Académico) - Hacia la derecha */
+
 .menu ul li .submenu li.has-submenu > a::after {
     font-size: 0.7em;
     margin-left: auto;
     padding-left: 10px;
     display: inline-block;
 }
-/* La flecha del Nivel 2 tampoco rota */
+
 .menu ul li .submenu li.has-submenu.open > a::after {
     transform: rotate(0deg);
 }
 
-/* 8. Estilos de los items (sin cambios) */
+
 .menu ul li .submenu li a {
     padding: 10px 15px;
     font-size: 0.9em;

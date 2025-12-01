@@ -11,6 +11,7 @@ use App\Http\Controllers\Cursos\CompletionController;
 use App\Http\Controllers\Ajustes\AjustesController;
 // Control Administrativo
 use App\Http\Controllers\Control_admin\ControlAdministrativoController;
+use App\Http\Controllers\MiInformacion\MiInformacionController;
 use App\Http\Controllers\AdmonCont\HorarioController;
 use App\Http\Controllers\AdmonCont\FacilityController;
 use App\Http\Controllers\AdmonCont\store\ListsControler; // Ojo: Revisa si es 'Controller' o 'Controler'
@@ -38,12 +39,32 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::match(['get', 'post'], '/set-context', [ContextController::class, 'setContext'])->name('context.set');
     Route::match(['get', 'post'], '/context/switch/{institutionId}/{roleId}', [ContextController::class, 'setContext'])->name('context.switch');
 
-    // --- Dashboard General ---
-    Route::get('/bienvenido', function () { return view('Dashboard.index'); })->name('dashboard');
-    Route::get('/mi-informacion', function () { return view('layouts.MiInformacion.index'); })->name('MiInformacion.index');
-    Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); })->name('Facturacion.index');
+    // Dashboard - accesible para todos los usuarios autenticados
+    Route::get('/bienvenido', function () {return view('dashboard.index');
+    })->name('dashboard');
 
-    // --- Cursos (General) ---
+    // Mi Informacion **********************************************************************************************
+   Route::prefix('mi-informacion')->name('MiInformacion.')->group(function () {
+
+    // 1. Perfil (Accesible para todos)
+    Route::get('/', [MiInformacionController::class, 'index'])
+         ->name('index');
+
+    // 2. Rutas exclusivas para Alumnos y Docentes
+    Route::middleware(['role:estudiante,docente,master'])->group(function () {
+
+        Route::get('/clases', [MiInformacionController::class, 'showClases'])
+             ->name('clases');
+
+        Route::get('/horario', [MiInformacionController::class, 'showHorario'])
+             ->name('horario');
+
+        Route::get('/historial', [MiInformacionController::class, 'showHistorial'])
+             ->name('historial');
+    });
+});
+
+    // Cursos ******************************************************************************************************
     Route::get('/cursos', [CourseController::class, 'index'])->name('Cursos.index');
     // --- Gestión de Cursos (Solo Docentes y Masters) ---
     Route::middleware(['role:master, docente'])->group(function () {
@@ -122,7 +143,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // --- Módulo Control Administrativo ---
     Route::middleware(['role:master,control_administrativo'])
         ->prefix('control-administrativo')
-        ->name('control.') // Prefijo de nombre: 'control.'
+        ->name('control.') 
         ->group(function () {
 
             // Dashboards

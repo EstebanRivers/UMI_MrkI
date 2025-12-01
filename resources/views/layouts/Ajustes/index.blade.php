@@ -135,10 +135,10 @@
                             {{-- 3. FORMULARIO DE HABILITAR/DESHABILITAR --}}
                           @if ($seccion === 'users')
                             @php
-                                // Obtenemos el rol (y la data pivote) para la institución activa
+                                
                                 $activeRoleForInstitution = $item->roles->first();
                                 
-                                // Verificamos el estatus de la tabla pivote
+                                
                                 $isActiveForInstitution = @$activeRoleForInstitution->pivot->is_active ?? false;
                             @endphp
 
@@ -172,8 +172,8 @@
                                 onsubmit="return confirm('ADVERTENCIA: ¿Estás seguro de ELIMINAR PERMANENTEMENTE este registro? Esta acción no se puede deshacer.');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" title="Eliminar Permanente" class="btn-icon">
-                                    <img src="{{ asset('images/icons/trash-solid-full.svg') }}" alt="Eliminar">
+                                <button type="submit" title="Eliminar Permanente" class="btn-delete">
+                                    <img src="{{ asset('images/icons/delete-left-solid-full.svg') }}" alt="Eliminar">
                                 </button>
                             </form>
                         </td>
@@ -212,7 +212,7 @@
 
 
 <script>
-    (function initAjustesModalScript() {
+   (function initAjustesModalScript() {
         // --- Variables ---
         const modal = document.getElementById('formModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -226,29 +226,108 @@
             const scripts = container.querySelectorAll('script');
             scripts.forEach(oldScript => {
                 const newScript = document.createElement('script');
-                if (oldScript.textContent) {
-                    newScript.textContent = oldScript.textContent;
-                }
+                if (oldScript.textContent) newScript.textContent = oldScript.textContent;
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
         }
         
-        if (!modal || !openModalBtn) {
-            return;
-        }
+        if (!modal || !openModalBtn) return;
         
-        // Variables de Blade
         const seccion = @json($seccion);
         const singularName = @json($singular_title);
         const baseUrl = @json(url('ajustes'));
         
-        // --- Función para limpiar el _method ---
         function clearMethodInput() {
             const oldMethodInput = modalForm.querySelector('input[name="_method"]');
-            if (oldMethodInput) {
-                oldMethodInput.remove();
-            }
+            if (oldMethodInput) oldMethodInput.remove();
         }
+
+        // --- MANEJO DE ENVÍO AJAX (NUEVO PARA VALIDACIONES) ---
+       modalForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); // Evita el envío tradicional
+
+            // Limpiar errores previos visuales
+            modalForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            modalForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+
+            const formData = new FormData(modalForm);
+            const url = modalForm.action;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json', // Pedimos JSON para los errores
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: formData
+                });
+
+                
+                if (response.ok) {
+                    
+                    window.location.reload(); 
+                    return; 
+                }
+
+                // 2. SI HAY ERRORES DE VALIDACIÓN (Código 422)
+                if (response.status === 422) {
+                    
+                    const data = await response.json();
+                    console.log('Errores recibidos:', data.errors); // <--- MIRA LA CONSOLA
+
+                    // Mostrar error general (si el campo no existe en el form)
+                    if (data.errors.modules_enabled) {
+                        // Buscamos el contenedor específico de los checkboxes
+                        const modulesWrapper = document.getElementById('admin-modules-wrapper');
+                        
+                        // Si existe el wrapper, ponemos el error ahí
+                        if (modulesWrapper) {
+                            // Limpiamos errores viejos
+                            const oldError = modulesWrapper.querySelector('.invalid-feedback');
+                            if (oldError) oldError.remove();
+
+                            // Creamos el mensaje
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'invalid-feedback';
+                            errorDiv.style.display = 'block';
+                            errorDiv.style.color = '#dc3545';
+                            errorDiv.style.marginTop = '10px';
+                            errorDiv.innerHTML = `<strong>${data.errors.modules_enabled[0]}</strong>`;
+                            
+                            // Lo añadimos al final del wrapper
+                            modulesWrapper.appendChild(errorDiv);
+                        } else {
+                            // Si no encuentra el wrapper, alerta normal
+                            alert(data.errors.modules_enabled[0]);
+                        }
+                    }
+                    
+                    Object.keys(data.errors).forEach(field => {
+                        const input = modalForm.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const errorSpan = document.createElement('span');
+                            errorSpan.classList.add('invalid-feedback');
+                            errorSpan.style.display = 'block';
+                            errorSpan.style.color = '#dc3545';
+                            errorSpan.style.fontSize = '0.85em';
+                            errorSpan.innerHTML = `<strong>${data.errors[field][0]}</strong>`;
+                            input.parentElement.appendChild(errorSpan);
+                        }
+                    });
+                } else {
+                   
+                    alert('Ocurrió un error inesperado en el servidor.');
+                }
+
+            } catch (error) {
+                console.error('Error de red:', error);
+                alert('Error de conexión. Intente de nuevo.');
+            }
+        });
+        // ------------------------------------------------------
         
         // --- Abrir modal para CREAR ---
         openModalBtn.addEventListener('click', async function () {
@@ -258,36 +337,26 @@
             
             try {
                 const response = await fetch(`${baseUrl}/${seccion}/create-form`);
-                if (!response.ok) {
-                    console.error('Respuesta de red no fue OK:', response.status, response.statusText);
-                    throw new Error('Error al cargar el formulario');
-                }
+                if (!response.ok) throw new Error('Error al cargar el formulario');
                 modalBody.innerHTML = await response.text();
                 
-                
-                modalBody.querySelectorAll('input, select, textarea').forEach(el => {
-                   el.disabled = false;
-                });
-                modalForm.querySelector('button[type="submit"]').style.display = 'block';
+                modalBody.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+                const submitBtn = modalForm.querySelector('button[type="submit"]');
+                if(submitBtn) submitBtn.style.display = 'block';
 
                 executeScriptsIn(modalBody); 
                 modal.style.display = 'block';
             } catch (error) {
-                console.error('Error en fetch (create):', error);
+                console.error(error);
                 alert('No se pudo cargar el formulario.');
             }
         });
 
-       
+        // --- Abrir modal para EDITAR y VER ---
         document.querySelectorAll('.btn-edit, .btn-view').forEach(btn => {
             btn.addEventListener('click', async function (e) {
                 e.preventDefault();
-                
                 const itemId = e.currentTarget.dataset.id;
-                if (!itemId) {
-                    console.error('No se encontró el ID del item');
-                    return;
-                }
                 
                 const isViewButton = e.currentTarget.classList.contains('btn-view');
                 modalTitle.textContent = isViewButton 
@@ -305,34 +374,29 @@
                 
                 try {
                     const response = await fetch(`${baseUrl}/${seccion}/${itemId}/edit-form`);
-                    if (!response.ok) {
-                        console.error('Respuesta de red no fue OK:', response.status, response.statusText);
-                        throw new Error('Error al cargar el formulario de edición');
-                    }
+                    if (!response.ok) throw new Error('Error al cargar formulario');
                     modalBody.innerHTML = await response.text();
                     
                     if (isViewButton) {
-                        modalBody.querySelectorAll('input, select, textarea').forEach(el => {
-                            el.disabled = true;
-                        });
-                        modalForm.querySelector('button[type="submit"]').style.display = 'none';
+                        modalBody.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+                        const submitBtn = modalForm.querySelector('button[type="submit"]');
+                        if(submitBtn) submitBtn.style.display = 'none';
                     } else {
-                         modalBody.querySelectorAll('input, select, textarea').forEach(el => {
-                            el.disabled = false;
-                        });
-                        modalForm.querySelector('button[type="submit"]').style.display = 'block';
+                         modalBody.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+                         const submitBtn = modalForm.querySelector('button[type="submit"]');
+                         if(submitBtn) submitBtn.style.display = 'block';
                     }
                     
                     executeScriptsIn(modalBody); 
                     modal.style.display = 'block';
                 } catch (error) {
-                    console.error('Error en fetch (edit/view):', error);
+                    console.error(error);
                     alert('No se pudo cargar el formulario.');
                 }
             });
         });
 
-       
+        // --- Cerrar modal ---
         closeModal.addEventListener('click', () => {
             modal.style.display = 'none';
             modalBody.innerHTML = ''; 

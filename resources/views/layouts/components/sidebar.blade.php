@@ -3,10 +3,10 @@
     <div class="brand" style="margin-bottom: 5px">
       <!-- logo arriba -->
       @if(session('active_institution_logo'))
-        {{-- Si hay un logo en la sesión, lo muestra --}}
+       
         <img src="{{ asset('storage/' . session('active_institution_logo')) }}" alt="Logo Institución" style="width: 100%; height: auto; max-width: 130px;" loading="lazy">
       @else
-        {{-- Si no hay logo, muestra el nombre como texto --}}
+        
         <span>{{ session('active_institution_name', 'Logo') }}</span> 
       @endif
     </div>
@@ -14,14 +14,65 @@
 
   <nav class="menu" aria-label="Menú principal">
     <ul>
-      <li class="@if(request()->routeIs('MiInformacion.*')) active @endif">
-        <a href="{{ route('MiInformacion.index') }}">
-          <span class="icon" aria-hidden="true">
-            <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="" style="width:24px;height:24px" loading="lazy">
-          </span>
-          <span class="text">Mi Información</span>
+      @php
+    $user = Auth::user();
+    // Definimos quiénes tienen acceso al menú desplegable
+    $isStudent = $user->hasActiveRole('estudiante'); // O 'alumno', revisa cómo lo guardas en BD
+    $isTeacher = $user->hasActiveRole('docente');
+    $isMaster = $user->hasActiveRole('master');
+    
+    $universityName = 'Universidad Mundo Imperial';
+    $isUniversity = (session('active_institution_name') == $universityName); 
+    
+    // Si es alumno o docente, tiene submenú
+   $hasSubmenu = $isStudent || $isTeacher || ($isMaster && $isUniversity);
+@endphp
+
+@if($hasSubmenu)
+    {{-- CASO 1: ALUMNO O DOCENTE (Menú Desplegable) --}}
+    <li class="has-submenu {{ request()->routeIs('MiInformacion.*') ? 'active' : '' }}">
+        <a href="#">
+            <span class="icon" aria-hidden="true">
+                <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="Info Icon" style="width:24px;height:24px" loading="lazy">
+            </span>
+            <span class="text">Mi Información</span>
         </a>
-      </li>
+        
+        {{-- Submenú --}}
+        <ul class="submenu">
+            {{-- Opción 1: Perfil --}}
+            <li class="{{ request()->routeIs('MiInformacion.index') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.index') }}">Perfil</a>
+            </li>
+
+            {{-- Opción 2: Clases --}}
+            <li class="{{ request()->routeIs('MiInformacion.clases') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.clases') }}">Clases</a>
+            </li>
+
+            {{-- Opción 3: Horario --}}
+            <li class="{{ request()->routeIs('MiInformacion.horario') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.horario') }}">Horario</a>
+            </li>
+
+            {{-- Opción 4: Historial --}}
+            <li class="{{ request()->routeIs('MiInformacion.historial') ? 'active-submenu' : '' }}">
+                <a href="{{ route('MiInformacion.historial') }}">Historial Académico</a>
+            </li>
+        </ul>
+    </li>
+
+@else
+    {{-- CASO 2: OTROS USUARIOS (Botón Normal Directo) --}}
+    <li class="{{ request()->routeIs('MiInformacion.index') ? 'active' : '' }}">
+        <a href="{{ route('MiInformacion.index') }}">
+            <span class="icon" aria-hidden="true">
+                <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="Info Icon" style="width:24px;height:24px" loading="lazy">
+            </span>
+            <span class="text">Mi Información</span>
+        </a>
+    </li>
+@endif
 
       {{-- Lógica para mantener abierto el menú si estamos en index o certificados --}}
       <li class="has-submenu {{ request()->routeIs('Cursos.*') || request()->routeIs('courses.certificates.*') ? 'active open' : '' }}">
