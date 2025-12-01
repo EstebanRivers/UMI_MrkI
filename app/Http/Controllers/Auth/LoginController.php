@@ -7,8 +7,6 @@ use App\Http\Controllers\Users\ContextController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use App\Models\Users\User;
-use Illuminate\Support\Facades\Hash;
 
 
 class LoginController extends Controller
@@ -23,52 +21,45 @@ class LoginController extends Controller
     //Procesar el login
     public function login(Request $request)
     {
-     // 1. Validación: Quitamos la regla 'email' para permitir RFCs
-        $request->validate([
-            'login'    => ['required', 'string'], // Usamos 'login' como nombre genérico
-            'password' => ['required'],
-        ], [
-            'login.required' => 'Debes ingresar tu RFC o Matrícula.',
-            'password.required' => 'La contraseña es obligatoria.',
-        ]);
+      $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ], [
+        'email.required' => 'El campo email es obligatorio.',
+        'email.email' => 'El formato del email no es válido.',
+        'password.required' => 'El campo contraseña es obligatorio.',
+    ]);
 
-        $input = $request->input('login');
+    // Verificar si es una petición AJAX
+    $isAjax = $request->ajax() || $request->wantsJson();
 
-        // 2. Buscamos al usuario por RFC o Matrícula
-        // (Ya no buscamos por email)
-        $user = User::where('RFC', $input)
-                    ->orWhereHas('academicProfile', function ($query) use ($input) {
-                        $query->where('matricula', $input);
-                    })
-                    ->first();
-
-        // 3. Verificamos la contraseña
-        if ($user && Hash::check($request->input('password'), $user->password)) {
-            
-            Auth::login($user, $request->boolean('remember'));
-            $request->session()->regenerate();
-
-            // 4. Preferencia de Contexto (Inteligente)
-            if ($user->academicProfile && $input === $user->academicProfile->matricula) {
-                session(['context_preference' => 'university']);
-            } elseif ($input === $user->RFC) {
-                session(['context_preference' => 'corporate']);
-            }
-
-            // Redirección
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('context.set')
-                ]);
-            }
-            return redirect()->to(route('context.set'));
+    // 1. Intenta la autenticación (¡Este es el único trabajo de este archivo!)
+    if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        
+        // 2. Si la contraseña es correcta, continúa al siguiente paso
+        $request->session()->regenerate();
+        
+        if ($isAjax) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('context.set') // Te manda al ContextController
+            ]);
         }
+        
+        return redirect()->to(route('context.set'));
+    }
 
-        // 5. Si falla, enviamos error
-        throw ValidationException::withMessages([
-            'login' => 'Las credenciales no coinciden con nuestros registros.',
-        ]);
+    // 3. Si las credenciales fallaron (sin cambios)
+    if ($isAjax) {
+        return response()->json([
+            'success' => false,
+            'errors' => ['email' => 'Las credenciales no coinciden con nuestros registros.']
+        ], 422);
+    }
+
+    throw ValidationException::withMessages([
+        'email' => 'Las credenciales no coinciden con nuestros registros.',
+    ]);
 }
     
     

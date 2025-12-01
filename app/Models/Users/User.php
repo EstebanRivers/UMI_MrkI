@@ -14,8 +14,6 @@ use App\Models\Users\Institution;
 use App\Models\Users\Address;
 use App\Models\Users\AcademicProfile;
 use App\Models\Users\CorporateProfile;
-use App\Models\Users\Department;  
-use App\Models\Users\Workstation;
 use App\Models\AdmonCont\Horario;
 use Illuminate\Support\Facades\DB;
 use App\Models\Cursos\Course;
@@ -167,7 +165,6 @@ class User extends Authenticatable
         'department_id',
         'workstation_id',
         'role_id',
-        
     ];
 
     /**
@@ -222,14 +219,14 @@ class User extends Authenticatable
 
     public function address(): BelongsTo
     {
-        return $this->belongsTo(Address::class, 'address_id');
+        return $this->belongsTo(Address::class);
     }
 
     
     
     public function academicProfile(): HasOne
     {
-        return $this->hasOne(AcademicProfile::class, 'user_id', 'id');
+        return $this->hasOne(AcademicProfile::class);
     }
 
     
