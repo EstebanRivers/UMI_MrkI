@@ -185,6 +185,9 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::delete('/carreras/{carrera}', [careerController::class, 'destroy'])->name('careers.destroy');
         });
 
+    // Facturación 
+    Route::get('/facturacion', function () { return view('layouts.Facturacion.index'); 
+    })->name('Facturacion.index');
     // --- Inscripción (Control Escolar) ---
     // Ubicado aquí para aprovechar el auth group, pero con middleware específico
     Route::middleware(['role:master,control_escolar'])->group(function () {
