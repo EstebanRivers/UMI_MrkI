@@ -45,6 +45,6 @@ class CompletionController extends Controller
             }
         }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'created' => $completion->wasRecentlyCreated]);
     }
 }

@@ -715,15 +715,16 @@
 
         // --- Marcar items que YA estaban completas al cargar la página ---
         const userCompletions = @json($userCompletionsMap ?? collect());
-        for (const [key, value] of Object.entries(userCompletions)) {
-            const parts = key.split('-');
-            const type = parts[0].split('\\').pop(); 
-            const id = parts[1];
-            const link = document.querySelector(`.syllabus-link[data-completable-type="${type}"][data-completable-id="${id}"]`);
+        userCompletions.forEach(item => {
+            // Buscamos el elemento exacto usando los atributos data-
+            const selector = `.syllabus-link[data-completable-type="${item.type}"][data-completable-id="${item.id}"]`;
+            const link = document.querySelector(selector);
             if (link) {
                 link.classList.add('completed');
             }
-        }
+        });
+        updateProgressBar();
+           
         
         // --- LÓGICA DE ENVÍO DE CUESTIONARIOS (SIN CAMBIOS) ---
         document.querySelectorAll('.quiz-form').forEach(form => {

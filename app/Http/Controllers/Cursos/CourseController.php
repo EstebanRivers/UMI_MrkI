@@ -190,9 +190,11 @@ class CourseController extends Controller
                 }
             }
 
-            $userCompletionsMap = $user->completions->mapWithKeys(function ($item) {
-                // Clave formato: "App\Models\Cursos\Topics-15"
-                return [$item->completable_type . '-' . $item->completable_id => true];
+            $userCompletions = $user->completions->map(function ($item) {
+                return [
+                    'type' => class_basename($item->completable_type), // Ej: "Topics", "Activities"
+                    'id'   => $item->completable_id
+                ];
             });
 
             // 4. Datos del Examen Final
@@ -211,12 +213,12 @@ class CourseController extends Controller
         // 5. Retornar vista con TODAS las variables
         return view('layouts.Cursos.show', compact(
             'course', 
-            'progress',       // <--- Va a la barra de progreso (width: %)
-            'totalItems',     // <--- ¡FALTABA ESTO! Va al data-total-activities
+            'progress',       
+            'totalItems',     
             'isEnrolled', 
             'finalExamActivity', 
             'finalExamData',
-            'userCompletionsMap'
+            'userCompletions'
         ));
     }
 
