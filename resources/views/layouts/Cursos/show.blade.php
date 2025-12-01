@@ -562,7 +562,7 @@
 </div>
 {{-- MODAL DE EXAMEN DESBLOQUEADO --}}
 <div id="examUnlockedModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content-container" style="max-width: 500px; text-align: center;">
+    <div class="modal-content-container" style="max-width: 500px; text-align: center; margin: 15% auto;">
         <div class="modal-header-custom" style="justify-content: center;">
             <h3 style="margin: 0; color: #e69a37;">¡Felicidades!</h3>
         </div>
@@ -581,8 +581,6 @@
     </div>
 </div>
 
-
-<script src="{{ asset('js/crosswords.js') }}"></script>
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {

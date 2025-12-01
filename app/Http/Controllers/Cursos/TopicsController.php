@@ -36,7 +36,7 @@ class TopicsController extends Controller
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file_path' => 'nullable|file|mimes:pdf,doc,docx,pptx,mp4,mov,avi,wmv|max:51200',
+            'file_path' => 'nullable|file|mimes:pdf,doc,docx,pptx,mp4,mov,avi,wmv|max:163840', // max 160MB
         ]);
 
         if ($request->hasFile('file')){
@@ -72,7 +72,7 @@ class TopicsController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|string|max:255', 
             'description' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,mp4,mov,avi|max:20480', // max 20MB
+            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,mp4,mov,avi|max:163840', // max 160MB
         ]);
 
         // Actualizar tema
