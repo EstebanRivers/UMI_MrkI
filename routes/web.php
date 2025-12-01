@@ -13,7 +13,6 @@ use App\Http\Controllers\Cursos\CourseController;
 use App\Http\Controllers\Cursos\TopicsController;
 use App\Http\Controllers\Cursos\SubtopicsController;
 use App\Http\Controllers\Cursos\ActivitiesController;
-use App\Http\Controllers\Cursos\CompletionController;
 
 // --- Controladores de Facturación ---
 use App\Http\Controllers\Facturacion\BillingController;
@@ -107,7 +106,6 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     // Acciones del Alumno
     Route::post('/cursos/{course}/inscribir', [CourseController::class, 'enroll'])->name('courses.enroll');
     Route::post('/cursos/{course}/desinscribir', [CourseController::class, 'unenroll'])->name('courses.unenroll');
-    Route::post('/completions/mark', [CompletionController::class, 'mark'])->name('completions.mark');
     Route::post('/actividades/{activity}/submit', [ActivitiesController::class, 'submit'])->name('activities.submit');
 
 
