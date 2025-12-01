@@ -107,17 +107,15 @@
         {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
             <div class="course-progress-container" 
                 id="course-progress-tracker"
-                data-total-activities="{{ $totalItems }}"
-                data-completed-activities="{{ $completedItems }}">
+                data-total-activities="{{ $totalItems }}"> {{-- JS necesita esto para la matemática --}}
 
                 <h4>Tu Progreso</h4>
                 <div class="progress-bar-wrapper">
                     <div class="progress-bar-inner" 
                         id="progress-bar-fill" 
-                        style="width: {{ $progress }}%;">
+                        style="width: {{ $progress }}%;"> {{-- Dato directo de la BD --}}
                         
                         <span id="progress-bar-text">{{ $progress }}%</span>
-
                     </div>
                 </div>
             </div>

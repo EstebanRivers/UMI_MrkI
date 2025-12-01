@@ -58,28 +58,7 @@ class ActivitiesController extends Controller
             ]);
         }
 
-        elseif ($validatedData['type'] === 'Crucigrama') {
-            $request->validate([
-                'content.grid_size' => 'required|integer|min:5|max:25',
-                
-                // Validar pistas horizontales (si existen)
-                'content.clues.across' => 'nullable|array',
-                'content.clues.across.*.number' => 'required|integer',
-                'content.clues.across.*.clue' => 'required|string',
-                'content.clues.across.*.answer' => 'required|string',
-                'content.clues.across.*.x' => 'required|integer', // Coordenada X (columna)
-                'content.clues.across.*.y' => 'required|integer', // Coordenada Y (fila)
-
-                // Validar pistas verticales (si existen)
-                'content.clues.down' => 'nullable|array',
-                'content.clues.down.*.number' => 'required|integer',
-                'content.clues.down.*.clue' => 'required|string',
-                'content.clues.down.*.answer' => 'required|string',
-                'content.clues.down.*.x' => 'required|integer',
-                'content.clues.down.*.y' => 'required|integer',
-            ]);
-        }
-
+        
         $courseId = $validatedData['course_id'];
         $validatedData['is_final_exam'] = $request->has('is_final_exam');
 
@@ -175,20 +154,10 @@ class ActivitiesController extends Controller
             }
         }
 
-        elseif ($activity->type === 'Crucigrama' ) {
-            // $validated = $request->validate(['completed' => 'required|boolean']);
-            // $completed = $validated['completed'];
-
-            // if (!$completed) {
-            //     return response()->json(['success' => false, 'message' => 'El juego no se completó correctamente.'], 422);
-            // }
-            $score = 100.00; // Completado correctamente
-        }
-
         // 2. Marcar como completado usando el sistema polimórfico
         $completion = $user->completions()->updateOrCreate(
             [
-                'completable_type' => Activities::class, // Usar el FQCN del modelo
+                'completable_type' => Activities::class, 
                 'completable_id'   => $activity->id
             ],
 
@@ -196,6 +165,13 @@ class ActivitiesController extends Controller
                 'score' => $score
             ]
         );
+
+        if ($completion->wasRecentlyCreated || $completion->wasChanged()) {
+            $course = $activity->course; 
+            if($course) {
+                $newProgress = $course->calculateUserProgress($user->id);
+            }
+        }
 
         return response()->json([
             'success' => true,

@@ -27,6 +27,24 @@ class CompletionController extends Controller
             'completable_id'   => $id
         ]);
 
-        return response()->json(['success' => true, 'created' => $completion->wasRecentlyCreated]);
+            if ($completion->wasRecentlyCreated) {
+            // Necesitamos encontrar el Curso ID basado en lo que se completó
+        
+            $courseId = null;
+            if ($request->type === 'Topics') {
+                $item = \App\Models\Cursos\Topics::find($request->id);
+                $courseId = $item->course_id;
+            } elseif ($request->type === 'Subtopic') {
+                $item = \App\Models\Cursos\Subtopic::find($request->id);
+                $courseId = $item->topic->course_id;
+            }
+            
+            if ($courseId) {
+                $course = \App\Models\Cursos\Course::find($courseId);
+                $course->calculateUserProgress($user->id);
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 }
