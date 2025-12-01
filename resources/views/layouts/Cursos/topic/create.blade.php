@@ -148,7 +148,11 @@
                             <option value="" disabled selected>Selecciona un tipo</option>
                             <option value="Cuestionario">Cuestionario (Quiz)</option>
                             <option value="SopaDeLetras">Sopa de Letras</option>
+<<<<<<< HEAD
                             <option value="Examen">Examen (Múltiples preguntas)</option> 
+=======
+                            <option value="Crucigrama">Crucigrama</option>
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                         </select>
                     </div>
 
@@ -197,6 +201,7 @@
                             <div id="ws_hidden_inputs"></div>
 
                         </div>
+<<<<<<< HEAD
 
                         <div id="template-Examen" class="activity-template" style="display: none;">
                             <div class="activity-fields-container" id="examen-questions-container">
@@ -205,6 +210,73 @@
                             <button type="button" id="add-examen-question-btn" class="btn-secondary-exam" disabled>
                                 + Añadir Pregunta al Examen
                             </button>
+=======
+                        <div id="template-Crucigrama" class="activity-template" style="display: none;">
+                            <div class="form-group">
+                                <label for="cw_grid_size">Tamaño de Cuadrícula (Ej: 15 para 15x15)</label>
+                                <input type="number" name="content[grid_size]" id="cw_grid_size" 
+                                    value="15" min="5" max="25" disabled>
+                            </div>
+
+                            <div id="cw-editor-container">
+                                <div>
+                                    <label>Haz clic en una celda para elegir la posición:</label>
+                                    <div id="cw-editor-grid">
+                                        </div>
+                                </div>
+
+                                <div style="flex: 1; min-width: 250px;">
+                                    <fieldset style="border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                                        <legend style="font-size: 1em; padding: 0 5px; width: auto;">Añadir Pista</legend>
+                                        
+                                        <div class="form-group">
+                                            <label>Posición Seleccionada (X, Y):</label>
+                                            <input type="text" id="cw_coords_display" value="0, 0" readonly disabled 
+                                                style="background: #eee; font-weight: bold;">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="cw_direction">Dirección</label>
+                                            <select id="cw_direction" style="width: 100%;">
+                                                <option value="across">Horizontal (Across)</option>
+                                                <option value="down">Vertical (Down)</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="cw_number">Número</label>
+                                            <input type="number" id="cw_number" min="1" value="1" style="width: 100%;">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="cw_clue">Pista</label>
+                                            <input type="text" id="cw_clue" placeholder="Ej: Capital de Francia">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="cw_answer">Respuesta (sin espacios, en mayúsculas)</label>
+                                            <input type="text" id="cw_answer" placeholder="Ej: PARIS">
+                                        </div>
+                                        
+                                        <button type="button" id="cw_add_clue_btn" class="btn-secondary" style="width: 100%;">+ Añadir Pista</button>
+                                    </fieldset>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 20px; margin-top: 15px;">
+                                <div style="flex: 1;">
+                                    <label>Horizontales:</label>
+                                    <ul id="cw_across_list" class="cw-clue-list"></ul>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Verticales:</label>
+                                    <ul id="cw_down_list" class="cw-clue-list"></ul>
+                                </div>
+                            </div>
+                            
+                            <div id="cw_hidden_inputs"></div>
+                            
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                         </div>
                     </div> 
                 </form>
@@ -271,6 +343,7 @@
                 
             {{-- Lista de temas y subtemas --}}
             <div class="topics-list-content">
+<<<<<<< HEAD
                 @if ($course->finalExam)
                     @php $activity = $course->finalExam; @endphp
                     
@@ -302,6 +375,8 @@
                         </div>
                     </div>
                 @endif
+=======
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
                 @forelse ($course->topics as $topic)
                 <div class="topic-card" data-topic-id="{{ $topic->id }}" data-topic-title="{{ $topic->title }}">
                     <div class="card-body">
@@ -678,6 +753,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+<<<<<<< HEAD
     
     // --- LÓGICA PARA NUEVO EXAMEN (MÚLTIPLES PREGUNTAS) ---
     const addExamenBtn = document.getElementById('add-examen-question-btn');
@@ -727,6 +803,191 @@ document.addEventListener('DOMContentLoaded', function() {
             questionBlock.remove();
         });
         examenContainer.appendChild(questionBlock);
+=======
+    // ===================================================
+    // 7. LÓGICA DEL EDITOR DE CRUCIGRAMA (NUEVO)
+    // ===================================================
+
+    // --- Variables Globales del Editor ---
+    const editorGrid = document.getElementById('cw-editor-grid');
+    const gridSizeInput = document.getElementById('cw_grid_size');
+    const coordsDisplay = document.getElementById('cw_coords_display');
+    const addClueBtn = document.getElementById('cw_add_clue_btn');
+    const cwHiddenInputs = document.getElementById('cw_hidden_inputs');
+    let activeCell = { x: 0, y: 0 }; // Guarda la (X, Y) seleccionada
+    let editorCells = []; // Para acceder a las celdas
+
+    // --- Función para Dibujar la Cuadrícula del Editor ---
+    function drawEditorGrid(size) {
+        if (!editorGrid) return;
+        editorGrid.innerHTML = '';
+        editorGrid.style.setProperty('--cw-editor-grid-size', size);
+        editorCells = []; // Limpiar la referencia
+
+        for (let y = 0; y < size; y++) {
+            let row = [];
+            for (let x = 0; x < size; x++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cw-editor-cell');
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+
+                // Evento de clic para seleccionar la celda
+                cell.addEventListener('click', () => {
+                    // Quitar 'selected' de la celda anterior
+                    const oldSelected = editorGrid.querySelector('.selected');
+                    if (oldSelected) oldSelected.classList.remove('selected');
+                    
+                    // Añadir 'selected' a la nueva
+                    cell.classList.add('selected');
+                    activeCell = { x: x, y: y }; // ¡Guardar coordenadas!
+                    
+                    // Actualizar el display
+                    if(coordsDisplay) coordsDisplay.value = `${x}, ${y}`;
+                });
+                
+                editorGrid.appendChild(cell);
+                row.push(cell);
+            }
+            editorCells.push(row);
+        }
+        
+        // Seleccionar (0,0) por defecto
+        if (editorCells.length > 0) {
+            editorCells[0][0].classList.add('selected');
+            if(coordsDisplay) coordsDisplay.value = '0, 0';
+            activeCell = { x: 0, y: 0 };
+        }
+    }
+
+    // --- Función para Escribir una palabra en el Editor Visual ---
+    function placeWordOnEditor(word, x, y, direction, number) {
+        let placed = true;
+        for (let i = 0; i < word.length; i++) {
+            let currentX = x + (direction === 'across' ? i : 0);
+            let currentY = y + (direction === 'down' ? i : 0);
+            
+            // 1. Comprobar límites
+            if (currentY >= editorCells.length || currentX >= editorCells[0].length) {
+                alert(`Error: La palabra "${word}" se sale de la cuadrícula.`);
+                return false;
+            }
+            
+            const cell = editorCells[currentY][currentX];
+            const letter = word[i].toUpperCase();
+
+            // 2. Comprobar colisiones
+            if (cell.textContent !== '' && cell.textContent !== letter) {
+                alert(`Error: La letra "${letter}" choca con "${cell.textContent}" en [${currentX},${currentY}].`);
+                return false;
+            }
+        }
+        
+        // Si no hubo errores, escribir la palabra
+        for (let i = 0; i < word.length; i++) {
+            let currentX = x + (direction === 'across' ? i : 0);
+            let currentY = y + (direction === 'down' ? i : 0);
+            const cell = editorCells[currentY][currentX];
+            
+            // Poner la letra
+            cell.textContent = word[i].toUpperCase();
+            
+            // Poner el número (solo en la primera celda)
+            if (i === 0 && !cell.querySelector('.cw-editor-number')) {
+                cell.innerHTML += `<span class="cw-editor-number">${number}</span>`;
+            }
+        }
+        return true;
+    }
+
+    // --- Event Listener para el tamaño de la cuadrícula ---
+    if (gridSizeInput) {
+        gridSizeInput.addEventListener('change', () => {
+            // (Advertencia: esto borrará el crucigrama si ya se empezó)
+            if (confirm('Cambiar el tamaño borrará el crucigrama actual. ¿Continuar?')) {
+                drawEditorGrid(gridSizeInput.value);
+                // También deberías limpiar las listas y los inputs ocultos
+                document.getElementById('cw_across_list').innerHTML = '';
+                document.getElementById('cw_down_list').innerHTML = '';
+                cwHiddenInputs.innerHTML = '';
+            } else {
+                // Revertir
+            }
+        });
+    }
+
+    // --- Event Listener para el botón "+ Añadir Pista" (MODIFICADO) ---
+    if (addClueBtn) {
+        let counters = { across: 0, down: 0 };
+
+        addClueBtn.addEventListener('click', function() {
+            // 1. Obtener valores del formulario
+            const direction = document.getElementById('cw_direction').value;
+            const number = document.getElementById('cw_number').value;
+            const clue = document.getElementById('cw_clue').value;
+            const answer = document.getElementById('cw_answer').value.toUpperCase();
+            
+            // 2. OBTENER (X, Y) DEL EDITOR, NO DE INPUTS
+            const x = activeCell.x;
+            const y = activeCell.y;
+
+            if (!number || !clue || !answer || x === null || y === null) {
+                alert('Por favor, rellena todos los campos de la pista y selecciona una celda.');
+                return;
+            }
+            if (answer.includes(' ') || answer.length === 0) {
+                alert('La respuesta debe ser una sola palabra sin espacios.');
+                return;
+            }
+            
+            // 3. Dibujar la palabra en el editor
+            if (!placeWordOnEditor(answer, x, y, direction, number)) {
+                return; // Detener si la palabra no se pudo colocar
+            }
+
+            // --- El resto de la lógica es la misma que ya tenías ---
+            
+            const listId = `cw_${direction}_list`; 
+            const listElement = document.getElementById(listId);
+            const index = counters[direction]++; 
+            
+            // 4. Crear los inputs ocultos
+            const prefix = `content[clues][${direction}][${index}]`;
+            cwHiddenInputs.insertAdjacentHTML('beforeend', `
+                <input type="hidden" name="${prefix}[number]" value="${number}">
+                <input type="hidden" name="${prefix}[clue]" value="${clue}">
+                <input type="hidden" name="${prefix}[answer]" value="${answer}">
+                <input type="hidden" name="${prefix}[x]" value="${x}">
+                <input type="hidden" name="${prefix}[y]" value="${y}">
+            `);
+
+            // 5. Crear el <li> visible
+            const li = document.createElement('li');
+            li.textContent = `${number}. [${x},${y}] ${clue} (${answer})`;
+            
+            const removeBtn = document.createElement('span');
+            removeBtn.textContent = ' [X]';
+            removeBtn.style.color = 'red';
+            removeBtn.style.cursor = 'pointer';
+            li.appendChild(removeBtn);
+
+            removeBtn.addEventListener('click', () => {
+                // (Nota: Esto elimina la pista de la lista, pero no
+                // la borra del editor visual. Se necesitaría lógica adicional
+                // para "limpiar" las celdas de la cuadrícula)
+                cwHiddenInputs.querySelectorAll(`input[name^="${prefix}"]`).forEach(inp => inp.remove());
+                listElement.removeChild(li);
+            });
+
+            listElement.appendChild(li);
+
+            // 6. Limpiar formulario
+            document.getElementById('cw_clue').value = '';
+            document.getElementById('cw_answer').value = '';
+            document.getElementById('cw_number').value = parseInt(number) + 1;
+            document.getElementById('cw_clue').focus();
+        });
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
     }
 
     // ===================================================

@@ -105,6 +105,7 @@
             </div>
         </div>
 
+<<<<<<< HEAD
         {{-- Certificado --}}
         <h2 class="section-title">Configuración del Certificado</h2>
         <div class="form-group">
@@ -129,6 +130,11 @@
         </div>
 
         <button type="submit" class="btn-submit">
+=======
+        {{-- Botón de Enviar --}}
+        <button type="submit"
+                style="background: #e69a37; color: white; padding: 14px 28px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 16px;">
+>>>>>>> parent of 0358ee6 (Fix: Reemplazo forzoso de Proyecto)
             Guardar Curso
         </button>
     </form>
