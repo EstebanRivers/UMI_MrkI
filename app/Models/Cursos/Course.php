@@ -125,4 +125,73 @@ class Course extends Model
                     ->where('is_final_exam', true);
     }
 
+    public function calculateUserProgress($userId)
+    {
+        // 1. Contar TOTAL de items del curso (Archivos + Actividades)
+        // Usamos withCount para que la base de datos haga el trabajo pesado, no PHP
+        $this->loadMissing(['topics.subtopics', 'topics.activities', 'finalExam']);
+        
+        $totalItems = 0;
+
+        foreach ($this->topics as $topic) {
+            if ($topic->file_path) $totalItems++; // Archivo del tema
+            
+            // Actividades directas del tema
+            $totalItems += $topic->activities()->where('is_final_exam', false)->count();
+
+            foreach ($topic->subtopics as $subtopic) {
+                if ($subtopic->file_path) $totalItems++; // Archivo del subtema
+                // Actividades del subtema
+                $totalItems += $subtopic->activities()->count();
+            }
+        }
+
+        if ($totalItems === 0) return 100; // Curso vacío = completado
+
+        // 2. Contar COMPLETADOS por el usuario
+        // Necesitamos ver cuántos de esos items están en la tabla 'completions'
+        // IMPORTANTE: Esto asume que tienes una forma de relacionar completions con el curso.
+        // Si no tienes course_id en completions, filtraremos por los IDs obtenidos arriba.
+        
+        // Simplificación: Obtenemos el conteo directo usando las relaciones cargadas
+        $user = User::find($userId);
+        $completionsMap = $user->completions()
+                            ->get()
+                            ->map(function ($c) {
+                                return $c->completable_type . '-' . $c->completable_id;
+                            });
+                            
+        $completedItems = 0;
+        
+        // Repetimos la lógica de iteración pero solo para checar existencia en el mapa (muy rápido en memoria)
+        foreach ($this->topics as $topic) {
+            if ($topic->file_path && $completionsMap->contains('App\Models\Cursos\Topics-' . $topic->id)) {
+                $completedItems++;
+            }
+            foreach ($topic->activities as $act) {
+                if (!$act->is_final_exam && $completionsMap->contains('App\Models\Cursos\Activities-' . $act->id)) {
+                    $completedItems++;
+                }
+            }
+            foreach ($topic->subtopics as $sub) {
+                if ($sub->file_path && $completionsMap->contains('App\Models\Cursos\Subtopic-' . $sub->id)) {
+                    $completedItems++;
+                }
+                foreach ($sub->activities as $act) {
+                    if ($completionsMap->contains('App\Models\Cursos\Activities-' . $act->id)) {
+                        $completedItems++;
+                    }
+                }
+            }
+        }
+
+        // 3. Calcular Porcentaje
+        $percentage = round(($completedItems / $totalItems) * 100);
+
+        // 4. Actualizar la tabla pivote
+        $this->users()->updateExistingPivot($userId, ['progress' => $percentage]);
+
+        return $percentage;
+    }
+
 }

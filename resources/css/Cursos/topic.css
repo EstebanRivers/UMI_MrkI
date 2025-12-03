@@ -86,7 +86,7 @@
 }
 .topics-form {
     background: #ECF0F1;
-    max-height: fit-content;
+    height: 500px;
 }
 .topics-list {
     background: #ECF0F1;
@@ -202,8 +202,8 @@
 .topic-file a {
     text-decoration: none;
     font-size: 14px;
-    color: #007bff;
-    font-weight: 500;
+    color: #223F70;
+    font-weight: 600;
 }
 
 .activities-label {

@@ -93,7 +93,7 @@
                 </div>
             @endforeach
             @if ($finalExamActivity)
-                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #e69a37; margin-top: 15px; padding-top: 15px;">
+                <div class="topic-group" id="final-exam-syllabus-link" style="display: none; border-top: 3px solid #BC8A55; margin-top: 15px; padding-top: 15px;">
                     <strong 
                         class="syllabus-link auto-complete-link accordion-toggle"
                         data-target="#content-activity-{{ $finalExamActivity->id }}"
@@ -107,17 +107,15 @@
         {{-- BARRA DE PROGRESO (al final de .course-syllabus) --}}
             <div class="course-progress-container" 
                 id="course-progress-tracker"
-                data-total-activities="{{ $totalItems }}"
-                data-completed-activities="{{ $completedItems }}">
+                data-total-activities="{{ $totalItems }}"> {{-- JS necesita esto para la matemática --}}
 
                 <h4>Tu Progreso</h4>
                 <div class="progress-bar-wrapper">
                     <div class="progress-bar-inner" 
                         id="progress-bar-fill" 
-                        style="width: {{ $progress }}%;">
+                        style="width: {{ $progress }}%;"> {{-- Dato directo de la BD --}}
                         
                         <span id="progress-bar-text">{{ $progress }}%</span>
-
                     </div>
                 </div>
             </div>
@@ -476,7 +474,7 @@
                 @php $activity = $finalExamActivity; @endphp
 
                 <div class="content-panel" id="content-activity-{{ $activity->id }}" style="display:none;">
-                    <h2 style="color: #e69a37;">Examen Final</h2>
+                    <h2 style="color: #BC8A55;">Examen Final</h2>
                     
                     {{-- CONTENEDOR 1: TARJETA DE ÉXITO (Se muestra si ya hay datos O si JS lo activa) --}}
                     <div id="exam-success-card" 
@@ -487,7 +485,7 @@
                         <p style="font-size: 1.2em; margin-bottom: 30px;">Has completado el examen final.</p>
                         
                         {{-- El puntaje se llenará con PHP si existe, o JS lo actualizará --}}
-                        <div style="font-size: 3em; font-weight: bold; color: #e69a37; margin-bottom: 30px;">
+                        <div style="font-size: 3em; font-weight: bold; color: #BC8A55; margin-bottom: 30px;">
                             <span id="dynamic-score">{{ $finalExamData ? $finalExamData->score : '0' }}</span> / 100
                         </div>
 
@@ -716,16 +714,17 @@
         });
 
         // --- Marcar items que YA estaban completas al cargar la página ---
-        const userCompletions = @json($userCompletionsMap ?? collect());
-        for (const [key, value] of Object.entries(userCompletions)) {
-            const parts = key.split('-');
-            const type = parts[0].split('\\').pop(); 
-            const id = parts[1];
-            const link = document.querySelector(`.syllabus-link[data-completable-type="${type}"][data-completable-id="${id}"]`);
+        const userCompletions = @json($userCompletions ?? collect());
+        userCompletions.forEach(item => {
+            // Buscamos el elemento exacto usando los atributos data-
+            const selector = `.syllabus-link[data-completable-type="${item.type}"][data-completable-id="${item.id}"]`;
+            const link = document.querySelector(selector);
             if (link) {
                 link.classList.add('completed');
             }
-        }
+        });
+        updateProgressBar();
+           
         
         // --- LÓGICA DE ENVÍO DE CUESTIONARIOS (SIN CAMBIOS) ---
         document.querySelectorAll('.quiz-form').forEach(form => {

@@ -34,7 +34,7 @@ class CourseController extends Controller
         $course = Course::with('instructor', 'institution')
             ->where('institution_id', $activeInstitutionId)
             ->latest()
-            ->get();
+            ->paginate(12);
 
         // Para roles específicos, mostrar información adicional
         $canManageCourses = in_array($activeRoleName, ['master', 'docente']);
@@ -150,95 +150,75 @@ class CourseController extends Controller
      */
     public function show(Course $course)
     {
-        // Cargar toda la data del curso
+        // 1. Cargar toda la data del curso
         $course->load('topics.subtopics.activities', 'topics.activities', 'finalExam');
         
         $user = Auth::user();
         
-        // --- Lógica de Auto-Inscripción ELIMINADA ---
-        $isEnrolled = $user ? $user->courses->contains($course->id) : false;
-        if ($user && !$isEnrolled) {
-            $user->courses()->attach($course->id);
-            $isEnrolled = true; 
-        }
-        // --- FIN DE LÓGICA ELIMINADA ---
-
+        // 2. Calcular Total de Items (CRUCIAL para el JS)
         $totalItems = 0;
-        $completedItems = 0;
-        $userCompletionsMap = collect(); // Un mapa para búsqueda rápida
+        foreach ($course->topics as $topic) {
+            if ($topic->file_path) $totalItems++;
+            $totalItems += $topic->activities->where('is_final_exam', false)->count();
+            foreach ($topic->subtopics as $sub) {
+                if ($sub->file_path) $totalItems++;
+                $totalItems += $sub->activities->count();
+            }
+        }
+
+        // 3. Lógica de Usuario (Inscripción y Progreso)
+        $progress = 0;
+        $isEnrolled = false;
+        $finalExamData = null;
+        $userCompletions = collect();
 
         if ($user) {
-            // Cargar TODAS las finalizaciones del usuario UNA SOLA VEZ
-            $userCompletionsMap = $user->completions->mapWithKeys(function ($item) {
-                // Crea una clave única, ej: "App\Models\Cursos\Topics-1"
-                return [$item->completable_type . '-' . $item->completable_id => true];
+            // Verificar inscripción
+            $isEnrolled = $user->courses->contains($course->id);
+
+            if (!$isEnrolled) {
+                // Auto-inscribir (si deseas mantener esta lógica)
+                $user->courses()->attach($course->id, ['progress' => 0]);
+                $isEnrolled = true;
+                $progress = 0; // Acaba de entrar, es 0
+            } else {
+                // Si ya estaba inscrito, obtenemos el progreso de la BD
+                // Usamos la relación directa para evitar consultas extra
+                $pivotRow = $user->courses()->where('course_id', $course->id)->first();
+                if ($pivotRow && $pivotRow->pivot) {
+                    $progress = $pivotRow->pivot->progress;
+                }
+            }
+
+            $userCompletions = $user->completions->map(function ($item) {
+                return [
+                    'type' => class_basename($item->completable_type), // Ej: "Topics", "Activities"
+                    'id'   => $item->completable_id
+                ];
             });
+
+            // 4. Datos del Examen Final
+            $finalExamActivity = $course->finalExam;
+            if ($finalExamActivity) {
+                $finalExamData = $user->completions()
+                    ->where('completable_type', Activities::class)
+                    ->where('completable_id', $finalExamActivity->id)
+                    ->first();
+            }
+        } else {
+            // Si no hay usuario, el examen final es null (para visualización pública)
+            $finalExamActivity = $course->finalExam;
         }
 
-        // Calcular el total y los completados
-        foreach ($course->topics as $topic) {
-            // 1. Contar el Tema si tiene archivo
-            if ($topic->file_path) {
-                $totalItems++;
-                if ($userCompletionsMap->has('App\Models\Cursos\Topics-' . $topic->id)) {
-                    $completedItems++;
-                }
-            }
-
-            foreach ($topic->subtopics as $subtopic) {
-                // 2. Contar el Subtema si tiene archivo
-                if ($subtopic->file_path) {
-                    $totalItems++;
-                    if ($userCompletionsMap->has('App\Models\Cursos\Subtopic-' . $subtopic->id)) {
-                        $completedItems++;
-                    }
-                }
-                
-                // 3. Contar todas las Actividades (quizzes)
-                foreach ($subtopic->activities as $activity) {
-                    if (!$activity->is_final_exam) {
-                        $totalItems++;
-                        if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
-                            $completedItems++;
-                        }
-                    }
-                }
-            }
-            
-            // 4. Contar Actividades directas del Tema
-            foreach ($topic->activities as $activity) {
-                if (!$activity->is_final_exam) {
-                    $totalItems++;
-                    if ($userCompletionsMap->has('App\Models\Cursos\Activities-' . $activity->id)) {
-                        $completedItems++;
-                    }
-                }
-            }
-        }
-
-        $progress = ($totalItems > 0) ? round(($completedItems / $totalItems) * 100) : 0;
-        
-        // Obtener el examen final (será null si no existe)
-        $finalExamActivity = $course->finalExam;
-
-        $finalExamData = null;
-        if ($finalExamActivity && $user) {
-            $finalExamData = $user->completions()
-                ->where('completable_type', Activities::class) // Asegúrate de importar Activities
-                ->where('completable_id', $finalExamActivity->id)
-                ->first();
-        }
-
-        // Pasamos los nuevos totales a la vista
+        // 5. Retornar vista con TODAS las variables
         return view('layouts.Cursos.show', compact(
             'course', 
-            'progress', // Progreso del contenido principal
-            'totalItems', 
-            'completedItems', 
-            'userCompletionsMap',
-            'isEnrolled', // (Añadido por si acaso, si mantienes la auto-inscripción)
-            'finalExamActivity', // <-- PASAR EL EXAMEN A LA VISTA
-            'finalExamData' // <-- PASAR LOS DATOS DEL EXAMEN A LA VISTA
+            'progress',       
+            'totalItems',     
+            'isEnrolled', 
+            'finalExamActivity', 
+            'finalExamData',
+            'userCompletions'
         ));
     }
 
@@ -558,20 +538,28 @@ class CourseController extends Controller
     public function myCertificates()
     {
         $user = Auth::user();
+        $activeInstitutionId = session('active_institution_id'); // <--- 1. Obtenemos el contexto actual
 
-        // 1. Obtener todas las 'completions' del usuario que sean Actividades
-        // 2. Filtrar solo aquellas que sean 'is_final_exam' = true
-        // 3. Cargar la relación del curso para mostrar el título
         $certificates = $user->completions()
             ->where('completable_type', Activities::class)
-            ->with('completable.course') // Eager loading para optimizar
+            ->with('completable.course') // Cargar curso para ver su institución
             ->get()
-            ->filter(function ($completion) {
-                // Verificar que la actividad exista y sea un examen final
-                return $completion->completable && $completion->completable->is_final_exam;
+            ->filter(function ($completion) use ($activeInstitutionId) {
+                
+                // Verificaciones de seguridad (que exista la actividad y el curso)
+                if (!$completion->completable || !$completion->completable->course) {
+                    return false;
+                }
+
+                // A. Que sea examen final
+                $isFinalExam = $completion->completable->is_final_exam;
+
+                // B. Que pertenezca a la institución activa actualmente
+                $isSameInstitution = $completion->completable->course->institution_id == $activeInstitutionId;
+
+                return $isFinalExam && $isSameInstitution;
             });
 
         return view('layouts.Cursos.certificates_list', compact('certificates'));
     }
-
 }
