@@ -112,7 +112,7 @@
                                                 <a href="javascript:void(0)" 
                                                    onclick="openDocViewer('{{ asset('storage/' . $student->academicProfile->documentoSEP_path) }}', '{{ $student->nombre }} {{ $student->apellido_paterno }}')"
                                                    class="umi-btn" 
-                                                   style="background-color: #3498db; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; display: block; width: 100%; box-sizing: border-box; text-align: center; margin-bottom: 5px; font-weight: bold;">
+                                                   style="background-color: #223F70; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-size: 0.85rem; display: block; width: 100%; box-sizing: border-box; text-align: center; margin-bottom: 5px; font-weight: bold;">
                                                     <i class="fa-solid fa-eye"></i> VER DOCUMENTO
                                                 </a>
 
