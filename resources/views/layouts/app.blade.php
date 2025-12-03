@@ -116,7 +116,7 @@ if (formFactura) {
                 valid = false;
                 errorMessage = 'El archivo PDF debe ser formato PDF (.pdf)';
             } 
-            // 🚨 VALIDACIÓN DE TAMAÑO PDF
+            // VALIDACIÓN DE TAMAÑO PDF
             else if (pdfFile.size > MAX_FILE_SIZE) { 
                 valid = false;
                 errorMessage = 'El archivo PDF es demasiado grande. Máximo permitido: 5 MB.';
@@ -265,14 +265,12 @@ function fillAndOpenModal(modal, btn) {
 
         // 4. CÁLCULO DE FECHA (Lógica interna)
         let fechaISO = '';
+        const hoy = new Date();
         
         if (prefix === 'MEN-') {
             // Si es MENSUALIDAD: Usamos la fecha estricta del periodo
             fechaISO = btn.dataset.date || new Date().toISOString().split('T')[0];
         } else {
-            // Si es EXTRA: Calculamos Hoy + 7 días
-            const hoy = new Date();
-            hoy.setDate(hoy.getDate() + 7);
             fechaISO = hoy.toISOString().split('T')[0];
         }
 
