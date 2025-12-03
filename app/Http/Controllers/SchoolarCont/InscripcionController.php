@@ -69,7 +69,7 @@ class InscripcionController extends Controller
     // 2. GUARDAR NUEVO ASPIRANTE (STORE)
     // =========================================================================
     public function store(Request $request)
-    {
+    {   
         $periodoActivo = Period::where('is_active', 1)->first();
         if (!$periodoActivo) {
             return back()->with('error', 'Error crítico: El periodo se cerró durante el proceso.');
@@ -194,7 +194,7 @@ class InscripcionController extends Controller
                 'user_id' => $user->id,
                 'career_id' => $request->carrera_id,
                 'semestre' => 1,
-                'periodo' => $periodoActivo->name,
+                'periodo' => $periodoActivo->id,
                 'status' => 'Pendiente',
                 'doc_acta_nacimiento' => $rutasDocs['doc_acta_nacimiento'] ?? null,
                 'doc_certificado_prepa' => $rutasDocs['doc_certificado_prepa'] ?? null,
@@ -224,7 +224,7 @@ class InscripcionController extends Controller
             Billing::create([
                 'factura_uid'       => $uidFinal, // <--- NUEVO UID
                 'user_id'           => $user->id,
-                'period_id'         => $periodoSeleccionado->id,
+                'period_id'         => $periodoActivo->id,
                 'concepto'          => $request->concepto,
                 'monto'             => $request->monto,
                 'fecha_vencimiento' => Carbon::now(), // INS VENCE HOY (URGENTE)
@@ -314,7 +314,7 @@ class InscripcionController extends Controller
                 'user_id' => $user->id,
                 'career_id' => $nuevaCarreraId,
                 'semestre' => $nuevoSemestre,
-                'periodo' => $periodoActivo->name,
+                'periodo' => $periodoActivo->id,
                 'status' => 'Pendiente',
             ]));
 
