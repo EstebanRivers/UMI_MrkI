@@ -45,7 +45,7 @@
                         <th>Nombre</th>
                         <th>A. Paterno</th>
                         <th>A. Materno</th>
-                        <th>Usuario (RFC)</th>
+                        <th>Usuario</th>
                         <th>Rol</th>
                     @endif
                     <th>Acciones</th>
@@ -114,8 +114,8 @@
                         {{-- =================================================== --}}
                         {{-- BLOQUE DE ACCIONES  --}}
                         {{-- =================================================== --}}
-                        <td class="actions"> 
-                            
+                        <td> 
+                            <div class="actions">
                             {{-- 1. Botón "Ver" --}}
                             <a href="#" 
                                 title="Ver" 
@@ -176,6 +176,7 @@
                                     <img src="{{ asset('images/icons/delete-left-solid-full.svg') }}" alt="Eliminar">
                                 </button>
                             </form>
+                        <div>
                         </td>
                     </tr> 
                 @empty
@@ -194,7 +195,7 @@
         @endif
     </div>
 </div>
-{{-- MODAL GENÉRICO --}}
+
 <div id="formModal" class="modal">
     <div class="modal-content">
         <span class="close-modal">&times;</span>
@@ -213,7 +214,7 @@
 
 <script>
    (function initAjustesModalScript() {
-        // --- Variables ---
+        
         const modal = document.getElementById('formModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalBody = document.getElementById('modalBody');
@@ -221,7 +222,7 @@
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModal = document.querySelector('.close-modal');
         
-        // --- Función de ayuda para ejecutar scripts ---
+        
         function executeScriptsIn(container) {
             const scripts = container.querySelectorAll('script');
             scripts.forEach(oldScript => {
@@ -242,11 +243,11 @@
             if (oldMethodInput) oldMethodInput.remove();
         }
 
-        // --- MANEJO DE ENVÍO AJAX (NUEVO PARA VALIDACIONES) ---
+      
        modalForm.addEventListener('submit', async function(e) {
-            e.preventDefault(); // Evita el envío tradicional
+            e.preventDefault();
 
-            // Limpiar errores previos visuales
+           
             modalForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             modalForm.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
 
@@ -258,7 +259,7 @@
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json', // Pedimos JSON para los errores
+                        'Accept': 'application/json', 
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: formData
@@ -271,24 +272,24 @@
                     return; 
                 }
 
-                // 2. SI HAY ERRORES DE VALIDACIÓN (Código 422)
+                
                 if (response.status === 422) {
                     
                     const data = await response.json();
-                    console.log('Errores recibidos:', data.errors); // <--- MIRA LA CONSOLA
+                    console.log('Errores recibidos:', data.errors);
 
-                    // Mostrar error general (si el campo no existe en el form)
+                    
                     if (data.errors.modules_enabled) {
-                        // Buscamos el contenedor específico de los checkboxes
+                        
                         const modulesWrapper = document.getElementById('admin-modules-wrapper');
                         
-                        // Si existe el wrapper, ponemos el error ahí
+                        
                         if (modulesWrapper) {
-                            // Limpiamos errores viejos
+                        
                             const oldError = modulesWrapper.querySelector('.invalid-feedback');
                             if (oldError) oldError.remove();
 
-                            // Creamos el mensaje
+                        
                             const errorDiv = document.createElement('div');
                             errorDiv.className = 'invalid-feedback';
                             errorDiv.style.display = 'block';
@@ -296,10 +297,10 @@
                             errorDiv.style.marginTop = '10px';
                             errorDiv.innerHTML = `<strong>${data.errors.modules_enabled[0]}</strong>`;
                             
-                            // Lo añadimos al final del wrapper
+                          r
                             modulesWrapper.appendChild(errorDiv);
                         } else {
-                            // Si no encuentra el wrapper, alerta normal
+                         
                             alert(data.errors.modules_enabled[0]);
                         }
                     }
@@ -327,9 +328,9 @@
                 alert('Error de conexión. Intente de nuevo.');
             }
         });
-        // ------------------------------------------------------
         
-        // --- Abrir modal para CREAR ---
+        
+    
         openModalBtn.addEventListener('click', async function () {
             modalTitle.textContent = `Agregar ${singularName}`;
             clearMethodInput();
@@ -352,7 +353,7 @@
             }
         });
 
-        // --- Abrir modal para EDITAR y VER ---
+      
         document.querySelectorAll('.btn-edit, .btn-view').forEach(btn => {
             btn.addEventListener('click', async function (e) {
                 e.preventDefault();
@@ -396,7 +397,7 @@
             });
         });
 
-        // --- Cerrar modal ---
+       
         closeModal.addEventListener('click', () => {
             modal.style.display = 'none';
             modalBody.innerHTML = ''; 
