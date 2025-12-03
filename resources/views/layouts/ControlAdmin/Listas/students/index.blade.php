@@ -272,9 +272,25 @@
 {{-- ESTILOS Y SCRIPTS --}}
 <style>
     /* Botones Toolbar (Estilo corregido) */
-    .umi-btn-secondary { background: #fff; border: 1px solid #ccc; color: #333; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: 500; font-size: 16px; }
-    .umi-btn-secondary:hover { background: #f5f5f5; border-color: #bbb; }
-
+    .umi-btn-secondary{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: var(--umi-blue-dark);
+    color: #FFFFFF;
+    border: none;
+    font-weight: 500; 
+    font-size: 16px; 
+    border-radius: 50px; 
+    padding: 10px 30px; 
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(34, 63, 112, 0.2);
+    white-space: nowrap; 
+}
+.umi-btn-secondary:hover { background-color: #1a3055; transform: translateY(-1px); }
     /* Estilos Modales y Visor */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
     .modal-container { background: white; width: 90%; max-width: 800px; border-radius: 12px; display: flex; flex-direction: column; max-height: 90vh; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
@@ -287,7 +303,7 @@
     .btn-secondary-modal:hover { background: #d0d0d0; }
 
     .doc-btn { display: flex; align-items: center; width: 100%; padding: 12px 15px; margin-bottom: 10px; background: #fbfbfb; color: #2c3e50; border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s; }
-    .doc-btn:hover { background: #e3f2fd; border-color: #3498db; color: #1976d2; transform: translateX(5px); }
+    .doc-btn:hover { background: #e3f2fd; border-color: #3498db; color: #223F70; transform: translateX(5px); }
     .doc-btn i { margin-right: 12px; font-size: 1.2rem; color: #e74c3c; }
     .hidden { display: none !important; }
     .no-docs { text-align: center; color: #aaa; font-style: italic; padding: 15px; border: 1px dashed #eee; border-radius: 8px; }
