@@ -18,6 +18,7 @@ use App\Http\Controllers\Cursos\CompletionController;
 // --- Controladores de Facturación ---
 use App\Http\Controllers\Facturacion\BillingController;
 use App\Http\Controllers\Facturacion\PaymentController; 
+use App\Http\Controllers\Facturacion\BillingConceptController;
 
 // --- Controladores Administrativos y Escolares ---
 use App\Http\Controllers\Control_admin\ControlAdministrativoController;
@@ -29,7 +30,7 @@ use App\Http\Controllers\AdmonCont\MateriaController;
 use App\Http\Controllers\AdmonCont\store\teacherController;
 use App\Http\Controllers\SchoolarCont\InscripcionController;
 use App\Http\Controllers\SchoolarCont\MatriculaController; 
-use App\Http\Controllers\Facturacion\BillingConceptController;
+
 
 // ==========================================================================
 // 1. ACCESO PÚBLICO
@@ -120,6 +121,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
     Route::post('/facturacion', [BillingController::class, 'store'])->name('Facturacion.store'); 
     Route::delete('/facturacion/{billing}', [BillingController::class, 'destroy'])->name('Facturacion.destroy');
     Route::post('facturacion/payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::get('/facturacion/export', [BillingController::class, 'exportCsv'])->name('Facturacion.export');
         // Grupo de rutas para Conceptos de Facturación
     Route::prefix('facturacion/conceptos')->name('facturacion.conceptos.')->group(function () {
         
@@ -164,6 +166,7 @@ Route::middleware(['auth', 'ajax', 'spa'])->group(function () {
             Route::get('/matriculas', [MatriculaController::class, 'index'])->name('matriculas.index');
             Route::put('/matriculas/{id}', [MatriculaController::class, 'update'])->name('matriculas.update');
             Route::post('/matriculas/{id}/asignar', [MatriculaController::class, 'store'])->name('matriculas.store');
+            Route::post('/Matriculas/{id}/upload', [MatriculaController::class, 'uploadDocumento'])->name('documentacion.upload');
             
             // 4. Futuros Módulos (Becas, Titulación...)
             // Route::get('/becas', ...);

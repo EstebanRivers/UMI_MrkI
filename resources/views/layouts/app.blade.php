@@ -65,201 +65,334 @@
       @yield('content')
     </main>
   </div>
+{{-- ======================= SCRIPT MAESTRO ======================= --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{{-- Script 2: LÓGICA MAESTRA (FACTURACIÓN + ALERTAS + SPA) --}}
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        
-        // ============================================================
-        // 1. INICIALIZACIÓN (Ejecutar al cargar F5)
-        // ============================================================
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    /* ============================================================
+       1. ARRANQUE INICIAL
+    ============================================================ */
+    executeScrollLogic();
+    checkAndShowAlerts();
+    
+    // Reintento por si la carga es lenta
+    setTimeout(() => {
         executeScrollLogic();
-        checkAndShowAlerts();
-        
-        // Reintento por si la carga es lenta
-        setTimeout(() => {
-            executeScrollLogic();
-        }, 500);
+    }, 500);
 
-        // ============================================================
-        // 2. OBSERVADOR SPA (Detectar navegación sin recarga)
-        // ============================================================
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            const observer = new MutationObserver(() => {
-                // Esperamos un poco a que el HTML nuevo se pinte
-                setTimeout(() => {
-                    executeScrollLogic();
-                    checkAndShowAlerts();
-                }, 300);
-            });
-            observer.observe(mainContent, { childList: true, subtree: true });
-        }
+    /* ============================================================
+       2. OBSERVADOR SPA (Detectar navegación sin recarga)
+    ============================================================ */
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+        const observer = new MutationObserver(() => {
+            setTimeout(() => {
+                executeScrollLogic();
+                checkAndShowAlerts();
+            }, 300);
+        });
+        observer.observe(mainContent, { childList: true, subtree: true });
+    }
 
-        // ============================================================
-        // 3. DELEGACIÓN DE EVENTOS (Clicks Globales)
-        // ============================================================
-        document.addEventListener('click', (e) => {
-            
-            // --- A. ABRIR MODAL (Solo botones de Facturación) ---
-            const addBtn = e.target.closest('.js-trigger-factura');
-            if (addBtn) {
+    /* ============================================================
+       3. VALIDACIÓN FORMULARIO (Modal Factura)
+    ============================================================ */
+    const formFactura = document.getElementById('formFacturaModal');
+    if (formFactura) {
+        formFactura.addEventListener('submit', function(e) {
+            let valid = true;
+            let errorMessage = '';
+
+            // PDF (Opcional)
+            const pdfInput = document.getElementById('modal_archivo_pdf');
+            if (pdfInput && pdfInput.files.length > 0 && !pdfInput.files[0].name.toLowerCase().endsWith('.pdf')) {
+                valid = false;
+                errorMessage = 'El archivo debe ser formato PDF (.pdf)';
+            }
+
+            // XML (Opcional)
+            if (valid) {
+                const xmlInput = document.getElementById('modal_archivo_xml');
+                if (xmlInput && xmlInput.files.length > 0 && !xmlInput.files[0].name.toLowerCase().endsWith('.xml')) {
+                    valid = false;
+                    errorMessage = 'El archivo debe ser formato XML (.xml)';
+                }
+            }
+
+            // Monto
+            if (valid) {
+                const montoEl = document.getElementById('modal_monto');
+                if (montoEl) {
+                    const montoVal = montoEl.value;
+                    if (!montoVal || parseFloat(montoVal) <= 0) {
+                        valid = false;
+                        errorMessage = 'El monto no es válido. Selecciona un concepto nuevamente.';
+                    }
+                }
+            }
+
+            if (!valid) {
                 e.preventDefault();
-                
-                // Buscamos el modal en el contenido nuevo
-                let newModal = document.querySelector('#main-content #modalFactura');
-                // Buscamos si quedó un modal viejo en el body
-                const zombieModal = document.querySelector('body > #modalFactura');
-
-                if (newModal) {
-                    if (zombieModal) zombieModal.remove(); // Matar zombi
-                    document.body.appendChild(newModal);   // Mover nuevo al body (fix scroll)
-                } else if (zombieModal) {
-                    newModal = zombieModal;
-                }
-
-                if (newModal) fillAndOpenModal(newModal, addBtn);
-                return;
-            }
-
-            // --- B. CERRAR MODAL ---
-            if (e.target.closest('.close') || e.target.classList.contains('modal')) {
-                const modal = e.target.closest('.modal');
-                // Candado: Solo cerrar si es el de facturación
-                if (modal && modal.id === 'modalFactura') closeFacturaModal(modal);
-            }
-
-            // --- C. TOGGLE DETALLES (Ver Abonos) ---
-            const toggleBtn = e.target.closest('.icon-toggle');
-            if (toggleBtn) {
-                const row = toggleBtn.closest('tr');
-                const detailsRow = row.nextElementSibling;
-                if (detailsRow && detailsRow.classList.contains('payment-details-row')) {
-                    const isHidden = window.getComputedStyle(detailsRow).display === 'none';
-                    detailsRow.style.display = isHidden ? 'table-row' : 'none';
-                }
+                Swal.fire({ icon: 'error', title: 'Datos Incorrectos', text: errorMessage, confirmButtonColor: '#d33' });
             }
         });
+    }
 
-        // ESCAPE para cerrar
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const modal = document.querySelector('body > #modalFactura[style*="flex"]');
-                if (modal) closeFacturaModal(modal);
-            }
-        });
-
-
-        // ============================================================
-        // 4. FUNCIONES LÓGICAS
-        // ============================================================
-
-        // --- Función de Alertas (Semáforo) ---
-        function checkAndShowAlerts() {
-            const dataDiv = document.getElementById('billing-alerts-data');
+    /* ============================================================
+       4. PRECIOS AUTOMÁTICOS
+    ============================================================ */
+    document.addEventListener('change', (e) => {
+        if (e.target.id === 'modal_concepto') {
+            const select = e.target;
+            const inputReal = document.getElementById('modal_monto');
+            const inputVisible = document.getElementById('modal_monto_visible');
             
-            if (dataDiv && !dataDiv.dataset.shown) {
-                try {
-                    const alertas = JSON.parse(dataDiv.dataset.alerts);
-                    
-                    if (alertas.length > 0) {
-                        // Prioridad: Error > Warning > Info
-                        let alerta = alertas.find(a => a.tipo === 'error');
-                        if (!alerta) alerta = alertas.find(a => a.tipo === 'warning');
-                        if (!alerta) alerta = alertas[0];
+            if (select && inputReal && inputVisible) {
+                const option = select.options[select.selectedIndex];
+                const precio = option.getAttribute('data-amount');
 
-                        Swal.fire({
-                            title: alerta.titulo,
-                            text: alerta.mensaje,
-                            icon: alerta.tipo,
-                            confirmButtonText: 'Entendido',
-                            confirmButtonColor: '#223F70',
-                            backdrop: `rgba(0,0,0,0.5) left top no-repeat`
-                        });
-                    }
-                    // Marcar como mostrado
-                    dataDiv.dataset.shown = "true"; 
-                } catch (e) { console.error('Error alertas:', e); }
-            }
-        }
+                if (precio) {
+                    inputReal.value = precio;
+                    inputVisible.value = parseFloat(precio).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-        // --- Función de Scroll y Limpieza URL ---
-        function executeScrollLogic() {
-            let hash = window.location.hash;
-            
-            // Compatibilidad con ?_fragment=
-            if (!hash) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const fragment = urlParams.get('_fragment');
-                if (fragment) hash = '#' + fragment;
-            }
-
-            // Candado: Solo actuar si es un target de factura
-            if (!hash || !hash.startsWith('#factura-target-')) return;
-
-            try {
-                const targetElement = document.querySelector(hash);
-                if (targetElement) {
-                    // Abrir acordeones (Recursivo hacia arriba)
-                    if (targetElement.tagName === 'DETAILS') targetElement.open = true;
-                    let parent = targetElement.parentElement;
-                    while (parent) {
-                        if (parent.tagName === 'DETAILS') parent.open = true;
-                        parent = parent.parentElement;
-                    }
-
-                    // Scroll, Resalte y Limpieza
+                    // Flash visual
+                    inputVisible.style.transition = "background-color 0.3s";
+                    inputVisible.style.backgroundColor = "#ffffff";
+                    inputVisible.style.borderColor = "#999";
                     setTimeout(() => {
-                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
-                        const summary = targetElement.querySelector('summary');
-                        if(summary) {
-                            summary.style.transition = "background-color 0.5s";
-                            summary.style.backgroundColor = "#fff3cd"; 
-                            setTimeout(() => { summary.style.backgroundColor = ""; }, 2000);
-                        }
-
-                        // Limpiar URL
-                        const cleanUrl = window.location.pathname + window.location.search.replace(/[\?&]_fragment=[^&]+/, '').replace(/^&/, '?');
-                        history.replaceState(null, null, cleanUrl);
-                    }, 150);
+                        inputVisible.style.backgroundColor = "#f8f9fa";
+                        inputVisible.style.borderColor = "#ccc";
+                    }, 400);
+                } else {
+                    inputReal.value = '';
+                    inputVisible.value = '';
                 }
-            } catch (e) { console.error(e); }
-        }
-
-        // --- Funciones del Modal ---
-        function fillAndOpenModal(modal, btn) {
-            const form = modal.querySelector('form');
-            if (form) {
-                if (!form.dataset.originalAction) form.dataset.originalAction = form.action;
-                form.reset(); 
-                const setVal = (sel, val) => { const el = modal.querySelector(sel); if(el) el.value = val; };
-                const setText = (sel, val) => { const el = modal.querySelector(sel); if(el) el.textContent = val; };
-
-                setVal('#modal_user_id', btn.dataset.userId || '');
-                setText('#modalTitle', `Agregar Factura a: ${btn.dataset.userName || 'Usuario'}`);
-                
-                const fechaVal = btn.dataset.date || new Date().toISOString().split('T')[0];
-                setVal('#modal_fecha', fechaVal);
-                const [y, m, d] = fechaVal.split('-');
-                setText('#texto_fecha_vencimiento', `${d}/${m}/${y}`);
-
-                if (btn.dataset.periodId) setVal('#modal_period_id', btn.dataset.periodId);
             }
-            document.body.style.overflow = 'hidden'; 
-            modal.style.display = 'flex';
-        }
-
-        function closeFacturaModal(modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = ''; 
         }
     });
-  </script>
-  @stack('scripts')
 
+    /* ============================================================
+       5. ABRIR/CERRAR MODAL
+    ============================================================ */
+    document.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('.js-trigger-factura');
+        if (addBtn) {
+            e.preventDefault();
+            let modal = document.getElementById('modalFactura');
+            const zombie = document.querySelector('body > #modalFactura');
+
+            if (modal) {
+                if (zombie && zombie !== modal) zombie.remove();
+                if (modal.parentNode !== document.body) document.body.appendChild(modal);
+            } else if (zombie) {
+                modal = zombie;
+            }
+
+            if (modal) fillAndOpenModal(modal, addBtn);
+            return;
+        }
+
+        if (e.target.closest('.close') || e.target.classList.contains('modal')) {
+            const modal = document.getElementById('modalFactura');
+            if (modal) closeFacturaModal(modal);
+        }
+        
+        // Toggle Detalles (Abonos)
+        const toggleBtn = e.target.closest('.icon-toggle');
+        if (toggleBtn) {
+            const row = toggleBtn.closest('tr');
+            const detailsRow = row.nextElementSibling;
+            if (detailsRow && detailsRow.classList.contains('payment-details-row')) {
+                const isHidden = window.getComputedStyle(detailsRow).display === 'none';
+                detailsRow.style.display = isHidden ? 'table-row' : 'none';
+            }
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            const modal = document.querySelector('body > #modalFactura[style*="flex"]');
+            if (modal) closeFacturaModal(modal);
+        }
+    });
+
+/* ============================================================
+   6. FUNCIONES AUXILIARES (FUSIONADA: 
+   ============================================================ */
+function fillAndOpenModal(modal, btn) {
+    const form = modal.querySelector('form');
+    if (form) {
+        // 1. Resetear formulario
+        if (!form.dataset.originalAction) form.dataset.originalAction = form.action;
+        form.reset();
+
+        // Helpers rápidos
+        const setVal = (sel, val) => { const el = modal.querySelector(sel); if(el) el.value = val; };
+        
+        // 2. Datos Básicos
+        setVal('#modal_user_id', btn.dataset.userId || '');
+        const userNameSpan = modal.querySelector('#modalUserName');
+        if(userNameSpan) userNameSpan.textContent = btn.dataset.userName || 'Usuario';
+
+        // 3. ASIGNAR PREFIJO (Vital para el Controller)
+        // Lee del botón si es MEN- o EXT-.
+        const prefix = btn.dataset.uidPrefix || 'EXT-';
+        setVal('#modal_uid_prefix', prefix);
+
+        // 4. CÁLCULO DE FECHA (Lógica interna)
+        let fechaISO = '';
+        
+        if (prefix === 'MEN-') {
+            // Si es MENSUALIDAD: Usamos la fecha estricta del periodo
+            fechaISO = btn.dataset.date || new Date().toISOString().split('T')[0];
+        } else {
+            // Si es EXTRA: Calculamos Hoy + 7 días
+            const hoy = new Date();
+            hoy.setDate(hoy.getDate() + 7);
+            fechaISO = hoy.toISOString().split('T')[0];
+        }
+
+        // 5. VISUALIZACIÓN (Estilo Azul Simple)
+        // Guardamos la fecha en el input oculto
+        setVal('#modal_fecha', fechaISO);
+
+        // Mostramos solo la fecha bonita (DD/MM/YYYY)
+        const [y, m, d] = fechaISO.split('-');
+        const textoFecha = modal.querySelector('#texto_fecha_vencimiento');
+        
+        if (textoFecha) {
+            textoFecha.style.color = '#223F70'; // Azul Institucional
+            textoFecha.style.fontWeight = 'bold';
+            textoFecha.textContent = `${d}/${m}/${y}`; // Solo la fecha, sin mensajes extra
+        }
+
+        // 6. Periodo
+        if (btn.dataset.periodId) {
+            setVal('#modal_period_id', btn.dataset.periodId);
+        }
+    }
+    
+    document.body.style.overflow = 'hidden';
+    modal.style.display = 'flex';
+}
+
+function closeFacturaModal(modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+
+
+    function checkAndShowAlerts() {
+        const dataDiv = document.getElementById('billing-alerts-data');
+        if (dataDiv && !dataDiv.dataset.shown) {
+            try {
+                const alertas = JSON.parse(dataDiv.dataset.alerts);
+                if (alertas.length > 0) {
+                    let alerta = alertas.find(a => a.tipo === 'error') 
+                               || alertas.find(a => a.tipo === 'warning') 
+                               || alertas[0];
+
+                    Swal.fire({
+                        title: alerta.titulo,
+                        text: alerta.mensaje,
+                        icon: alerta.tipo,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#223F70',
+                        backdrop: `rgba(0,0,0,0.5)`
+                    });
+                }
+                dataDiv.dataset.shown = "true";
+            } catch(e) { console.error(e); }
+        }
+    }
+
+    function executeScrollLogic() {
+        let hash = window.location.hash;
+        if (!hash) {
+            const params = new URLSearchParams(window.location.search);
+            const fragment = params.get('_fragment');
+            if (fragment) hash = '#' + fragment;
+        }
+        if (!hash || !hash.startsWith('#factura-target-')) return;
+
+        const el = document.querySelector(hash);
+        if (!el) return;
+
+        if (el.tagName === 'DETAILS') el.open = true;
+        let parent = el.parentElement;
+        while (parent) {
+            if (parent.tagName === 'DETAILS') parent.open = true;
+            parent = parent.parentElement;
+        }
+
+        setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const summary = el.querySelector('summary');
+            if (summary) {
+                summary.style.transition = "background-color 0.5s";
+                summary.style.backgroundColor = "#fff3cd";
+                setTimeout(() => { summary.style.backgroundColor = ""; }, 2000);
+            }
+            const clean = window.location.pathname + window.location.search.replace(/[\?&]_fragment=[^&]+/,'').replace(/^&/, '?');
+            history.replaceState(null, null, clean);
+        }, 150);
+    }
+});
+
+
+    function submitExport() {
+        // 1. Obtener el formulario de filtros
+        const form = document.querySelector('form[action="{{ route('Facturacion.index') }}"]');
+        
+        // 2. Guardar la acción original (la ruta index)
+        const originalAction = form.action;
+        
+        // 3. Cambiar la acción a la ruta de exportación
+        form.action = "{{ route('Facturacion.export') }}";
+        
+        // 4. Enviar el formulario (descarga el archivo)
+        form.submit();
+        
+        // 5. Restaurar la acción original inmediatamente (para que el botón Filtrar siga funcionando normal)
+        setTimeout(() => {
+            form.action = originalAction;
+        }, 100);
+    }
+
+    document.querySelectorAll('.form-eliminar').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // 1. Detiene el envío automático
+
+            const currentForm = this;
+
+            Swal.fire({
+                title: '¿Eliminar Factura?',
+                text: "¡Esta acción no se puede deshacer!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33', // Rojo para peligro
+                cancelButtonColor: '#223F70', // Azul para cancelar
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true, // Pone el botón de cancelar primero (más seguro)
+                background: '#fff',
+                customClass: {
+                    popup: 'animated fadeInDown' // Animación suave (opcional)
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 2. Si el usuario dice SÍ, enviamos el formulario manualmente
+                    currentForm.submit();
+                }
+            });
+        });
+    });
+</script>
+
+@stack('scripts')
 
 </body>
 </html>

@@ -93,7 +93,7 @@ hr {
 /* Foco en los campos */
 .form-field input:focus,
 .form-field select:focus {
-    border-color: #007bff; /* Azul al enfocar */
+    border-color: #223f70; /* Azul al enfocar */
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     outline: none;
     background-color: #fff;

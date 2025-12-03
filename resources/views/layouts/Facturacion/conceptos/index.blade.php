@@ -29,7 +29,6 @@
         <table class="main-table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Concepto</th>
                     <th>Monto (MXN)</th>
                     <th>Descripción</th>
@@ -40,7 +39,6 @@
             <tbody>
                 @forelse ($conceptos as $item)
                     <tr>
-                        <td>{{ $item->id }}</td>
                         <td><strong>{{ $item->concept }}</strong></td>
                         <td>${{ number_format($item->amount, 2) }}</td>
                         <td>{{ $item->description ?? '-' }}</td>
@@ -105,23 +103,48 @@
 
                 {{-- CORRECCIÓN DEL CHECKBOX --}}
                 <div class="form-group" style="margin-top: 20px; display: flex; align-items: center; justify-content: flex-start; gap: 15px;">
-                    <label for="is_active" style="font-weight: bold; margin: 0; cursor: pointer;">¿Concepto Activo?</label>
-                    
-                    <label class="custom-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
-                        <input type="checkbox" id="is_active" name="is_active" value="1" checked style="opacity: 0; width: 0; height: 0;">
-                        <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
-                        <style>
-                            .custom-switch input:checked + .slider { background-color: #0d6efd; }
-                            .custom-switch input:checked + .slider:before { transform: translateX(24px); }
-                            .custom-switch .slider:before {
-                                position: absolute; content: ""; height: 18px; width: 18px;
-                                left: 4px; bottom: 4px; background-color: white;
-                                transition: .4s; border-radius: 50%;
-                            }
-                        </style>
-                    </label>
-                </div>
-            </div>
+    <label for="is_active" style="font-weight: bold; margin: 0; cursor: pointer;">¿Concepto Activo?</label>
+    
+    <label class="custom-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
+        <input type="checkbox" id="is_active" name="is_active" value="1" checked style="opacity: 0; width: 0; height: 0;">
+        
+        {{-- Quitamos los estilos en línea del span para que el CSS funcione --}}
+        <span class="slider round"></span>
+
+        <style>
+            /* Estilo base (Gris cuando está apagado) */
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-color: #ccc; /* Color gris por defecto */
+                transition: .4s;
+                border-radius: 34px;
+            }
+
+            /* El circulo blanco */
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 18px; width: 18px;
+                left: 4px; bottom: 4px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+            /* Estilo ACTIVO (Azul cuando está encendido) */
+            .custom-switch input:checked + .slider {
+                background-color: #0d6efd; /* <--- AQUÍ ESTÁ EL AZUL */
+            }
+
+            /* Mover el círculo cuando está activo */
+            .custom-switch input:checked + .slider:before {
+                transform: translateX(24px);
+            }
+        </style>
+    </label>
+</div>
             
             <button type="submit" class="btn-primary" style="margin-top: 20px; width: 100%; padding: 10px;">Guardar</button>
         </form>
@@ -188,6 +211,13 @@
 
         modalForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // 1. OBTENER EL BOTÓN Y DESHABILITARLO
+            const submitBtn = modalForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Guardando..."; // Feedback visual opcional
+
+            // Limpieza de errores previos
             modalForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             modalForm.querySelectorAll('.text-danger').forEach(el => el.remove());
 
@@ -206,27 +236,37 @@
 
                 if (response.ok) {
                     window.location.reload();
-                } else if (response.status === 422) {
-                    const data = await response.json();
-                    Object.keys(data.errors).forEach(field => {
-                        const input = modalForm.querySelector(`[name="${field}"]`);
-                        if (input) {
-                            input.classList.add('is-invalid');
-                            const msg = document.createElement('div');
-                            msg.className = 'text-danger';
-                            msg.style.fontSize = '0.85em';
-                            msg.style.marginTop = '5px';
-                            msg.style.color = '#dc3545';
-                            msg.innerText = data.errors[field][0];
-                            input.parentNode.appendChild(msg);
-                        }
-                    });
                 } else {
-                    alert('Ocurrió un error inesperado.');
+                    // 2. SI FALLA, REACTIVAR EL BOTÓN
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Guardar";
+
+                    if (response.status === 422) {
+                        const data = await response.json();
+                        Object.keys(data.errors).forEach(field => {
+                            const input = modalForm.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                input.classList.add('is-invalid');
+                                const msg = document.createElement('div');
+                                msg.className = 'text-danger';
+                                msg.style.fontSize = '0.85em';
+                                msg.style.marginTop = '5px';
+                                msg.style.color = '#dc3545';
+                                msg.innerText = data.errors[field][0];
+                                input.parentNode.appendChild(msg);
+                            }
+                        });
+                    } else {
+                        alert('Ocurrió un error inesperado.');
+                    }
                 }
             } catch (error) {
                 console.error(error);
                 alert('Error de conexión.');
+                
+                // 3. SI HAY ERROR DE RED, REACTIVAR EL BOTÓN
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Guardar";
             }
         });
 

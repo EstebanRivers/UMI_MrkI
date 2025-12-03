@@ -18,7 +18,9 @@ use App\Models\Users\Department;
 use App\Models\Users\Workstation;
 use App\Models\Users\Enrollment; 
 use App\Models\Users\Period;
-use App\Models\Facturacion\Billing; 
+use App\Models\Facturacion\Billing;
+use App\Models\Facturacion\BillingConcept; 
+
 class InscripcionController extends Controller
 {
     // =========================================================================
@@ -27,6 +29,8 @@ class InscripcionController extends Controller
     
     public function index(){
         $periodoActivo = Period::where('is_active', 1)->first();
+        // Obtenemos todos los periodos para el select del formulario (aunque se pre-seleccione el activo)
+        $periods = Period::all(); 
 
         if (!$periodoActivo) {
             session()->flash('error', '⛔ NO SE PUEDE INSCRIBIR: No hay un Periodo Académico activo configurado.');
@@ -36,92 +40,158 @@ class InscripcionController extends Controller
         $departamentos = Department::all(); 
         $puestos = Workstation::all();      
 
-        return view('layouts.ControlEsc.Inscripcion.index', compact('carreras', 'departamentos', 'puestos', 'periodoActivo'));
+        // Obtener Anfitriones para el select
+        $usuariosAnfitriones = User::whereHas('roles', function($q) {
+            $q->where('roles.id', 4) // ID Rol Anfitrión
+              ->where('user_roles_institution.is_active', 1);
+        })->get();
+
+        // Obtener Conceptos de Facturación Disponibles
+        $conceptosDisponibles = BillingConcept::all(); // O BillingConcept::where('is_active', 1)->get();
+
+        return view('layouts.ControlEsc.Inscripcion.index', compact(
+            'carreras', 
+            'departamentos', 
+            'puestos', 
+            'periodoActivo',
+            'periods',
+            'usuariosAnfitriones',
+            'conceptosDisponibles'
+        ));
     }
 
     public function create()
     {
-        return $this->index(); // Reutilizamos la lógica del index
+        return $this->index(); 
     }
 
     // =========================================================================
     // 2. GUARDAR NUEVO ASPIRANTE (STORE)
     // =========================================================================
-public function store(Request $request)
+    public function store(Request $request)
     {
-        // 1. Validar Periodo
         $periodoActivo = Period::where('is_active', 1)->first();
         if (!$periodoActivo) {
             return back()->with('error', 'Error crítico: El periodo se cerró durante el proceso.');
         }
 
-        // VALIDACIÓN DE DATOS ENTRANTES
-        $request->validate([
-        'nombre' => 'required|string|max:255',
-        'apellido_paterno' => 'required|string|max:255',
-        'email' => 'required|email',
-        'telefono' => 'required|string',
-        'fecha_nacimiento' => 'required|date',
-        'carrera_id' => 'required|exists:careers,id', 
-        'calle' => 'required',
-        'colonia' => 'required',
-    ]);
+        // 2. VALIDACIÓN BÁSICA
+        $rules = [
+            'nombre' => 'required|string|max:255',
+            'apellido_paterno' => 'required|string|max:255',
+            'carrera_id' => 'required|exists:careers,id', 
+            'calle' => 'required',
+            'colonia' => 'required',
+            'telefono' => 'required|string',
+            'fecha_nacimiento' => 'required|date',
+        ];
+
+        if (!$request->filled('existing_user_id')) {
+            $rules['email'] = 'required|email|unique:users,email';
+        } else {
+            $rules['email'] = 'required|email';
+        }
+
+        // Si marcó generar factura, validamos los campos de facturación
+        if ($request->has('generar_factura')) {
+            $rules['period_id'] = 'required';
+            $rules['concepto'] = 'required';
+            $rules['monto'] = 'required';
+            $rules['status'] = 'required';
+        }
+
+        $request->validate($rules);
+
         DB::beginTransaction();
 
         try {
-            // Generar RFC si no viene
-            $rfcFinal = $request->RFC ?? ('XAXX010101000' . rand(100, 999));
+            $user = null;
+            
+            // A. GESTIÓN DE USUARIO
+            if ($request->filled('existing_user_id')) {
+                $user = User::findOrFail($request->existing_user_id);
+                $user->update([
+                    'telefono' => $request->telefono,
+                    'fecha_nacimiento' => $request->fecha_nacimiento,
+                    'edad' => $request->edad,
+                ]);
 
-            // Crear Dirección
-            $address = Address::create([
-                'calle' => $request->calle, 'colonia' => $request->colonia,
-                'ciudad' => $request->ciudad, 'estado' => $request->estado,
-                'codigo_postal' => $request->codigo_postal,
-            ]);
+                if($user->address_id) {
+                    $address = Address::find($user->address_id);
+                    if($address) {
+                        $address->update([
+                            'calle' => $request->calle, 'colonia' => $request->colonia,
+                            'ciudad' => $request->ciudad, 'estado' => $request->estado,
+                            'codigo_postal' => $request->codigo_postal,
+                        ]);
+                    }
+                } else {
+                    $address = Address::create([
+                        'calle' => $request->calle, 'colonia' => $request->colonia,
+                        'ciudad' => $request->ciudad, 'estado' => $request->estado,
+                        'codigo_postal' => $request->codigo_postal,
+                    ]);
+                    $user->address_id = $address->id;
+                    $user->save();
+                }
 
-            // Crear Usuario
-            $user = User::create([
-                'nombre' => $request->nombre,
-                'apellido_paterno' => $request->apellido_paterno,
-                'apellido_materno' => $request->apellido_materno,
-                'email' => $request->email,
-                'password' => Hash::make('TMP_' . uniqid()), 
-                'RFC' => $rfcFinal,
-                'telefono' => $request->telefono,
-                'fecha_nacimiento' => $request->fecha_nacimiento,
-                'edad' => $request->edad,
-                'address_id' => $address->id,
-                'institution_id' => 4, 
-                'department_id' => $request->has('is_anfitrion') ? $request->department_id : null,
-                'workstation_id' => $request->has('is_anfitrion') ? $request->workstation_id : null,
-                'role_id' => 7,
-                
-            ]);
+            } else {
+                // Nuevo Usuario
+                $rfcFinal = $request->RFC ?? ('XAXX010101000' . rand(100, 999));
+                $address = Address::create([
+                    'calle' => $request->calle, 'colonia' => $request->colonia,
+                    'ciudad' => $request->ciudad, 'estado' => $request->estado,
+                    'codigo_postal' => $request->codigo_postal,
+                ]);
 
-            // Asignar Rol
-            $user->roles()->attach(7, ['institution_id' => 4]); 
+                $user = User::create([
+                    'nombre' => $request->nombre,
+                    'apellido_paterno' => $request->apellido_paterno,
+                    'apellido_materno' => $request->apellido_materno,
+                    'email' => $request->email,
+                    'password' => Hash::make('TMP_' . uniqid()), 
+                    'RFC' => $rfcFinal,
+                    'telefono' => $request->telefono,
+                    'fecha_nacimiento' => $request->fecha_nacimiento,
+                    'edad' => $request->edad,
+                    'address_id' => $address->id,
+                    'institution_id' => 4,
+                    'department_id' => $request->has('is_anfitrion') ? $request->department_id : null,
+                    'workstation_id' => $request->has('is_anfitrion') ? $request->workstation_id : null,
+                    'role_id' => 7,
+                    'is_active' => 1
+                ]);
+            }
 
-            // Subir Documentos
+            // B. ROLES
+            $yaEsEstudiante = $user->roles()
+                                   ->where('roles.id', 7)
+                                   ->wherePivot('institution_id', 4)
+                                   ->exists();
+
+            if (!$yaEsEstudiante) {
+                $user->roles()->attach(7, ['institution_id' => 4, 'is_active' => 1]);
+            }
+
+            // C. PERFIL Y DOCUMENTOS
             $rutasDocs = $this->subirDocumentos($request, $user->id);
 
-            // 5. Crear Perfil Académico (CORREGIDO)
-            $academicProfile = AcademicProfile::create([
-                'user_id' => $user->id,
-                // CAMBIO AQUÍ: Usamos la variable correcta
-                'career_id' => $request->carrera_id, 
-                'semestre' => 1,
-                'status' => 'Aspirante', 
-                'is_anfitrion' => $request->has('is_anfitrion'),
-                'doc_acta_nacimiento' => $rutasDocs['doc_acta_nacimiento'] ?? null,
-                'doc_certificado_prepa' => $rutasDocs['doc_certificado_prepa'] ?? null,
-                'doc_curp' => $rutasDocs['doc_curp'] ?? null,
-                'doc_ine' => $rutasDocs['doc_ine'] ?? null,
-            ]);
+            AcademicProfile::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'career_id' => $request->carrera_id, 
+                    'semestre' => 1,
+                    'status' => 'Aspirante', 
+                    'is_anfitrion' => $request->has('is_anfitrion'),
+                    'doc_acta_nacimiento' => $rutasDocs['doc_acta_nacimiento'] ?? DB::raw('doc_acta_nacimiento'),
+                    'doc_certificado_prepa' => $rutasDocs['doc_certificado_prepa'] ?? DB::raw('doc_certificado_prepa'),
+                    'doc_curp' => $rutasDocs['doc_curp'] ?? DB::raw('doc_curp'),
+                    'doc_ine' => $rutasDocs['doc_ine'] ?? DB::raw('doc_ine'),
+                ]
+            );
 
-            // 6. Crear Historial (CORREGIDO)
             Enrollment::create([
                 'user_id' => $user->id,
-                // CAMBIO AQUÍ: Usamos la variable correcta
                 'career_id' => $request->carrera_id,
                 'semestre' => 1,
                 'periodo' => $periodoActivo->name,
@@ -132,21 +202,33 @@ public function store(Request $request)
                 'doc_ine' => $rutasDocs['doc_ine'] ?? null,
             ]);
 
-            // 7. Generar Factura
-            Billing::create([
-                'user_id'           => $user->id,
-                'period_id'         => $periodoActivo->id,
-                'factura_uid'       => 'INS-' . strtoupper(uniqid()),
-                'concepto'          => 'Inscripción Nuevo Ingreso', 
-                'monto'             => 1500.00, 
-                'fecha_vencimiento' => Carbon::now()->addDays(7),
-                'status'            => 'Pendiente', 
-                'description'       => 'Cargo automático por registro de aspirante.'
-            ]);
+            // D. FACTURACIÓN DINÁMICA (POR CHECKBOX)
+            $mensajeExtra = "";
+            if ($request->has('generar_factura')) {
+                
+                // Subir archivos de factura si existen
+                $billingPaths = $this->subirArchivosFactura($request, $user->id);
+
+                Billing::create([
+                    'user_id'           => $user->id,
+                    'period_id'         => $request->period_id, // Tomado del select
+                    'factura_uid'       => 'INS-' . strtoupper(uniqid()),
+                    'concepto'          => $request->concepto, // Tomado del select
+                    'monto'             => $request->monto,    // Tomado del input hidden
+                    'fecha_vencimiento' => Carbon::now()->addDays(7),
+                    'status'            => $request->status,   // Tomado del select
+                    'description'       => 'Generado desde Registro de Inscripción.',
+                    'archivo_path'      => $billingPaths['archivo'] ?? null,
+                    'xml_path'          => $billingPaths['archivo_xml'] ?? null,
+                ]);
+                $mensajeExtra = " Ficha de pago generada.";
+            } else {
+                $mensajeExtra = " No se generó ficha de pago (Opción desmarcada).";
+            }
 
             DB::commit();
             return redirect()->route('escolar.students.index')
-                ->with('success', 'Aspirante registrado. Factura de Inscripción generada (Pendiente de Pago).');
+                ->with('success', 'Aspirante registrado correctamente.' . $mensajeExtra);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -155,35 +237,9 @@ public function store(Request $request)
     }
 
     // =========================================================================
-    // 7. MOSTRAR EDICIÓN / REINSCRIPCIÓN (EDIT)
+    // UPDATE (REINSCRIPCIÓN)
     // =========================================================================
-    public function edit(string $id)
-    {
-        $periodoActivo = Period::where('is_active', 1)->first();
-        if (!$periodoActivo) {
-            session()->flash('error', 'No hay periodo activo para reinscripciones.');
-        }
-
-        $user = User::with(['address', 'academicProfile'])->findOrFail($id);
-        $carreras = Career::all();
-        $departamentos = Department::all();
-        $puestos = Workstation::all();
-        $historialInscripciones = Enrollment::where('user_id', $id)->orderBy('created_at', 'desc')->get();
-
-        return view('layouts.ControlEsc.Inscripcion.index', [
-            'alumno' => $user,
-            'carreras' => $carreras,
-            'periodoActivo' => $periodoActivo,
-            'historialInscripciones' => $historialInscripciones,
-            'departamentos' => $departamentos,
-            'puestos' => $puestos
-        ]);
-    }
-
-    // =========================================================================
-    // 8. PROCESO DE REINSCRIPCIÓN (UPDATE)
-    // =========================================================================
-public function update(Request $request, string $id)
+    public function update(Request $request, string $id)
     {
         $periodoActivo = Period::where('is_active', 1)->first();
         if (!$periodoActivo) return back()->with('error', 'No hay periodo activo.');
@@ -192,23 +248,27 @@ public function update(Request $request, string $id)
         try {
             $user = User::findOrFail($id);
             $perfil = $user->academicProfile;
+            
+            if (!$perfil) {
+                $perfil = AcademicProfile::create([
+                     'user_id' => $user->id,
+                     'career_id' => $request->carrera_id,
+                     'semestre' => 0
+                ]);
+            }
 
-            // 1. Actualizar Datos Personales
+            // 1. Actualizar Datos
             $user->update([
                 'nombre' => $request->nombre,
                 'apellido_paterno' => $request->apellido_paterno,
                 'apellido_materno' => $request->apellido_materno,
                 'email' => $request->email,
                 'telefono' => $request->telefono,
-                // Asegúrate de agregar todos los campos editables aquí
                 'RFC' => $request->RFC,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'edad' => $request->edad,
-                // Dirección también debería actualizarse si cambió
-                // 'address_id' => ... (o actualizar la relación address)
             ]);
             
-            // Actualizar la Dirección
             if ($user->address) {
                 $user->address->update([
                     'calle' => $request->calle,
@@ -219,17 +279,12 @@ public function update(Request $request, string $id)
                 ]);
             }
 
-            // 2. Lógica de Semestre y Carrera
             $nuevoSemestre = $perfil->semestre + 1;
-            
-            // Leemos la carrera del formulario 
             $nuevaCarreraId = $request->carrera_id ?? $perfil->career_id;
 
-            // 3. Subir Nuevos Documentos
+            // 2. Documentos
             $nuevosDocs = $this->subirDocumentos($request, $user->id);
             
-            // MEJORA: Preparamos el array final de documentos para el historial
-            // Si hay nuevo, usa nuevo. Si no, usa el del perfil actual.
             $docsFinales = [
                 'doc_acta_nacimiento' => $nuevosDocs['doc_acta_nacimiento'] ?? $perfil->doc_acta_nacimiento,
                 'doc_certificado_prepa' => $nuevosDocs['doc_certificado_prepa'] ?? $perfil->doc_certificado_prepa,
@@ -237,8 +292,7 @@ public function update(Request $request, string $id)
                 'doc_ine' => $nuevosDocs['doc_ine'] ?? $perfil->doc_ine,
             ];
 
-            // 4. Actualizar Perfil Académico
-            // Usamos array_filter para solo actualizar en la BD los que traen archivo nuevo
+            // 3. Perfil y Historial
             $perfil->update(array_merge(array_filter($nuevosDocs), [
                 'semestre' => $nuevoSemestre,
                 'career_id' => $nuevaCarreraId,
@@ -246,8 +300,7 @@ public function update(Request $request, string $id)
                 'is_anfitrion' => $request->has('is_anfitrion'),
             ]));
 
-            // 5. Crear Historial (Enrollment) CON LOS DOCUMENTOS CORRECTOS
-            Enrollment::create(array_merge($docsFinales, [ // <--- Usamos $docsFinales aquí
+            Enrollment::create(array_merge($docsFinales, [
                 'user_id' => $user->id,
                 'career_id' => $nuevaCarreraId,
                 'semestre' => $nuevoSemestre,
@@ -255,33 +308,60 @@ public function update(Request $request, string $id)
                 'status' => 'Pendiente',
             ]));
 
-           
+            // 4. FACTURACIÓN DINÁMICA
+            $mensajeExtra = "";
+            if ($request->has('generar_factura')) {
+                // Subir archivos de factura si existen
+                $billingPaths = $this->subirArchivosFactura($request, $user->id);
 
-            // Factura de Reinscripción (Lógica Inteligente)
-            $facturaExiste = Billing::where('user_id', $user->id)
-                            ->where('period_id', $periodoActivo->id)
-                            ->where('concepto', 'like', '%Reinscripción%')
-                            ->exists();
-
-            if (!$facturaExiste) {
                 Billing::create([
-                    'user_id' => $user->id,
-                    'period_id' => $periodoActivo->id,
-                    'factura_uid' => 'RE-' . strtoupper(uniqid()),
-                    'concepto' => 'Reinscripción Semestre ' . $nuevoSemestre, 
-                    'monto' => 1200.00, 
+                    'user_id'           => $user->id,
+                    'period_id'         => $request->period_id,
+                    'factura_uid'       => 'RE-' . strtoupper(uniqid()),
+                    'concepto'          => $request->concepto,
+                    'monto'             => $request->monto,
                     'fecha_vencimiento' => Carbon::now()->addDays(5),
-                    'status' => 'Pendiente',
+                    'status'            => $request->status,
+                    'description'       => 'Generado desde Reinscripción.',
+                    'archivo_path'      => $billingPaths['archivo'] ?? null,
+                    'xml_path'          => $billingPaths['archivo_xml'] ?? null,
                 ]);
+                $mensajeExtra = " Ficha de reinscripción generada.";
+            } else {
+                 $mensajeExtra = " No se generó cobro (Opción desmarcada).";
             }
 
             DB::commit();
-            return redirect()->route('escolar.students.index')->with('success', 'Reinscripción procesada.');
+            return redirect()->route('escolar.students.index')->with('success', 'Reinscripción procesada.' . $mensajeExtra);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
+    }
+
+    public function edit(string $id)
+    {
+        $periodoActivo = Period::where('is_active', 1)->first();
+        $periods = Period::all(); // También enviamos periods aquí
+        $user = User::with(['address', 'academicProfile'])->findOrFail($id);
+        $carreras = Career::all();
+        $departamentos = Department::all();
+        $puestos = Workstation::all();
+        $historialInscripciones = Enrollment::where('user_id', $id)->orderBy('created_at', 'desc')->get();
+        $conceptosDisponibles = BillingConcept::all();
+        
+        return view('layouts.ControlEsc.Inscripcion.index', [
+            'alumno' => $user,
+            'carreras' => $carreras,
+            'periodoActivo' => $periodoActivo,
+            'periods' => $periods,
+            'historialInscripciones' => $historialInscripciones,
+            'departamentos' => $departamentos,
+            'puestos' => $puestos,
+            'usuariosAnfitriones' => [],
+            'conceptosDisponibles' => $conceptosDisponibles
+        ]);
     }
 
     public function destroy($id) {
@@ -290,7 +370,6 @@ public function update(Request $request, string $id)
         return redirect()->route('escolar.students.index')->with('success', 'Usuario eliminado.');
     }
 
-    // --- Helper Privado ---
     private function subirDocumentos($request, $userId) {
         $rutas = [];
         $campos = ['doc_acta_nacimiento', 'doc_certificado_prepa', 'doc_curp', 'doc_ine'];
@@ -298,6 +377,18 @@ public function update(Request $request, string $id)
             if ($request->hasFile($campo)) {
                 $rutas[$campo] = $request->file($campo)->store("documentos/{$userId}/expediente", 'public');
             }
+        }
+        return $rutas;
+    }
+
+    // Helper para subir archivos de facturación (PDF y XML)
+    private function subirArchivosFactura($request, $userId) {
+        $rutas = [];
+        if ($request->hasFile('archivo')) {
+            $rutas['archivo'] = $request->file('archivo')->store("facturas/{$userId}", 'public');
+        }
+        if ($request->hasFile('archivo_xml')) {
+            $rutas['archivo_xml'] = $request->file('archivo_xml')->store("facturas_xml/{$userId}", 'public');
         }
         return $rutas;
     }

@@ -8,13 +8,14 @@ use App\Models\Facturacion\Billing;
 use App\Models\Facturacion\Payment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB; // <-- Importación necesaria para usar transacciones
 
 class PaymentController extends Controller
 {
     /**
      * Almacena un nuevo abono (pago parcial) para una factura.
      */
-public function store(Request $request)
+    public function store(Request $request)
     {
         $loggedInUser = Auth::user();
 
@@ -30,45 +31,46 @@ public function store(Request $request)
             'nota_abono' => 'nullable|string|max:255',
         ]);
 
-        $billing = Billing::find($validated['billing_id']);
+        // FIX 1: Cargar la relación 'payments' (con with) para garantizar el cálculo correcto
+        // Usamos findOrFail para una recuperación robusta.
+        $billing = Billing::with('payments')->findOrFail($validated['billing_id']);
         
         // Calcular deuda actual
         $totalPagadoAntes = $billing->payments->sum('monto');
         $saldoPendiente = $billing->monto - $totalPagadoAntes;
 
         // Validación: No pagar de más
-        // Usamos round para evitar problemas de decimales (ej. 4999.99999)
         if (round($validated['monto_abono'], 2) > round($saldoPendiente, 2)) {
             return redirect()->back()->withErrors(['monto_abono' => 'El monto excede el saldo pendiente.']);
         }
 
         try {
-            // Iniciar Transacción (Para que se guarden ambos o ninguno)
-            \DB::beginTransaction();
+            // FIX 2: Usamos la fachada DB importada
+            DB::beginTransaction();
 
             // 2. CREAR EL PAGO
             Payment::create([
                 'billing_id' => $validated['billing_id'],
-                'user_id' => $loggedInUser->id,
+                'user_id' => $loggedInUser->id, // El usuario que registra el pago (el administrador)
                 'monto' => $validated['monto_abono'],
                 'fecha_pago' => $validated['fecha_pago'],
                 'nota' => $validated['nota_abono'],
+                'metodo_pago' => null, // Añadimos esto para ser explícitos y evitar fallos si el campo no es nullable en BD
             ]);
 
-            // 3. ACTUALIZAR EL ESTATUS DE LA FACTURA (¡ESTO FALTABA!)
-            // Recalculamos el total sumando el nuevo pago
+            // 3. ACTUALIZAR EL ESTATUS DE LA FACTURA
             $nuevoTotalPagado = $totalPagadoAntes + $validated['monto_abono'];
 
-            // Margen de error de 1 peso por posibles decimales flotantes
-            if ($nuevoTotalPagado >= ($billing->monto - 1)) {
+            // Usamos comparación estricta de decimales para determinar el estado 'Pagada'.
+            if (round($nuevoTotalPagado, 2) >= round($billing->monto, 2)) {
                 $billing->status = 'Pagada'; 
             } else {
                 $billing->status = 'Abonado';
             }
 
-            $billing->save(); // Guardamos el cambio en la tabla 'billings'
+            $billing->save(); 
 
-            \DB::commit();
+            DB::commit(); // FIX 2: Commit usando la fachada DB
 
             // 4. Redirección
             $url = route('Facturacion.index');
@@ -78,9 +80,10 @@ public function store(Request $request)
             return redirect()->to($url . $anchor)->with('success', 'Pago registrado y estatus actualizado.');
 
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack(); // FIX 2: Rollback usando la fachada DB
             Log::error('Error al registrar abono: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['msg' => 'Error interno al guardar el abono.']);
+            // Mostramos un mensaje de error claro en pantalla
+            return redirect()->back()->withErrors(['msg' => 'Error interno al guardar el abono. Por favor, revise el log para más detalles.']);
         }
     }
 }

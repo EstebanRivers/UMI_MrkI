@@ -82,9 +82,7 @@
 
                             <td style="font-weight: 700;">
                                 {{ $user->nombre }}
-                                @if($user->academicProfile?->is_anfitrion) 
-                                    <span title="Anfitrión (Trabajador Mundo Imperial)" style="cursor: help;">👔</span> 
-                                @endif
+
                             </td>
                             <td style="font-weight: 700;">{{ $user->apellido_paterno }}</td>
                             <td style="font-weight: 700;">{{ $user->apellido_materno }}</td>

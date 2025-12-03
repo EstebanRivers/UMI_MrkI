@@ -9,21 +9,33 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-public function up()
-{
-    Schema::table('academic_profiles', function (Blueprint $table) {
-        // Agregamos la columna matricula, puede ser nula al principio
-        $table->string('matricula', 20)->nullable()->unique()->after('status');
-    });
-}
+    public function up()
+    {
+        // 1. Verificamos si la tabla existe (por seguridad)
+        if (Schema::hasTable('academic_profiles')) {
+            
+            Schema::table('academic_profiles', function (Blueprint $table) {
+                
+                // 2. SOLUCIÓN: Verificamos si la columna 'matricula' NO existe antes de agregarla
+                if (!Schema::hasColumn('academic_profiles', 'matricula')) {
+                    $table->string('matricula', 20)->nullable()->unique()->after('status');
+                }
+            });
+        }
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('academic_profiles', function (Blueprint $table) {
-            $table->dropColumn('matricula');
-        });
+        if (Schema::hasTable('academic_profiles')) {
+            Schema::table('academic_profiles', function (Blueprint $table) {
+                // Verificamos si existe antes de borrarla para evitar errores al hacer rollback
+                if (Schema::hasColumn('academic_profiles', 'matricula')) {
+                    $table->dropColumn('matricula');
+                }
+            });
+        }
     }
 };
