@@ -75,7 +75,7 @@ class InscripcionController extends Controller
             return back()->with('error', 'Error crítico: El periodo se cerró durante el proceso.');
         }
 
-        // 2. VALIDACIÓN BÁSICA
+        // --- VALIDACIONES ---
         $rules = [
             'nombre' => 'required|string|max:255',
             'apellido_paterno' => 'required|string|max:255',
@@ -92,7 +92,6 @@ class InscripcionController extends Controller
             $rules['email'] = 'required|email';
         }
 
-        // Si marcó generar factura, validamos los campos de facturación
         if ($request->has('generar_factura')) {
             $rules['period_id'] = 'required';
             $rules['concepto'] = 'required';
@@ -116,15 +115,12 @@ class InscripcionController extends Controller
                     'edad' => $request->edad,
                 ]);
 
-                if($user->address_id) {
-                    $address = Address::find($user->address_id);
-                    if($address) {
-                        $address->update([
-                            'calle' => $request->calle, 'colonia' => $request->colonia,
-                            'ciudad' => $request->ciudad, 'estado' => $request->estado,
-                            'codigo_postal' => $request->codigo_postal,
-                        ]);
-                    }
+                if($user->address) {
+                    $user->address->update([
+                        'calle' => $request->calle, 'colonia' => $request->colonia,
+                        'ciudad' => $request->ciudad, 'estado' => $request->estado,
+                        'codigo_postal' => $request->codigo_postal,
+                    ]);
                 } else {
                     $address = Address::create([
                         'calle' => $request->calle, 'colonia' => $request->colonia,
@@ -174,20 +170,23 @@ class InscripcionController extends Controller
             }
 
             // C. PERFIL Y DOCUMENTOS
+            // 1. Subir archivos
             $rutasDocs = $this->subirDocumentos($request, $user->id);
+
+            // 2. Preparar datos base
+            $datosPerfil = [
+                'career_id' => $request->carrera_id, 
+                'semestre' => 1,
+                'status' => 'Aspirante', 
+                'is_anfitrion' => $request->has('is_anfitrion'),
+            ];
+
+            // 3. Fusionar para guardar en BD
+            $datosPerfil = array_merge($datosPerfil, $rutasDocs);
 
             AcademicProfile::updateOrCreate(
                 ['user_id' => $user->id],
-                [
-                    'career_id' => $request->carrera_id, 
-                    'semestre' => 1,
-                    'status' => 'Aspirante', 
-                    'is_anfitrion' => $request->has('is_anfitrion'),
-                    'doc_acta_nacimiento' => $rutasDocs['doc_acta_nacimiento'] ?? DB::raw('doc_acta_nacimiento'),
-                    'doc_certificado_prepa' => $rutasDocs['doc_certificado_prepa'] ?? DB::raw('doc_certificado_prepa'),
-                    'doc_curp' => $rutasDocs['doc_curp'] ?? DB::raw('doc_curp'),
-                    'doc_ine' => $rutasDocs['doc_ine'] ?? DB::raw('doc_ine'),
-                ]
+                $datosPerfil
             );
 
             Enrollment::create([
@@ -202,39 +201,33 @@ class InscripcionController extends Controller
                 'doc_ine' => $rutasDocs['doc_ine'] ?? null,
             ]);
 
-            // D. FACTURACIÓN DINÁMICA (POR CHECKBOX)
+            // D. FACTURACIÓN DINÁMICA
             $mensajeExtra = "";
             if ($request->has('generar_factura')) {
                 
-                // 1. GENERAR UID ROBUSTO (INS)
-            $fechaHoy = now()->format('Ymd'); 
-            $baseUid = 'INS-' . $fechaHoy;   
+                $fechaHoy = now()->format('Ymd'); 
+                $baseUid = 'INS-' . $fechaHoy;   
 
-            $ultimo = Billing::withTrashed() // Importante: Incluir borrados
-                             ->where('factura_uid', 'like', $baseUid . '%')
-                             ->orderBy('id', 'desc')
-                             ->first();
+                $ultimo = Billing::withTrashed()->where('factura_uid', 'like', $baseUid . '%')->orderBy('id', 'desc')->first();
+                $consecutivo = $ultimo ? intval(substr($ultimo->factura_uid, -6)) + 1 : 1;
+                $uidFinal = $baseUid . str_pad($consecutivo, 6, '0', STR_PAD_LEFT);
 
-            $consecutivo = $ultimo ? intval(substr($ultimo->factura_uid, -6)) + 1 : 1;
-            $uidFinal = $baseUid . str_pad($consecutivo, 6, '0', STR_PAD_LEFT);
+                $billingPaths = $this->subirArchivosFactura($request, $user->id);
 
-            // 2. GUARDAR
-            $billingPaths = $this->subirArchivosFactura($request, $user->id);
-
-            Billing::create([
-                'factura_uid'       => $uidFinal, // <--- NUEVO UID
-                'user_id'           => $user->id,
-                'period_id'         => $periodoActivo->id,
-                'concepto'          => $request->concepto,
-                'monto'             => $request->monto,
-                'fecha_vencimiento' => Carbon::now(), // INS VENCE HOY (URGENTE)
-                'status'            => $request->status,
-                'concept_type'      => 'INS', // TIPO EXPLÍCITO
-                'archivo_path'      => $billingPaths['archivo'] ?? null,
-                'xml_path'          => $billingPaths['archivo_xml'] ?? null,
-            ]);
-            $mensajeExtra = " Ficha de pago generada (Folio: $uidFinal).";
-        }
+                Billing::create([
+                    'factura_uid'       => $uidFinal,
+                    'user_id'           => $user->id,
+                    'period_id'         => $request->period_id ?? $periodoActivo->id,
+                    'concepto'          => $request->concepto,
+                    'monto'             => $request->monto,
+                    'fecha_vencimiento' => Carbon::now(), 
+                    'status'            => $request->status,
+                    'concept_type'      => 'INS',
+                    'archivo_path'      => $billingPaths['archivo'] ?? null,
+                    'xml_path'          => $billingPaths['archivo_xml'] ?? null,
+                ]);
+                $mensajeExtra = " Ficha de pago generada (Folio: $uidFinal).";
+            }
 
             DB::commit();
             return redirect()->route('escolar.students.index')
@@ -260,14 +253,10 @@ class InscripcionController extends Controller
             $perfil = $user->academicProfile;
             
             if (!$perfil) {
-                $perfil = AcademicProfile::create([
-                     'user_id' => $user->id,
-                     'career_id' => $request->carrera_id,
-                     'semestre' => 0
-                ]);
+                $perfil = AcademicProfile::create(['user_id' => $user->id, 'career_id' => $request->carrera_id, 'semestre' => 0]);
             }
 
-            // 1. Actualizar Datos
+            // 1. Actualizar Datos Personales
             $user->update([
                 'nombre' => $request->nombre,
                 'apellido_paterno' => $request->apellido_paterno,
@@ -292,9 +281,11 @@ class InscripcionController extends Controller
             $nuevoSemestre = $perfil->semestre + 1;
             $nuevaCarreraId = $request->carrera_id ?? $perfil->career_id;
 
-            // 2. Documentos
+            // 2. LOGICA DE DOCUMENTOS (Aquí está la corrección)
             $nuevosDocs = $this->subirDocumentos($request, $user->id);
             
+            // b) Preparamos el array final para Enrollment:
+            //    Si existe archivo nuevo, úsalo. Si no, mantén el existente del perfil.
             $docsFinales = [
                 'doc_acta_nacimiento' => $nuevosDocs['doc_acta_nacimiento'] ?? $perfil->doc_acta_nacimiento,
                 'doc_certificado_prepa' => $nuevosDocs['doc_certificado_prepa'] ?? $perfil->doc_certificado_prepa,
@@ -302,7 +293,8 @@ class InscripcionController extends Controller
                 'doc_ine' => $nuevosDocs['doc_ine'] ?? $perfil->doc_ine,
             ];
 
-            // 3. Perfil y Historial
+            // 3. Actualizar Perfil
+            // Usamos array_filter($nuevosDocs) para evitar sobrescribir con null si no se envió archivo
             $perfil->update(array_merge(array_filter($nuevosDocs), [
                 'semestre' => $nuevoSemestre,
                 'career_id' => $nuevaCarreraId,
@@ -310,6 +302,7 @@ class InscripcionController extends Controller
                 'is_anfitrion' => $request->has('is_anfitrion'),
             ]));
 
+            // 4. Crear Historial (Enrollment) con la foto completa de documentos
             Enrollment::create(array_merge($docsFinales, [
                 'user_id' => $user->id,
                 'career_id' => $nuevaCarreraId,
@@ -318,33 +311,27 @@ class InscripcionController extends Controller
                 'status' => 'Pendiente',
             ]));
 
-            // 4. FACTURACIÓN DINÁMICA
+            // 5. FACTURACIÓN (Reinscripción)
             $mensajeExtra = "";
             if ($request->has('generar_cobro_reinscripcion')) {
-             
-            // 1. GENERAR UID ROBUSTO (RE)
-            $fechaHoy = now()->format('Ymd'); 
-            $baseUid = 'RE-' . $fechaHoy;   
+                
+                $fechaHoy = now()->format('Ymd'); 
+                $baseUid = 'RE-' . $fechaHoy;   
+                $ultimo = Billing::withTrashed()->where('factura_uid', 'like', $baseUid . '%')->orderBy('id', 'desc')->first();
+                $consecutivo = $ultimo ? intval(substr($ultimo->factura_uid, -6)) + 1 : 1;
+                $uidFinal = $baseUid . str_pad($consecutivo, 6, '0', STR_PAD_LEFT);
 
-            $ultimo = Billing::withTrashed()
-                             ->where('factura_uid', 'like', $baseUid . '%')
-                             ->orderBy('id', 'desc')
-                             ->first();
-
-            $consecutivo = $ultimo ? intval(substr($ultimo->factura_uid, -6)) + 1 : 1;
-            $uidFinal = $baseUid . str_pad($consecutivo, 6, '0', STR_PAD_LEFT);
-
-            Billing::create([
-                'factura_uid'       => $uidFinal,
-                'user_id'           => $user->id,
-                'period_id'         => $periodoActivo->id,
-                'concepto'          => $request->concepto,
-                'monto'             => $request->monto,
-                'fecha_vencimiento' => Carbon::now()->addDays(7), // RE TIENE 7 DÍAS DE GRACIA
-                'status'            => 'Pendiente',
-                'concept_type'      => 'RE', // TIPO NO CRÍTICO
-            ]);
-        }
+                Billing::create([
+                    'factura_uid'       => $uidFinal,
+                    'user_id'           => $user->id,
+                    'period_id'         => $periodoActivo->id,
+                    'concepto'          => $request->concepto ?? 'Reinscripción',
+                    'monto'             => $request->monto ?? 0,
+                    'fecha_vencimiento' => Carbon::now()->addDays(7),
+                    'status'            => 'Pendiente',
+                    'concept_type'      => 'RE',
+                ]);
+            }
 
             DB::commit();
             return redirect()->route('escolar.students.index')->with('success', 'Reinscripción procesada.' . $mensajeExtra);

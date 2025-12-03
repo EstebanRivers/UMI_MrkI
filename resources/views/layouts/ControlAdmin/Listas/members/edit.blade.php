@@ -14,7 +14,7 @@
         
         {{-- Cuerpo del formulario --}}
         <div class="form-body">
-            <form method="POST" action="{{ route('Listas.students.update',$user->id) }}" class="registration-form">
+            <form method="POST" action="{{ route('escolar.students.update',$user->id) }}" class="registration-form">
                 @csrf
                 @method('PUT')
                 {{-- Manejo de Errores de Validación --}}
