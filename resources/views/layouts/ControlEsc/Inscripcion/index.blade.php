@@ -535,7 +535,6 @@
                             setReadOnly(inputNombre, true);
                             setReadOnly(inputPat, true);
                             setReadOnly(inputMat, true);
-                            setReadOnly(inputTel, true);
                             setReadOnly(inputRFC, true);
                             setReadOnly(inputEmail, true);
                             setReadOnly(inputDepto, true);
@@ -558,6 +557,7 @@
                             
                             // Limpieza específica de RFC y Email si no están en limpiarCamposPersonales()
                             if (inputRFC) inputRFC.value = "";
+                            if (inputTel) inputTel.value = "";
                             if (inputEmail) inputEmail.value = "";
                             if(emailHelper) emailHelper.style.display = 'none';
                         }
@@ -570,12 +570,50 @@
             }
 
             function limpiarCamposPersonales() {
-                if(inputEmail) {
-                    inputEmail.readOnly = false;
-                    inputEmail.style.background = "";
-                    if(emailHelper) emailHelper.style.display = 'none';
-                }
+            // 1. Inputs de Texto (Nombre, Apellidos, Teléfono)
+            if(inputNombre) { 
+                inputNombre.readOnly = false; 
+                inputNombre.style.backgroundColor = ""; 
+                inputNombre.value = ""; // Clear value
             }
+            if(inputPat) { 
+                inputPat.readOnly = false; 
+                inputPat.style.backgroundColor = ""; 
+                inputPat.value = ""; // Clear value
+            }
+            if(inputMat) { 
+                inputMat.readOnly = false; 
+                inputMat.style.backgroundColor = ""; 
+                inputMat.value = ""; // Clear value
+            }
+            if(inputTel) { 
+                inputTel.readOnly = false; 
+                inputTel.style.backgroundColor = ""; 
+                inputTel.value = ""; // Clear value
+            }
+            
+            // 2. RFC (Asegurar desbloqueo y limpieza)
+            if(inputRFC) { 
+                inputRFC.readOnly = false; 
+                inputRFC.style.backgroundColor = ""; 
+                inputRFC.value = ""; // Clear value
+            }
+
+            // 3. Email (Lógica existente)
+            if(inputEmail) {
+                inputEmail.readOnly = false;
+                inputEmail.style.backgroundColor = "";
+                inputEmail.value = ""; // Clear value
+                if(emailHelper) emailHelper.style.display = 'none';
+            }
+
+            // 4. Selects (Departamento y Puesto)
+            if(inputDepto) inputDepto.disabled = false;
+            if(inputPuesto) inputPuesto.disabled = false;
+            
+            // 5. Hidden ID (Crucial for a clean state)
+            if(hiddenUserId) hiddenUserId.value = "";
+        }
 
             // --- LÓGICA CHECKBOX FACTURA Y CONCEPTO ---
             if(checkFactura && billingDetails) {

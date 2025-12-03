@@ -41,9 +41,14 @@ class InscripcionController extends Controller
         $puestos = Workstation::all();      
 
         // Obtener Anfitriones para el select
+        $ESTUDIANTE_ROLE_ID = 7; 
+        // Obtener Anfitriones para el select que NO sean estudiantes
         $usuariosAnfitriones = User::whereHas('roles', function($q) {
-            $q->where('roles.id', 4) // ID Rol Anfitrión
-              ->where('user_roles_institution.is_active', 1);
+            $q->where('roles.id', 4) // Debe tener rol Anfitrión (ID 4)
+            ->where('user_roles_institution.is_active', 1);
+        })->whereDoesntHave('roles', function($q) use ($ESTUDIANTE_ROLE_ID) {
+            // 🚨 EXCLUIR usuarios que tengan el rol de Estudiante (ID 7)
+            $q->where('roles.id', $ESTUDIANTE_ROLE_ID); 
         })->get();
 
         // Obtener Conceptos de Facturación Disponibles
