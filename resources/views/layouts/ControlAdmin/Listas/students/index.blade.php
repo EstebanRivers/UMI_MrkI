@@ -309,8 +309,8 @@
 
     /* ESTILO ESPECÍFICO: Aplica solo al Modal del Expediente (clase: expediente-modal) */
     .expediente-modal {
-        max-width: 600px; /* Tamaño reducido para el Expediente */
-        max-height: 80vh; 
+        max-width: 800px; /* Tamaño reducido para el Expediente */
+        max-height: 63vh; 
     }
     
     /* >>>>>>>>>>>>>>> NUEVA REGLA PARA EL TÍTULO DEL MODAL <<<<<<<<<<<<<<< */

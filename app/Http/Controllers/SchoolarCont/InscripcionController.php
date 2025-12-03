@@ -343,12 +343,14 @@ class InscripcionController extends Controller
                 Billing::create([
                     'factura_uid'       => $uidFinal,
                     'user_id'           => $user->id,
-                    'period_id'         => $periodoActivo->id,
-                    'concepto'          => $request->concepto ?? 'Reinscripción',
-                    'monto'             => $request->monto ?? 0,
-                    'fecha_vencimiento' => Carbon::now()->addDays(7),
-                    'status'            => 'Pendiente',
+                    'period_id'         => $request->period_id ?? $periodoActivo->id,
+                    'concepto'          => $request->concepto,
+                    'monto'             => $request->monto,
+                    'fecha_vencimiento' => Carbon::now(), 
+                    'status'            => $request->status,
                     'concept_type'      => 'RE',
+                    'archivo_path'      => $billingPaths['archivo'] ?? null,
+                    'xml_path'          => $billingPaths['archivo_xml'] ?? null,
                 ]);
             }
 
