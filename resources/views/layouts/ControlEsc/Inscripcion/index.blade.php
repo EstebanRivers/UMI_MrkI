@@ -423,273 +423,252 @@
                         <i class="fa-solid fa-save"></i> {{ isset($alumno) ? 'Guardar Reinscripción' : 'Registrar Aspirante' }}
                     </button>
                 </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
 
-    {{-- SCRIPTS LÓGICOS --}}
-    <script>
-        function ejecutarLogicaInscripcion() {
-            // ELEMENTOS GENERALES
-            const checkAnfitrion = document.getElementById('is_anfitrion');
-            const seccionLaboral = document.getElementById('seccion-laboral');
-            const containerBuscador = document.getElementById('container-buscador-usuarios');
-            const selectorUsuario = document.getElementById('user_selector');
-            const hiddenUserId = document.getElementById('existing_user_id');
-            const emailHelper = document.getElementById('email_helper');
-            
-            // ELEMENTOS DEL FORMULARIO
-            const inputNombre = document.getElementById('nombre');
-            const inputPat = document.getElementById('apellido_paterno');
-            const inputMat = document.getElementById('apellido_materno');
-            const inputEmail = document.getElementById('email');
-            const inputTel = document.getElementById('telefono');
-            const inputDepto = document.getElementById('department_id');
-            const inputPuesto = document.getElementById('workstation_id');
-
-            // ELEMENTOS FACTURACIÓN
-            const checkFactura = document.getElementById('generar_factura');
-            const billingDetails = document.getElementById('billing-details');
-            const conceptoSelect = document.getElementById('modal_concepto');
-            const montoVisible = document.getElementById('modal_monto_visible');
-            const montoHidden = document.getElementById('modal_monto');
-
-            // --- LÓGICA ANFITRION ---
-            if (checkAnfitrion && seccionLaboral) {
-                function toggleAnfitrion() {
-                    if (checkAnfitrion.checked) {
-                        seccionLaboral.style.display = 'block';
-                        seccionLaboral.style.opacity = 1; 
-                        if (containerBuscador) containerBuscador.style.display = 'block';
-                        
-                        // Si es trabajador, desmarcamos factura por defecto
-                        if(checkFactura && !checkFactura.dataset.userChanged) {
-                             checkFactura.checked = false;
-                             toggleFactura();
-                        }
-                    } else {
-                        seccionLaboral.style.display = 'none';
-                        if (containerBuscador) containerBuscador.style.display = 'none';
-                        // Limpiar campos laborales...
-                        if(inputDepto) inputDepto.value = "";
-                        if(inputPuesto) inputPuesto.value = "";
-                        if(selectorUsuario) selectorUsuario.value = "";
-                        if(hiddenUserId) hiddenUserId.value = "";
-                        limpiarCamposPersonales();
-                    }
-                }
-
-                // Selector Usuario Autocompletado
-                if (selectorUsuario) {
-                    selectorUsuario.addEventListener('change', function() {
-                        const opt = this.options[this.selectedIndex];
-                        
-                        // 1. Obtener el valor del RFC (DEBE SER EL PRIMERO)
-                        const rfcValue = opt.getAttribute('data-rfc'); 
-                        
-                        // Variables auxiliares para los selectores que deben estar declaradas en la función principal:
-                        const inputRFC = document.getElementById('inputRFC'); 
-                        const inputEmail = document.getElementById('email'); 
-                        const emailHelper = document.getElementById('email_helper');
-                        
-                        // --- FUNCIÓN CENTRAL DE BLOQUEO ---
-                        const setReadOnly = (inputElement, isReadOnly) => {
-                            if (inputElement) {
-                                if (inputElement.tagName === 'SELECT') {
-                                    // Para SELECTs, usamos 'disabled'
-                                    inputElement.disabled = isReadOnly;
-                                } else {
-                                    // Para INPUTs de texto, usamos 'readonly'
-                                    inputElement.readOnly = isReadOnly;
-                                }
-                                // Aplicar estilo visual de bloqueo
-                                inputElement.style.backgroundColor = isReadOnly ? "#e9ecef" : "";
-                            }
-                        };
-
-
-                        if (this.value) {
-                            // --- APLICACIÓN DE VALORES ---
-                            hiddenUserId.value = this.value;
-                            if(inputNombre) inputNombre.value = opt.getAttribute('data-nombre');
-                            if(inputPat) inputPat.value = opt.getAttribute('data-apellido_p');
-                            if(inputMat) inputMat.value = opt.getAttribute('data-apellido_m');
-                            if(inputTel) inputTel.value = opt.getAttribute('data-telefono');
-                            if(inputDepto) inputDepto.value = opt.getAttribute('data-department');
-                            if(inputPuesto) inputPuesto.value = opt.getAttribute('data-workstation');
-                            
-                            // RFC
-                            if (inputRFC && rfcValue) { 
-                                inputRFC.value = rfcValue; 
-                            } else if (inputRFC) {
-                                inputRFC.value = ""; // Limpiar si es nulo pero mantener el estado de anfitrión
-                            }
-                            
-                            // Email (usa la función central de bloqueo)
-                            if(inputEmail) {
-                                inputEmail.value = opt.getAttribute('data-email');
-                                if(emailHelper) emailHelper.style.display = 'block';
-                            }
-                            
-                            // --- BLOQUEO TOTAL ---
-                            setReadOnly(inputNombre, true);
-                            setReadOnly(inputPat, true);
-                            setReadOnly(inputMat, true);
-                            setReadOnly(inputRFC, true);
-                            setReadOnly(inputEmail, true);
-                            setReadOnly(inputDepto, true);
-                            setReadOnly(inputPuesto, true);
-
-                        } else {
-                            // --- DESBLOQUEO Y LIMPIEZA TOTAL ---
-                            hiddenUserId.value = "";
-                            limpiarCamposPersonales(); // Asume que esta función limpia campos
-                            
-                            // Desbloquear todos los campos al anular la selección
-                            setReadOnly(inputNombre, false);
-                            setReadOnly(inputPat, false);
-                            setReadOnly(inputMat, false);
-                            setReadOnly(inputTel, false);
-                            setReadOnly(inputRFC, false);
-                            setReadOnly(inputEmail, false);
-                            setReadOnly(inputDepto, false);
-                            setReadOnly(inputPuesto, false);
-                            
-                            // Limpieza específica de RFC y Email si no están en limpiarCamposPersonales()
-                            if (inputRFC) inputRFC.value = "";
-                            if (inputTel) inputTel.value = "";
-                            if (inputEmail) inputEmail.value = "";
-                            if(emailHelper) emailHelper.style.display = 'none';
-                        }
-                    });
-                }
-                
-                checkAnfitrion.addEventListener('change', toggleAnfitrion);
-                // Estado inicial
-                toggleAnfitrion();
-            }
-
-            function limpiarCamposPersonales() {
-            // 1. Inputs de Texto (Nombre, Apellidos, Teléfono)
-            if(inputNombre) { 
-                inputNombre.readOnly = false; 
-                inputNombre.style.backgroundColor = ""; 
-                inputNombre.value = ""; // Clear value
-            }
-            if(inputPat) { 
-                inputPat.readOnly = false; 
-                inputPat.style.backgroundColor = ""; 
-                inputPat.value = ""; // Clear value
-            }
-            if(inputMat) { 
-                inputMat.readOnly = false; 
-                inputMat.style.backgroundColor = ""; 
-                inputMat.value = ""; // Clear value
-            }
-            if(inputTel) { 
-                inputTel.readOnly = false; 
-                inputTel.style.backgroundColor = ""; 
-                inputTel.value = ""; // Clear value
-            }
-            
-            // 2. RFC (Asegurar desbloqueo y limpieza)
-            if(inputRFC) { 
-                inputRFC.readOnly = false; 
-                inputRFC.style.backgroundColor = ""; 
-                inputRFC.value = ""; // Clear value
-            }
-
-            // 3. Email (Lógica existente)
-            if(inputEmail) {
-                inputEmail.readOnly = false;
-                inputEmail.style.backgroundColor = "";
-                inputEmail.value = ""; // Clear value
-                if(emailHelper) emailHelper.style.display = 'none';
-            }
-
-            // 4. Selects (Departamento y Puesto)
-            if(inputDepto) inputDepto.disabled = false;
-            if(inputPuesto) inputPuesto.disabled = false;
-            
-            // 5. Hidden ID (Crucial for a clean state)
-            if(hiddenUserId) hiddenUserId.value = "";
-        }
-
-            // --- LÓGICA CHECKBOX FACTURA Y CONCEPTO ---
-            if(checkFactura && billingDetails) {
-                function toggleFactura() {
-                    if(checkFactura.checked) {
-                        billingDetails.style.display = 'block';
-                        checkFactura.dataset.userChanged = "true";
-                        
-                        // Añadir required dinámicamente
-                        if(conceptoSelect) conceptoSelect.required = true;
-                        if(montoHidden) montoHidden.required = true;
-                    } else {
-                        billingDetails.style.display = 'none';
-                        if(conceptoSelect) conceptoSelect.required = false;
-                        if(montoHidden) montoHidden.required = false;
-                    }
-                }
-                checkFactura.addEventListener('change', toggleFactura);
-                toggleFactura(); // Inicial
-
-                // Cambio de Concepto -> Monto
-                if(conceptoSelect && montoVisible && montoHidden){
-                    conceptoSelect.addEventListener('change', function() {
-                        const selectedOption = this.options[this.selectedIndex];
-                        const amount = selectedOption.getAttribute('data-amount');
-                        
-                        if(amount) {
-                            montoHidden.value = amount;
-                            // Formato Moneda
-                            const formatted = new Intl.NumberFormat('es-MX', {
-                                style: 'currency',
-                                currency: 'MXN'
-                            }).format(amount);
-                            montoVisible.value = formatted;
-                        } else {
-                            montoHidden.value = "";
-                            montoVisible.value = "";
-                        }
-                    });
-                }
-            }
-
-            // --- CÁLCULO EDAD ---
-            const inputFecha = document.getElementById('fecha_nacimiento');
-            const inputEdad = document.getElementById('edad');
-            if (inputFecha && inputEdad) {
-                function calcularEdad() {
-                    const fechaTexto = inputFecha.value;
-                    if (!fechaTexto) return;
-                    
-                    const partes = fechaTexto.split('-');
-                    // Ojo: Date constructor usa (año, mesIndex, dia) donde mes es 0-11
-                    const fechaNacimiento = new Date(partes[0], partes[1] - 1, partes[2]);
-                    const hoy = new Date();
-                    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
-                    const m = hoy.getMonth() - fechaNacimiento.getMonth();
-                    
-                    if (m < 0 || (m === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
-                        edad--;
-                    }
-                    inputEdad.value = (edad >= 0) ? edad : 0;
-                }
-
-                inputFecha.addEventListener('change', calcularEdad);
-                if(inputFecha.value) calcularEdad();
-            }
-        }
-
-        // Ejecutar inmediatamente
+<script>
+    // Se ejecuta una vez que el DOM está completamente cargado
+    document.addEventListener('DOMContentLoaded', function() {
         ejecutarLogicaInscripcion();
-
-        // Asegurar ejecución al cargar todo
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", ejecutarLogicaInscripcion);
+        
+        // Inicializar Select2 si está disponible
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+            $('.select2').select2();
         }
-    </script>
+    });
+
+    function ejecutarLogicaInscripcion() {
+        // ELEMENTOS GENERALES
+        const checkAnfitrion = document.getElementById('is_anfitrion');
+        const seccionLaboral = document.getElementById('seccion-laboral');
+        const containerBuscador = document.getElementById('container-buscador-usuarios');
+        const selectorUsuario = document.getElementById('user_selector');
+        const hiddenUserId = document.getElementById('existing_user_id');
+        const emailHelper = document.getElementById('email_helper');
+        
+        // ELEMENTOS PERSONALES Y LABORALES
+        const inputNombre = document.getElementById('nombre');
+        const inputPat = document.getElementById('apellido_paterno');
+        const inputMat = document.getElementById('apellido_materno');
+        const inputEmail = document.getElementById('email');
+        const inputTel = document.getElementById('telefono');
+        const inputRFC = document.getElementById('inputRFC');
+        const inputDepto = document.getElementById('department_id');
+        const inputPuesto = document.getElementById('workstation_id');
+        const inputFechaNac = document.getElementById('fecha_nacimiento');
+        const inputEdad = document.getElementById('edad');
+
+        // ELEMENTOS FACTURACIÓN
+        const checkFactura = document.getElementById('generar_factura');
+        const billingDetails = document.getElementById('billing-details');
+        const conceptoSelect = document.getElementById('modal_concepto');
+        const montoVisible = document.getElementById('modal_monto_visible');
+        const montoHidden = document.getElementById('modal_monto');
+
+
+        // --- FUNCIONES AUXILIARES ---
+
+        // 1. CONTROL DE SOLO LECTURA/BLOQUEO
+        const setReadOnly = (inputElement, isReadOnly) => {
+            if (inputElement) {
+                if (inputElement.tagName === 'SELECT') {
+                    inputElement.disabled = isReadOnly;
+                } else {
+                    inputElement.readOnly = isReadOnly;
+                }
+                inputElement.style.backgroundColor = isReadOnly ? "#e9ecef" : "";
+            }
+        };
+
+        // 2. LIMPIEZA DE CAMPOS PERSONALES Y LABORALES
+        function limpiarCamposPersonales() {
+            // Aplicar desbloqueo a todos los campos
+            setReadOnly(inputNombre, false);
+            setReadOnly(inputPat, false);
+            setReadOnly(inputMat, false);
+            setReadOnly(inputRFC, false);
+            setReadOnly(inputEmail, false);
+            setReadOnly(inputDepto, false);
+            setReadOnly(inputPuesto, false);
+            
+            // Limpiar valores (solo si no estamos en modo edición o si no hay old data)
+            if(!checkAnfitrion.checked || (checkAnfitrion.checked && selectorUsuario.value === "")) {
+                if(inputNombre) inputNombre.value = "";
+                if(inputPat) inputPat.value = "";
+                if(inputMat) inputMat.value = "";
+                if(inputDepto) inputDepto.value = "";
+                if(inputPuesto) inputPuesto.value = "";
+                if(inputRFC) inputRFC.value = "";
+                if(inputEmail) inputEmail.value = "";
+            }
+
+            if(inputEmail && emailHelper) emailHelper.style.display = 'none';
+            if(hiddenUserId) hiddenUserId.value = "";
+
+            // Limpiar campos laborales si se oculta la sección
+            if(inputDepto) inputDepto.value = "";
+            if(inputPuesto) inputPuesto.value = "";
+        }
+
+
+        // --- LÓGICA DE FACTURACIÓN (DESPLIEGUE DEL MENÚ) ---
+        // Esta función ahora muestra/oculta el bloque de detalles de la factura.
+        function toggleFactura() {
+            if (checkFactura && billingDetails) {
+                if (checkFactura.checked) {
+                    billingDetails.style.display = 'block';
+                } else {
+                    billingDetails.style.display = 'none';
+                }
+            }
+        }
+        
+        // Listener para el checkbox de Factura: establece que el usuario lo ha cambiado
+        if (checkFactura) {
+             checkFactura.addEventListener('change', function() {
+                this.dataset.userChanged = 'true'; // El usuario ha interactuado
+                toggleFactura();
+            });
+        }
+
+        // Listener para el selector de concepto: actualiza el monto
+        if (conceptoSelect) {
+            conceptoSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const amount = selectedOption.getAttribute('data-amount');
+                
+                if (montoVisible && montoHidden) {
+                    if (amount) {
+                        // Formatear el monto para visualización
+                        montoVisible.value = '$ ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                        montoHidden.value = amount; // Valor limpio para el backend
+                    } else {
+                        montoVisible.value = '$ 0.00';
+                        montoHidden.value = '';
+                    }
+                }
+            });
+        }
+
+
+        // --- LÓGICA ANFITRION (TOGGLE PRINCIPAL) ---
+        if (checkAnfitrion && seccionLaboral) {
+            function toggleAnfitrion() {
+                if (checkAnfitrion.checked) {
+                    // Caso Anfitrión: Mostrar datos laborales y buscador
+                    seccionLaboral.style.display = 'block';
+                    if (containerBuscador) containerBuscador.style.display = 'block';
+                    
+                    // Si es trabajador, desmarcamos factura por defecto y la habilitamos
+                    if (checkFactura) {
+                        checkFactura.disabled = false; // Habilitar para que pueda desmarcarla
+                        
+                        // Si el usuario no la ha cambiado manualmente, la desmarcamos (por defecto)
+                        if (!checkFactura.dataset.userChanged) {
+                            checkFactura.checked = false;
+                            toggleFactura(); 
+                        }
+                    }
+                    
+                } else {
+                    // Caso Estudiante Regular: Ocultar y Forzar Factura OBLIGATORIA
+                    seccionLaboral.style.display = 'none';
+                    if (containerBuscador) containerBuscador.style.display = 'none';
+                    
+                    // 🚨 FORZAR FACTURA OBLIGATORIA Y BLOQUEAR 🚨
+                    if (checkFactura) {
+                        checkFactura.checked = true; // Se marca obligatoriamente
+                        checkFactura.disabled = true; // Se bloquea para no desmarcar
+                        checkFactura.dataset.userChanged = 'false'; // Reseteamos, esto no es cambio de usuario
+                        toggleFactura(); // 🚨 Esto despliega el menú de detalles de facturación 🚨
+                    }
+
+                    // Limpieza y desbloqueo de campos personales/laborales
+                    limpiarCamposPersonales();
+                }
+            }
+
+            // Listener Anfitrión
+            checkAnfitrion.addEventListener('change', toggleAnfitrion);
+            
+            // Ejecución inicial para aplicar el estado al cargar la página
+            toggleAnfitrion();
+        }
+
+
+        // --- LÓGICA AUTOCOMPLETADO (Solo si es Anfitrión y selecciona) ---
+        if (selectorUsuario) {
+            selectorUsuario.addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
+                const rfcValue = opt.getAttribute('data-rfc'); 
+                
+                if (this.value) {
+                    // 1. APLICACIÓN DE VALORES
+                    hiddenUserId.value = this.value;
+                    if(inputNombre) inputNombre.value = opt.getAttribute('data-nombre');
+                    if(inputPat) inputPat.value = opt.getAttribute('data-apellido_p');
+                    if(inputMat) inputMat.value = opt.getAttribute('data-apellido_m');
+                    if(inputTel) inputTel.value = opt.getAttribute('data-telefono');
+                    if(inputDepto) inputDepto.value = opt.getAttribute('data-department');
+                    if(inputPuesto) inputPuesto.value = opt.getAttribute('data-workstation');
+
+                    // RFC
+                    if (inputRFC) { 
+                        inputRFC.value = rfcValue || ""; 
+                    }
+                    
+                    // Email y Helper
+                    if(inputEmail) {
+                        inputEmail.value = opt.getAttribute('data-email');
+                        if(emailHelper) emailHelper.style.display = 'block';
+                    }
+                    
+                    // 2. APLICAR BLOQUEO
+                    setReadOnly(inputNombre, true);
+                    setReadOnly(inputPat, true);
+                    setReadOnly(inputMat, true);
+                    setReadOnly(inputRFC, true);
+                    setReadOnly(inputEmail, true);
+                    setReadOnly(inputDepto, true);
+                    setReadOnly(inputPuesto, true);
+
+                } else {
+                    // Deselección: Limpia y desbloquea
+                    limpiarCamposPersonales(); 
+                    // Necesitamos re-aplicar el toggleAnfitrion para asegurar que los campos laborales se oculten/muestren correctamente.
+                    toggleAnfitrion();
+                }
+            });
+        }
+
+
+        // --- LÓGICA CÁLCULO DE EDAD ---
+        if (inputFechaNac && inputEdad) {
+            function calcularEdad() {
+                const fechaNac = inputFechaNac.value;
+                if (fechaNac) {
+                    const birthDate = new Date(fechaNac);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDifference = today.getMonth() - birthDate.getMonth();
+                    
+                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    inputEdad.value = age;
+                } else {
+                    inputEdad.value = '';
+                }
+            }
+
+            inputFechaNac.addEventListener('change', calcularEdad);
+            // Ejecutar al inicio por si hay un valor pre-cargado
+            calcularEdad();
+        }
+
+    }
+</script>
     
     @endif
 @endsection

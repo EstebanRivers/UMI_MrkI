@@ -97,6 +97,20 @@ class InscripcionController extends Controller
             $rules['email'] = 'required|email';
         }
 
+        // 🚨 LÓGICA DE NEGOCIO Y VALIDACIÓN DE FACTURACIÓN OBLIGATORIA 
+    $isAnfitrion = $request->has('is_anfitrion');
+    
+    if (!$isAnfitrion) {
+        // Si NO es Anfitrión (Estudiante Regular), la Factura es OBLIGATORIA
+        
+        if (!$request->has('generar_factura')) {
+            // Si el checkbox no fue marcado, detenemos la creación del alumno.
+            return back()->withInput()->withErrors([
+                'generar_factura' => 'La ficha de pago/factura es obligatoria para aspirantes que no son Anfitriones. Por favor, marque la casilla.',
+            ]);
+        }
+    }
+
         if ($request->has('generar_factura')) {
             $rules['period_id'] = 'required';
             $rules['concepto'] = 'required';

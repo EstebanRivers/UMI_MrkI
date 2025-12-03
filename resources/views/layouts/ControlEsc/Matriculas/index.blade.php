@@ -232,50 +232,87 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        // 1. OCULTAR MENSAJE DE ÉXITO AUTOMÁTICAMENTE (3 Segundos)
+    // --- Handlers separados para eliminar duplicados (Buena práctica en SPA) ---
+    function handleUploaderChange() {
+        if (this.files && this.files[0]) {
+            const label = document.querySelector(`label[for="${this.id}"]`);
+            if (label) label.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+            
+            const formId = this.getAttribute('data-form-id');
+            if (formId) document.getElementById(formId).submit();
+        }
+    }
+
+    function handleModalClick(e) {
+        if (e.target === document.getElementById('docViewerModal')) {
+            closeDocViewer();
+        }
+    }
+    
+    // --- FUNCIONES DEL MODAL (Globales para que el onclick funcione) ---
+    function openDocViewer(url, title) {
+        const modal = document.getElementById('docViewerModal');
+        if (modal) {
+            document.getElementById('docViewerFrame').src = url;
+            document.getElementById('docViewerTitle').innerText = 'Documento: ' + title;
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeDocViewer() {
+        const modal = document.getElementById('docViewerModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('docViewerFrame').src = ''; // Limpiar para detener carga
+        }
+    }
+
+    // -------------------------------------------------------------
+    // FUNCIÓN CENTRAL DE INICIALIZACIÓN (Reusable)
+    // -------------------------------------------------------------
+    function initializePageElements() {
+
+        // 1. OCULTAR MENSAJE DE ÉXITO AUTOMÁTICAMENTE
         const successAlert = document.getElementById('success-alert');
         if (successAlert) {
+            // Aplicar la lógica de opacidad y display que ya tenías
             setTimeout(function() {
-                successAlert.style.opacity = '0'; // Desvanecer
+                successAlert.style.opacity = '0';
                 setTimeout(() => {
-                    successAlert.style.display = 'none'; // Eliminar espacio
-                }, 500); // Esperar a que termine la transición
-            }, 3000); // 3000ms = 3 segundos
+                    successAlert.style.display = 'none';
+                }, 500);
+            }, 3000);
         }
 
         // 2. INICIALIZADOR DE UPLOADS (Auto-submit)
         const uploaders = document.querySelectorAll('.pdf-uploader');
         uploaders.forEach(input => {
-            input.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const label = document.querySelector(`label[for="${this.id}"]`);
-                    label.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
-                    const formId = this.getAttribute('data-form-id');
-                    document.getElementById(formId).submit();
-                }
-            });
+            // 🚨 IMPORTANTE: Remover el listener antes de agregarlo para evitar duplicados en navegaciones SPA/AJAX
+            input.removeEventListener('change', handleUploaderChange); 
+            input.addEventListener('change', handleUploaderChange);
         });
 
         // 3. CERRAR MODAL CON CLIC AFUERA
-        document.getElementById('docViewerModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDocViewer();
-            }
+        const docViewerModal = document.getElementById('docViewerModal');
+        if (docViewerModal) {
+            docViewerModal.removeEventListener('click', handleModalClick);
+            docViewerModal.addEventListener('click', handleModalClick);
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 🚨 PUNTO DE INICIALIZACIÓN (Asegura que se ejecute en F5 y en navegación AJAX) 🚨
+    // -------------------------------------------------------------
+    // 1. Inicialización en la carga inicial (F5 / DOMContentLoaded)
+    document.addEventListener('DOMContentLoaded', initializePageElements);
+
+    // 2. Si usas Livewire o PJAX, esta función se ejecutará después de cada componente cargado
+    if (window.Livewire) {
+        window.Livewire.hook('message.processed', (message, component) => {
+            // Re-inicializa todos los eventos después de que Livewire haya procesado el DOM
+            initializePageElements();
         });
-    });
+    } 
 
-    // FUNCIONES DEL MODAL (Globales para que el onclick funcione)
-    function openDocViewer(url, title) {
-        document.getElementById('docViewerFrame').src = url;
-        document.getElementById('docViewerTitle').innerText = 'Documento: ' + title;
-        document.getElementById('docViewerModal').style.display = 'flex';
-    }
-
-    function closeDocViewer() {
-        document.getElementById('docViewerModal').style.display = 'none';
-        document.getElementById('docViewerFrame').src = ''; // Limpiar para detener carga
-    }
 </script>
 @endsection
