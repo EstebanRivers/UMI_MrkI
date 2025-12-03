@@ -206,25 +206,35 @@ class InscripcionController extends Controller
             $mensajeExtra = "";
             if ($request->has('generar_factura')) {
                 
-                // Subir archivos de factura si existen
-                $billingPaths = $this->subirArchivosFactura($request, $user->id);
+                // 1. GENERAR UID ROBUSTO (INS)
+            $fechaHoy = now()->format('Ymd'); 
+            $baseUid = 'INS-' . $fechaHoy;   
 
-                Billing::create([
-                    'user_id'           => $user->id,
-                    'period_id'         => $request->period_id, // Tomado del select
-                    'factura_uid'       => 'INS-' . strtoupper(uniqid()),
-                    'concepto'          => $request->concepto, // Tomado del select
-                    'monto'             => $request->monto,    // Tomado del input hidden
-                    'fecha_vencimiento' => Carbon::now()->addDays(7),
-                    'status'            => $request->status,   // Tomado del select
-                    'description'       => 'Generado desde Registro de Inscripción.',
-                    'archivo_path'      => $billingPaths['archivo'] ?? null,
-                    'xml_path'          => $billingPaths['archivo_xml'] ?? null,
-                ]);
-                $mensajeExtra = " Ficha de pago generada.";
-            } else {
-                $mensajeExtra = " No se generó ficha de pago (Opción desmarcada).";
-            }
+            $ultimo = Billing::withTrashed() // Importante: Incluir borrados
+                             ->where('factura_uid', 'like', $baseUid . '%')
+                             ->orderBy('id', 'desc')
+                             ->first();
+
+            $consecutivo = $ultimo ? intval(substr($ultimo->factura_uid, -6)) + 1 : 1;
+            $uidFinal = $baseUid . str_pad($consecutivo, 6, '0', STR_PAD_LEFT);
+
+            // 2. GUARDAR
+            $billingPaths = $this->subirArchivosFactura($request, $user->id);
+
+            Billing::create([
+                'factura_uid'       => $uidFinal, // <--- NUEVO UID
+                'user_id'           => $user->id,
+                'period_id'         => $periodoSeleccionado->id,
+                'concepto'          => $request->concepto,
+                'monto'             => $request->monto,
+                'fecha_vencimiento' => Carbon::now(), // INS VENCE HOY (URGENTE)
+                'status'            => $request->status,
+                'concept_type'      => 'INS', // TIPO EXPLÍCITO
+                'archivo_path'      => $billingPaths['archivo'] ?? null,
+                'xml_path'          => $billingPaths['archivo_xml'] ?? null,
+            ]);
+            $mensajeExtra = " Ficha de pago generada (Folio: $uidFinal).";
+        }
 
             DB::commit();
             return redirect()->route('escolar.students.index')
@@ -310,26 +320,31 @@ class InscripcionController extends Controller
 
             // 4. FACTURACIÓN DINÁMICA
             $mensajeExtra = "";
-            if ($request->has('generar_factura')) {
-                // Subir archivos de factura si existen
-                $billingPaths = $this->subirArchivosFactura($request, $user->id);
+            if ($request->has('generar_cobro_reinscripcion')) {
+             
+            // 1. GENERAR UID ROBUSTO (RE)
+            $fechaHoy = now()->format('Ymd'); 
+            $baseUid = 'RE-' . $fechaHoy;   
 
-                Billing::create([
-                    'user_id'           => $user->id,
-                    'period_id'         => $request->period_id,
-                    'factura_uid'       => 'RE-' . strtoupper(uniqid()),
-                    'concepto'          => $request->concepto,
-                    'monto'             => $request->monto,
-                    'fecha_vencimiento' => Carbon::now()->addDays(5),
-                    'status'            => $request->status,
-                    'description'       => 'Generado desde Reinscripción.',
-                    'archivo_path'      => $billingPaths['archivo'] ?? null,
-                    'xml_path'          => $billingPaths['archivo_xml'] ?? null,
-                ]);
-                $mensajeExtra = " Ficha de reinscripción generada.";
-            } else {
-                 $mensajeExtra = " No se generó cobro (Opción desmarcada).";
-            }
+            $ultimo = Billing::withTrashed()
+                             ->where('factura_uid', 'like', $baseUid . '%')
+                             ->orderBy('id', 'desc')
+                             ->first();
+
+            $consecutivo = $ultimo ? intval(substr($ultimo->factura_uid, -6)) + 1 : 1;
+            $uidFinal = $baseUid . str_pad($consecutivo, 6, '0', STR_PAD_LEFT);
+
+            Billing::create([
+                'factura_uid'       => $uidFinal,
+                'user_id'           => $user->id,
+                'period_id'         => $periodoActivo->id,
+                'concepto'          => $request->concepto,
+                'monto'             => $request->monto,
+                'fecha_vencimiento' => Carbon::now()->addDays(7), // RE TIENE 7 DÍAS DE GRACIA
+                'status'            => 'Pendiente',
+                'concept_type'      => 'RE', // TIPO NO CRÍTICO
+            ]);
+        }
 
             DB::commit();
             return redirect()->route('escolar.students.index')->with('success', 'Reinscripción procesada.' . $mensajeExtra);
