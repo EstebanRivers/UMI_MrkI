@@ -14,7 +14,7 @@
   align-items: center;
   margin-bottom: 25px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
+ /*  border-bottom: 1px solid #e0e0e0; */
 }
 
 .main-header h1 {
@@ -102,6 +102,7 @@
   text-align: left;
   border-bottom: 1px solid #dee2e6; 
   vertical-align: middle; 
+  text-align: center;
 }
 
 /* --- Cabecera de la Tabla (th) --- */
@@ -166,18 +167,17 @@
   display: flex;
   gap: 8px; 
   align-items: center;
+  justify-content: center;
 }
 
 /* --- Estilo para la miniatura del logo en la tabla --- */
 .table-logo {
     width: 80px;  
     height: 40px; 
-
-    
     object-fit: contain; 
-
     border-radius: 4px; 
     background-color: #f8f9fa; 
+    vertical-align: middle;
 }
 
 .btn-icon {
@@ -229,7 +229,7 @@
   border-bottom-right-radius: 11px;
 }
 
-/* Estilos básicos para los enlaces de paginación (ajusta según el framework) */
+
 .pagination-container nav span,
 .pagination-container nav a {
   padding: 8px 12px;
@@ -354,12 +354,12 @@ input:checked + .slider:before {
     margin-right: 0; 
 }
 
-/* --- Color Mostaza/Bronce para el botón de "Ver" --- */
+
 .btn-view img {
 
-    width: 20px;  /* <--- AUMENTADO (Antes era 16px o 18px) */
-    height: 20px; /* <--- AUMENTADO */
-    /* Este filtro da el tono exacto de tu imagen (aprox. #BC8A55) */
+    width: 20px;  
+    height: 20px; 
+    
     filter: invert(66%) sepia(35%) saturate(695%) hue-rotate(348deg) brightness(89%) contrast(87%);
     
     transition: transform 0.2s;
@@ -368,9 +368,9 @@ input:checked + .slider:before {
 /* --- Botón Eliminar (Icono Rojo con Filtro) --- */
 
 .btn-delete {
-    background: transparent; /* Sin fondo */
-    border: none;            /* Sin bordes */
-    box-shadow: none;        /* Sin sombras */
+    background: transparent; 
+    border: none;            
+    box-shadow: none;        
     padding: 5px;
     cursor: pointer;
     
@@ -379,22 +379,22 @@ input:checked + .slider:before {
     justify-content: center;
 }
 
-/* Aplicamos el filtro a la imagen o svg dentro del botón */
+
 .btn-delete img, 
 .btn-delete svg {
-    width: 25px; /* Ajusta el tamaño si lo ves muy chico o grande */
+    width: 25px; 
     height: 25px;
     
-    /* Este filtro convierte el NEGRO a ROJO (#dc3545) */
+    
     filter: invert(28%) sepia(51%) saturate(2755%) hue-rotate(340deg) brightness(92%) contrast(93%);
     
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
-/* Efecto al pasar el mouse: Se hace un poco más grande y rojo más intenso */
+
 .btn-delete:hover img, 
 .btn-delete:hover svg {
     transform: scale(1.2);
-    /* Rojo más oscuro/intenso al hover */
+   
     filter: invert(16%) sepia(98%) saturate(7431%) hue-rotate(358deg) brightness(92%) contrast(116%);
 }
