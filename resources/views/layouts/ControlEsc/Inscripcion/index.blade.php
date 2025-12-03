@@ -428,15 +428,10 @@
         </div>
 
 <script>
-    // Se ejecuta una vez que el DOM está completamente cargado
-    document.addEventListener('DOMContentLoaded', function() {
-        ejecutarLogicaInscripcion();
-        
-        // Inicializar Select2 si está disponible
-        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-            $('.select2').select2();
-        }
-    });
+
+
+
+
 
     function ejecutarLogicaInscripcion() {
         // ELEMENTOS GENERALES
@@ -668,7 +663,9 @@
         }
 
     }
+    ejecutarLogicaInscripcion();
+
 </script>
     
-    @endif
+@endif
 @endsection

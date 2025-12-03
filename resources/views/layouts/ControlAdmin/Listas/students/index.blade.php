@@ -334,7 +334,7 @@
 
 {{-- SCRIPTS --}}
 <script>
-    // --- 1. FUNCIONES DEL VISOR (NIVEL 2) ---
+    // --- 1. FUNCIONES DEL VISOR (NIVEL 2) - MOVIDAS AL ÁMBITO GLOBAL ---
     function openDocViewer(url, title) {
         if (!url || url === '') return;
         document.getElementById('docViewerFrame').src = url;
@@ -347,7 +347,7 @@
         document.getElementById('docViewerFrame').src = ""; 
     }
 
-    // --- 2. FUNCIONES DEL EXPEDIENTE (NIVEL 1) ---
+    // --- 2. FUNCIONES DEL EXPEDIENTE (NIVEL 1) - MOVIDAS AL ÁMBITO GLOBAL ---
     function openStudentDetails(name, email, phone, career, semester, status, matricula, docActa, docCert, docCurp, docIne) {
         
         // Llenar textos
@@ -390,6 +390,24 @@
     function closeStudentDetails() {
         document.getElementById('studentDetailsModal').style.display = 'none';
     }
+    
+    // --- 3. FUNCIÓN DE INICIALIZACIÓN (Mantiene la ejecución en el scope local) ---
+    function ejecutarLogicaListaAlumnos() {
+        // Aquí iría cualquier listener o inicialización de variables que solo necesiten ejecutarse una vez, 
+        // pero NO las definiciones de las funciones que deben ser globales.
+        console.log("Listeners inicializados."); 
+    }
+    
+    // --- 4. PUNTO DE ENTRADA ---
+    document.addEventListener('DOMContentLoaded', ejecutarLogicaListaAlumnos);
+    
+    // Si estás usando Livewire/AJAX, también deberías inicializar:
+    if (window.Livewire) {
+        window.Livewire.hook('message.processed', () => {
+            ejecutarLogicaListaAlumnos();
+        });
+    }
+
 </script>
 
 @endsection
