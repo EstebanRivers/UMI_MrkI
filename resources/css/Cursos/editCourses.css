@@ -1,0 +1,133 @@
+.create-course-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background: #ECF0F1;
+    border-radius: 12px;
+}
+
+.page-title {
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-error ul {
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.section-title {
+    font-size: 22px;
+    margin: 20px 0 10px;
+    color: #333;
+}
+
+.btn-submit {
+    background: #223F70;
+    color: white;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    transition: .2s;
+}
+
+.btn-submit:hover {
+    background: #cf8226;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.file-upload-label {
+    border: 2px dashed #9c9c9c;
+    color: #555;
+    padding: 12px;
+    border-radius: 10px;
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.file-upload-label:hover {
+    border-color: #BC8A55;
+    color: #BC8A55;
+    background: rgba(188,138,85,0.08);
+}
+
+.file-name {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #444;
+    font-style: italic;
+}
+
+.preview-img {
+    max-width: 200px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+.btn-secondary {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #6c757d;
+    color: white;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: .2s;
+}
+
+.btn-secondary:hover {
+    background: #565e64;
+}
+
+.current-file-box {
+    margin-bottom: 10px;
+}
+
+.replace-label {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+}
