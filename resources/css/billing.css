@@ -539,3 +539,12 @@ button.btn-sm-add {
 ::-webkit-scrollbar-thumb:hover {
     background: #1a3158; /* Un poco más oscuro al pasar el mouse */
 }
+/* =========================================
+   9. Estilos adicionales para la sección de usuarios en el acordeón
+   ========================================= */
+.user-container {
+    display: flex;
+    align-items: center;
+    /* Controla el espacio entre elementos directamente */
+    gap: 15px; 
+}

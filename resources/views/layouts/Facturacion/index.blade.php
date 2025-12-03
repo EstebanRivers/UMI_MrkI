@@ -80,9 +80,9 @@
                                     @endif
                                     <details id="factura-target-user-{{ $u->id }}-period-{{ $period->id }}">
                                         <summary>
-                                            <div>
-                                                <span class="user-name">{{ $u->nombre }} {{ $u->apellido_paterno }}</span>
-                                                <span class="user-email">{{ $u->email }}</span>
+                                        <div class="user-container">
+                                            <span class="user-name">{{ $u->nombre }} {{ $u->apellido_paterno }} {{ $u->apellido_materno }}</span>
+                                            <span class="user-email">{{ $u->email }}</span>
                                             </div>
                                             <div>
                                                 <span class="user-role">{{ $u->roles->pluck('display_name')->join(', ') }}</span>
