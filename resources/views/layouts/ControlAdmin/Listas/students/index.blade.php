@@ -19,8 +19,8 @@
             {{-- Formulario de búsqueda funcional --}}
             <form action="{{ request()->url() }}" method="GET" style="width: 100%;">
                 <input type="text" name="search" id="search" class="umi-search-input" 
-                       placeholder="Buscar por Nombre, Matrícula o Correo..." 
-                       value="{{ request('search') }}">
+                        placeholder="Buscar por Nombre, Matrícula o Correo..." 
+                        value="{{ request('search') }}">
             </form>
         </div>
 
@@ -82,7 +82,6 @@
 
                             <td style="font-weight: 700;">
                                 {{ $user->nombre }}
-
                             </td>
                             <td style="font-weight: 700;">{{ $user->apellido_paterno }}</td>
                             <td style="font-weight: 700;">{{ $user->apellido_materno }}</td>
@@ -143,13 +142,13 @@
                                             '{{ $user->academicProfile->doc_curp ? Storage::url($user->academicProfile->doc_curp) : '' }}',
                                             '{{ $user->academicProfile->doc_ine ? Storage::url($user->academicProfile->doc_ine) : '' }}'
                                         )">
-                                        <img src="{{ asset('images/icons/eye-solid-full.svg') }}" alt="Ver" style="width: 16px;">
+                                        <img src="{{ asset('images/icons/eye-solid-full.svg') }}" alt="Ver">
                                     </button>
                                     
                                     {{-- 2. EDITAR --}}
                                     <a href="{{ request()->routeIs('control.*') ? route('control.students.edit', $user->id) : route('escolar.students.edit', $user->id) }}" 
-                                       class="btn-icon"
-                                       title="Editar / Asignar Contraseña">
+                                        class="btn-icon"
+                                        title="Editar / Asignar Contraseña">
                                         <img src="{{ asset('images/icons/pen-to-square-solid-full.svg') }}" alt="Editar">
                                     </a>
                                     
@@ -183,10 +182,10 @@
 </div>
 
 {{-- ========================================================= --}}
-{{-- MODAL 1: DETALLES DEL ALUMNO (EXPEDIENTE)                 --}}
+{{-- MODAL 1: DETALLES DEL ALUMNO (EXPEDIENTE)                 --}}
 {{-- ========================================================= --}}
 <div id="studentDetailsModal" class="modal-overlay" style="display: none; z-index: 9999;">
-    <div class="modal-container">
+    <div class="modal-container expediente-modal"> 
         <div class="modal-header">
             <h3>📂 Expediente del Alumno</h3>
             <button type="button" class="modal-close" onclick="closeStudentDetails()">&times;</button>
@@ -242,7 +241,7 @@
                         <button id="btnDocActa" class="doc-btn hidden"><i class="fa-solid fa-file-pdf"></i> Acta de Nacimiento</button>
                         <button id="btnDocCert" class="doc-btn hidden"><i class="fa-solid fa-file-certificate"></i> Certificado Prepa</button>
                         <button id="btnDocCurp" class="doc-btn hidden"><i class="fa-solid fa-passport"></i> CURP</button>
-                        <button id="btnDocIne"  class="doc-btn hidden"><i class="fa-solid fa-id-card"></i> INE</button>
+                        <button id="btnDocIne" class="doc-btn hidden"><i class="fa-solid fa-id-card"></i> INE</button>
                         
                         <div id="noDocsMsg" class="no-docs" style="display:none;">
                             No hay documentos digitales cargados.
@@ -255,7 +254,7 @@
 </div>
 
 {{-- ========================================================= --}}
-{{-- MODAL 2: VISOR DE DOCUMENTOS (ENCIMA DEL PRIMER MODAL)    --}}
+{{-- MODAL 2: VISOR DE DOCUMENTOS (ENCIMA DEL PRIMER MODAL)    --}}
 {{-- ========================================================= --}}
 <div id="docViewerModal" class="modal-overlay" style="display: none; z-index: 10000;">
     <div class="modal-container" style="height: 90vh; width: 80%; max-width: 1000px;">
@@ -277,6 +276,7 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
+    /* Se asume que var(--umi-blue-dark) es el color institucional */
     background-color: var(--umi-blue-dark);
     color: #FFFFFF;
     border: none;
@@ -291,9 +291,48 @@
     white-space: nowrap; 
 }
 .umi-btn-secondary:hover { background-color: #1a3055; transform: translateY(-1px); }
-    /* Estilos Modales y Visor */
+
+    /* Estilos generales de los modales (overlay, cerrar, etc.) */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
-    .modal-container { background: white; width: 90%; max-width: 800px; border-radius: 12px; display: flex; flex-direction: column; max-height: 90vh; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+    
+    /* ESTILO BASE/GRANDE: Aplica al Modal del Visor de Documentos (y como fallback) */
+    .modal-container { 
+        background: white; 
+        width: 90%; 
+        max-width: 800px; 
+        border-radius: 12px; 
+        display: flex; 
+        flex-direction: column; 
+        max-height: 90vh; 
+        box-shadow: 0 15px 30px rgba(0,0,0,0.3); 
+    }
+
+    /* ESTILO ESPECÍFICO: Aplica solo al Modal del Expediente (clase: expediente-modal) */
+    .expediente-modal {
+        max-width: 600px; /* Tamaño reducido para el Expediente */
+        max-height: 80vh; 
+    }
+    
+    /* >>>>>>>>>>>>>>> NUEVA REGLA PARA EL TÍTULO DEL MODAL <<<<<<<<<<<<<<< */
+    /* Se aplica el color azul oscuro institucional al título H3 del Expediente */
+    .expediente-modal .modal-header h3 {
+        color: var(--umi-blue-dark, #223F70); /* Usa la variable si existe, sino un azul oscuro seguro */
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    /* Media Query para pantallas pequeñas */
+    @media (max-width: 650px) {
+        .details-grid {
+            grid-template-columns: 1fr; 
+        }
+        .expediente-modal {
+            max-height: 90vh; 
+            width: 95%;
+        }
+    }
+    
+    /* Estilos de elementos internos restantes */
     .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; border-radius: 12px 12px 0 0; }
     .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
     .modal-body-scroll { padding: 25px; overflow-y: auto; flex: 1; }
@@ -317,11 +356,11 @@
     .student-summary { display: flex; align-items: center; gap: 15px; }
     .avatar-placeholder { width: 50px; height: 50px; background: #e0e0e0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; color: white; }
     
-    /* ALINEACIÓN HEADER (SOLICITADA) */
+    /* ALINEACIÓN HEADER */
     .student-info-header {
-        display: flex;           /* Pone los elementos en fila */
-        align-items: center;     /* Los centra verticalmente */
-        gap: 15px;               /* Espacio entre el nombre y el badge */
+        display: flex; 
+        align-items: center; 
+        gap: 15px; 
     }
     .student-info-header h2 {
         margin: 0; font-size: 1.4rem; color: #2c3e50;
@@ -330,8 +369,8 @@
     .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
     .detail-item { margin-bottom: 12px; }
     .detail-item label { font-weight: 600; color: #7f8c8d; width: 80px; display: inline-block; }
+    
 </style>
-
 {{-- SCRIPTS --}}
 <script>
     // --- 1. FUNCIONES DEL VISOR (NIVEL 2) - MOVIDAS AL ÁMBITO GLOBAL ---
