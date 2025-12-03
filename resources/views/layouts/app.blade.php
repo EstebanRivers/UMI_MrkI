@@ -96,49 +96,71 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(mainContent, { childList: true, subtree: true });
     }
 
-    /* ============================================================
-       3. VALIDACIÓN FORMULARIO (Modal Factura)
-    ============================================================ */
-    const formFactura = document.getElementById('formFacturaModal');
-    if (formFactura) {
-        formFactura.addEventListener('submit', function(e) {
-            let valid = true;
-            let errorMessage = '';
+/* ============================================================
+    3. VALIDACIÓN FORMULARIO (Modal Factura)
+============================================================ */
+const formFactura = document.getElementById('formFacturaModal');
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB en bytes (5120 KB * 1024)
 
-            // PDF (Opcional)
-            const pdfInput = document.getElementById('modal_archivo_pdf');
-            if (pdfInput && pdfInput.files.length > 0 && !pdfInput.files[0].name.toLowerCase().endsWith('.pdf')) {
+if (formFactura) {
+    formFactura.addEventListener('submit', function(e) {
+        let valid = true;
+        let errorMessage = '';
+
+        // --- 1. VALIDACIÓN PDF (Opcional: Tipo y Tamaño) ---
+        const pdfInput = document.getElementById('modal_archivo_pdf');
+        if (pdfInput && pdfInput.files.length > 0) {
+            const pdfFile = pdfInput.files[0];
+            
+            if (!pdfFile.name.toLowerCase().endsWith('.pdf')) {
                 valid = false;
-                errorMessage = 'El archivo debe ser formato PDF (.pdf)';
+                errorMessage = 'El archivo PDF debe ser formato PDF (.pdf)';
+            } 
+            // 🚨 VALIDACIÓN DE TAMAÑO PDF
+            else if (pdfFile.size > MAX_FILE_SIZE) { 
+                valid = false;
+                errorMessage = 'El archivo PDF es demasiado grande. Máximo permitido: 5 MB.';
             }
+        }
 
-            // XML (Opcional)
-            if (valid) {
-                const xmlInput = document.getElementById('modal_archivo_xml');
-                if (xmlInput && xmlInput.files.length > 0 && !xmlInput.files[0].name.toLowerCase().endsWith('.xml')) {
+        // --- 2. VALIDACIÓN XML (Opcional: Tipo y Tamaño) ---
+        if (valid) {
+            const xmlInput = document.getElementById('modal_archivo_xml');
+            if (xmlInput && xmlInput.files.length > 0) {
+                const xmlFile = xmlInput.files[0];
+
+                if (!xmlFile.name.toLowerCase().endsWith('.xml')) {
                     valid = false;
-                    errorMessage = 'El archivo debe ser formato XML (.xml)';
+                    errorMessage = 'El archivo XML debe ser formato XML (.xml)';
+                } 
+                // 🚨 VALIDACIÓN DE TAMAÑO XML
+                else if (xmlFile.size > MAX_FILE_SIZE) { 
+                    valid = false;
+                    errorMessage = 'El archivo XML es demasiado grande. Máximo permitido: 5 MB.';
                 }
             }
+        }
 
-            // Monto
-            if (valid) {
-                const montoEl = document.getElementById('modal_monto');
-                if (montoEl) {
-                    const montoVal = montoEl.value;
-                    if (!montoVal || parseFloat(montoVal) <= 0) {
-                        valid = false;
-                        errorMessage = 'El monto no es válido. Selecciona un concepto nuevamente.';
-                    }
+        // --- 3. VALIDACIÓN Monto ---
+        if (valid) {
+            const montoEl = document.getElementById('modal_monto');
+            if (montoEl) {
+                const montoVal = montoEl.value;
+                if (!montoVal || parseFloat(montoVal) <= 0) {
+                    valid = false;
+                    errorMessage = 'El monto no es válido. Selecciona un concepto nuevamente.';
                 }
             }
+        }
 
-            if (!valid) {
-                e.preventDefault();
-                Swal.fire({ icon: 'error', title: 'Datos Incorrectos', text: errorMessage, confirmButtonColor: '#d33' });
-            }
-        });
-    }
+        // --- PREVENCIÓN DE ENVÍO ---
+        if (!valid) {
+            e.preventDefault();
+            // Usando Swal.fire, asumiendo que ya está importado
+            Swal.fire({ icon: 'error', title: 'Datos Incorrectos', text: errorMessage, confirmButtonColor: '#d33' });
+        }
+    });
+}
 
     /* ============================================================
        4. PRECIOS AUTOMÁTICOS

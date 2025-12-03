@@ -229,14 +229,14 @@ class BillingController extends Controller
             'concepto'    => 'required|string|max:255',
             'monto'       => 'required|numeric|min:0',
             'fecha'       => 'required|date', 
-            'archivo'     => 'nullable|file|mimes:pdf|max:2048',
+            'archivo'     => 'nullable|file|mimes:pdf|max:5120',
             'status'      => 'required|in:Pendiente,Pagada',
             'user_id'     => 'required|exists:users,id',
             'period_id'   => 'required|exists:periods,id',
-            'archivo_xml' => 'nullable|file|mimes:xml|max:2048',
+            'archivo_xml' => 'nullable|file|mimes:xml|max:5120',
             'uid_prefix'  => 'nullable|string' // Recibimos MEN- o EXT- del hidden input
         ]);
-
+        
         // A. OBTENER PREFIJO (EXT- o MEN-)
         $prefix = $request->input('uid_prefix', 'FAC-'); 
 
