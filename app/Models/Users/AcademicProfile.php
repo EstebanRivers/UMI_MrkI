@@ -21,8 +21,7 @@ class AcademicProfile extends Model
         'status',
         'career_id',      
         'departamento',   
-        'is_anfitrion',  
-     
+        'is_anfitrion',    
         'doc_acta_nacimiento',
         'doc_certificado_prepa',
         'doc_curp',
@@ -31,6 +30,7 @@ class AcademicProfile extends Model
         'modules',
         'rol',
         'matricula',
+        'documentoSEP_path'
     ];
 
     protected $casts = [

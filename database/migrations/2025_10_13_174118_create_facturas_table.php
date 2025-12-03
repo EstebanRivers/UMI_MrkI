@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('monto', 10, 2);
             $table->date('fecha_vencimiento');
             $table->string('archivo_path')->nullable();
-            $table->enum('status', ['Pendiente', 'Pagada'])->default('Pendiente');
+            $table->enum('status', ['Pendiente', 'Abonado', 'Pagada'])->default('Pendiente');
             $table->timestamps();
         });
     }

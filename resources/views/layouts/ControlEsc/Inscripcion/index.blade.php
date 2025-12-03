@@ -8,7 +8,7 @@
 
     {{-- 1. BLOQUE DE ERROR (CANDADO) --}}
     @if(session('error'))
-<div class="umi-error-card">
+        <div class="umi-error-card">
             <h1><i class="fa-solid fa-lock"></i></h1>
             
             <h3>
@@ -25,9 +25,9 @@
                 </a>
             @endif
         </div> 
+    
     {{-- 2. SI NO HAY ERROR, MOSTRAMOS EL FORMULARIO --}}
     @else
-        <div class="form-container">
     <div class="form-container">
         <div class="header-section">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -61,6 +61,7 @@
             <form method="POST" 
                   action="{{ isset($alumno) ? route('escolar.inscripcion.update', $alumno->id) : route('escolar.inscripcion.store') }}" 
                   class="registration-form" 
+                  id="inscriptionForm"
                   enctype="multipart/form-data">
                 
                 @csrf
@@ -88,6 +89,32 @@
                         <label for="is_anfitrion" style="margin: 0; cursor: pointer; font-weight: 600; color: #2c3e50;">
                             ¿Es Anfitrión? (Colaborador de Mundo Imperial)
                         </label>
+                    </div>
+
+                    {{-- SELECTOR DE USUARIOS EXISTENTES (Solo visible si es anfitrión) --}}
+                    <div id="container-buscador-usuarios" class="form-field" style="display: none;">
+                        <label style="color: #2980b9; font-weight: bold;"><i class="fa-solid fa-magnifying-glass"></i> Buscar Anfitrión Existente</label>
+                        <select id="user_selector" class="select2" style="width: 100%; padding: 8px;">
+                            <option value="">-- Seleccionar para Autocompletar --</option>
+                            @if(isset($usuariosAnfitriones))
+                                @foreach($usuariosAnfitriones as $u)
+                                    <option value="{{ $u->id }}" 
+                                        data-nombre="{{ $u->nombre }}" 
+                                        data-apellido_p="{{ $u->apellido_paterno }}" 
+                                        data-apellido_m="{{ $u->apellido_materno }}"
+                                        data-email="{{ $u->email }}"
+                                        data-telefono="{{ $u->telefono }}"
+                                        data-workstation="{{ $u->workstation_id }}"
+                                        data-department="{{ $u->department_id }}"
+                                        data-rfc="{{ $u->RFC }}"> {{ $u->nombre }} {{ $u->apellido_paterno }} - ({{ $u->email }})
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <small style="color: #666;">Selecciona un usuario para cargar sus datos automáticamente y vincularlo.</small>
+                        
+                        {{-- INPUT OCULTO: Aquí guardaremos el ID si seleccionan a alguien --}}
+                        <input type="hidden" name="existing_user_id" id="existing_user_id" value="">
                     </div>
                 </div>
 
@@ -126,30 +153,36 @@
                 <div class="form-group-triple">
                     <div class="form-field">
                         <label>Nombre(s)</label>
-                        <input type="text" name="nombre" value="{{ old('nombre', $alumno->nombre ?? '') }}" required placeholder="Ej. Juan Pablo">
+                        <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $alumno->nombre ?? '') }}" required placeholder="Ej. Juan Pablo">
                     </div>
                     <div class="form-field">
                         <label>Apellido Paterno</label>
-                        <input type="text" name="apellido_paterno" value="{{ old('apellido_paterno', $alumno->apellido_paterno ?? '') }}" required>
+                        <input type="text" name="apellido_paterno" id="apellido_paterno" value="{{ old('apellido_paterno', $alumno->apellido_paterno ?? '') }}" required>
                     </div>
                     <div class="form-field">
                         <label>Apellido Materno</label>
-                        <input type="text" name="apellido_materno" value="{{ old('apellido_materno', $alumno->apellido_materno ?? '') }}" required>
+                        <input type="text" name="apellido_materno" id="apellido_materno" value="{{ old('apellido_materno', $alumno->apellido_materno ?? '') }}" required>
                     </div>
                 </div>
 
                 <div class="form-group-triple">
                     <div class="form-field">
                         <label>Email Personal</label>
-                        <input type="email" name="email" value="{{ old('email', $alumno->email ?? '') }}" required>
+                        <input type="email" name="email" id="email" value="{{ old('email', $alumno->email ?? '') }}" required>
+                        <small id="email_helper" style="display:none; color: #2980b9;">Este email está vinculado a la cuenta existente.</small>
                     </div>
                     <div class="form-field">
                         <label>Teléfono Celular</label>
-                        <input type="text" name="telefono" value="{{ old('telefono', $alumno->telefono ?? '') }}" required>
+                        <input type="text" name="telefono" id="telefono" value="{{ old('telefono', $alumno->telefono ?? '') }}" required>
                     </div>
                     <div class="form-field">
                         <label>RFC <small>(Opcional)</small></label>
-                        <input type="text" name="RFC" value="{{ old('RFC', $alumno->RFC ?? '') }}" placeholder="Generación automática si vacío">
+                        <input type="text" name="RFC" id="inputRFC" 
+                            value="{{ old('RFC', $alumno->RFC ?? '') }}" 
+                            placeholder="Generación automática si vacío"
+                            {{-- Agrega 'readonly' si ya existe un RFC para el alumno actual --}}
+                            {{ isset($alumno) && !empty($alumno->RFC) ? 'readonly' : '' }}
+                            style="{{ isset($alumno) && !empty($alumno->RFC) ? 'background-color: #f0f0f0;' : '' }}">
                     </div>
                 </div>
 
@@ -160,7 +193,7 @@
                                value="{{ old('fecha_nacimiento', $alumno->fecha_nacimiento ?? '') }}" required>
                     </div>
                     <div class="form-field">
-                        <label>Edad Calculada</label>
+                        <label>Edad</label>
                         <input type="number" id="edad" name="edad" value="{{ old('edad', $alumno->edad ?? '') }}" readonly style="background-color: #eee; cursor: not-allowed;">
                     </div>
                 </div>
@@ -210,7 +243,6 @@
                     </div>
                     <div class="form-field">
                         <label>Semestre a Inscribir</label>
-                        {{-- Lógica Automática: Si es nuevo es 1, si existe es Semestre Actual + 1 --}}
                         <input type="number" name="semestre" 
                                value="{{ old('semestre', isset($alumno) ? ($alumno->semestre + 1) : 1) }}" 
                                readonly style="background-color: #e9ecef; font-weight: bold; border-color: #ced4da;">
@@ -266,6 +298,86 @@
                     </div>
                 </div>
 
+                {{-- 6. FACTURACIÓN DINÁMICA --}}
+                <div class="billing-container" style="background: #fdf2f2; padding: 20px; border: 1px solid #e74c3c; border-radius: 8px; margin-top: 20px;">
+                    <h4 style="margin-top:0; color: #c0392b;"><i class="fa-solid fa-money-bill-wave"></i> Ficha de Pago / Facturación</h4>
+                    <hr style="border-top: 1px solid #e74c3c; opacity: 0.3;">
+                    
+                    <div style="display: flex; gap: 15px; align-items: flex-start;">
+                        <div style="flex: 0 0 auto; margin-top: 5px;">
+                            <input type="checkbox" name="generar_factura" id="generar_factura" value="1" style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                        <div style="width: 100%;">
+                            <label for="generar_factura" style="font-weight: bold; cursor: pointer; color: #c0392b; font-size: 1.05em;">
+                                Generar Ficha de Pago para este Movimiento
+                            </label>
+                            <p style="font-size: 0.9em; color: #666; margin: 5px 0;">
+                                Marque esta opción para crear una cuenta por cobrar. Los Anfitriones generalmente <u>no requieren</u> este cargo.
+                            </p>
+                            
+                            {{-- DETALLES DINÁMICOS DE FACTURACIÓN --}}
+                            <div id="billing-details" style="display: none; margin-top: 15px; background: white; padding: 15px; border-radius: 6px; border: 1px dashed #e74c3c;">
+                                
+                                {{-- 1. Período Activo --}}
+                                <label for="modal_period_id" style="font-weight:bold; display:block; margin-top:10px;">Período Activo:</label>
+                                <select id="modal_period_id" name="period_id" class="filter-select" style="width:100%; background-color: #e9ecef; pointer-events: none;" readonly tabindex="-1">
+                                    @if(isset($periods))
+                                        @foreach ($periods as $period)
+                                            @if($period->is_active == 1)
+                                                <option value="{{ $period->id }}" selected>{{ $period->name }}</option>
+                                            @endif
+                                        @endforeach
+                                    @endif
+                                </select>
+
+                                {{-- 2. Concepto --}}
+                                <label for="modal_concepto" style="font-weight:bold; display:block; margin-top:10px;">Concepto:</label>
+                                <select id="modal_concepto" name="concepto" class="filter-select" style="width: 100%; padding: 8px;">
+                                    <option value="" data-amount="">-- Seleccione un concepto --</option>
+                                    @if(isset($conceptosDisponibles))
+                                        @foreach($conceptosDisponibles as $c)
+                                            <option value="{{ $c->concept }}" data-amount="{{ $c->amount }}">
+                                                {{ $c->concept }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+
+                                {{-- 3. Monto --}}
+                                <label for="modal_monto_visible" style="font-weight:bold; display:block; margin-top:10px;">Monto:</label>
+                                <input type="text" 
+                                       id="modal_monto_visible" 
+                                       readonly 
+                                       placeholder="$ 0.00"
+                                       style="width: 100%; padding: 10px; background-color: #f8f9fa; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: #333; transition: background-color 0.3s;">
+                                <input type="hidden" id="modal_monto" name="monto">
+
+                                {{-- 4. Fecha Vencimiento --}}
+                                <strong style="display:block; margin-top: 15px;">Fecha Vencimiento (Asignada por sistema):</strong>
+                                <p id="texto_fecha_vencimiento" style="font-weight: bold; color: #223F70; margin: 5px 0 15px 0; font-size: 1.1em;">
+                                    {{ \Carbon\Carbon::now()->addDays(7)->format('d/m/Y') }}
+                                </p>
+
+                                {{-- 5. Estado --}}
+                                <label for="modal_status" style="font-weight:bold; display:block; margin-top:10px;">Estado:</label>
+                                <select id="modal_status" name="status" style="width: 100%; padding: 8px; margin-bottom: 20px;">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Pagada">Pagada</option>
+                                </select>
+
+                                {{-- 6. Archivos (OPCIONALES) --}}
+                                <label for="modal_archivo_pdf" style="font-weight:bold; display:block; margin-top:10px;">Archivo (PDF) (Opcional):</label>
+                                <input type="file" id="modal_archivo_pdf" name="archivo" accept=".pdf" style="width: 100%;">
+                                <small style="color: #666;">Solo archivos .pdf</small>
+
+                                <label for="modal_archivo_xml" style="font-weight:bold; display:block; margin-top:10px;">Subir XML (Opcional):</label>
+                                <input type="file" id="modal_archivo_xml" name="archivo_xml" accept=".xml,text/xml" style="width: 100%;">
+                                <small style="color: #666;">Solo archivos .xml</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- SECCIÓN HISTORIAL (Solo para Reinscripciones) --}}
                 @if(isset($alumno) && isset($historialInscripciones))
                     <div class="history-container" style="margin-top: 30px;">
@@ -311,81 +423,243 @@
                         <i class="fa-solid fa-save"></i> {{ isset($alumno) ? 'Guardar Reinscripción' : 'Registrar Aspirante' }}
                     </button>
                 </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
 
-    {{-- SCRIPTS LÓGICOS --}}
-{{-- SCRIPTS LÓGICOS --}}
-    <script>
-        // 1. Definimos la función con la lógica (Sin envolverla en eventos todavía)
-        function ejecutarLogicaInscripcion() {
-            
-            // --- LÓGICA TRIBILÍN (ANFITRION TOGGLE) ---
-            const checkAnfitrion = document.getElementById('is_anfitrion');
-            const seccionLaboral = document.getElementById('seccion-laboral');
-            const inputDepto = document.getElementById('department_id');
-            const inputPuesto = document.getElementById('workstation_id');
-
-            if (checkAnfitrion && seccionLaboral) {
-                function toggleAnfitrion() {
-                    if (checkAnfitrion.checked) {
-                        seccionLaboral.style.display = 'block';
-                        seccionLaboral.style.opacity = 0;
-                        setTimeout(() => seccionLaboral.style.opacity = 1, 50);
-                    } else {
-                        seccionLaboral.style.display = 'none';
-                        if(inputDepto) inputDepto.value = "";
-                        if(inputPuesto) inputPuesto.value = "";
-                    }
-                }
-
-                // Evento change
-                checkAnfitrion.addEventListener('change', toggleAnfitrion);
-                // Estado inicial al cargar
-                seccionLaboral.style.transition = 'opacity 0.3s ease';
-                toggleAnfitrion(); 
-            }
-
-            // --- CÁLCULO AUTOMÁTICO DE EDAD ---
-            const inputFecha = document.getElementById('fecha_nacimiento');
-            const inputEdad = document.getElementById('edad');
-
-            if (inputFecha && inputEdad) {
-                function calcularEdad() {
-                    const fechaTexto = inputFecha.value;
-                    if (!fechaTexto) return;
-
-                    const partes = fechaTexto.split('-');
-                    const fechaNacimiento = new Date(partes[0], partes[1] - 1, partes[2]);
-                    const hoy = new Date();
-                    
-                    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
-                    const mes = hoy.getMonth() - fechaNacimiento.getMonth();
-                    
-                    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
-                        edad--;
-                    }
-                    inputEdad.value = edad >= 0 ? edad : 0;
-                }
-
-                inputFecha.addEventListener('change', calcularEdad);
-                // Calcular si ya hay fecha (edición)
-                if(inputFecha.value) calcularEdad();
-            }
-        }
-
-        // 2. EJECUCIÓN (La parte importante para que funcione siempre)
+<script>
+    function ejecutarLogicaInscripcion() {
+        // ELEMENTOS GENERALES
+        const checkAnfitrion = document.getElementById('is_anfitrion');
+        const seccionLaboral = document.getElementById('seccion-laboral');
+        const containerBuscador = document.getElementById('container-buscador-usuarios');
+        const selectorUsuario = document.getElementById('user_selector');
+        const hiddenUserId = document.getElementById('existing_user_id');
+        const emailHelper = document.getElementById('email_helper');
         
-        // Ejecutar inmediatamente (Para cuando carga por AJAX/SPA)
-        ejecutarLogicaInscripcion();
+        // ELEMENTOS PERSONALES Y LABORALES
+        const inputNombre = document.getElementById('nombre');
+        const inputPat = document.getElementById('apellido_paterno');
+        const inputMat = document.getElementById('apellido_materno');
+        const inputEmail = document.getElementById('email');
+        const inputTel = document.getElementById('telefono');
+        const inputRFC = document.getElementById('inputRFC');
+        const inputDepto = document.getElementById('department_id');
+        const inputPuesto = document.getElementById('workstation_id');
+        const inputFechaNac = document.getElementById('fecha_nacimiento');
+        const inputEdad = document.getElementById('edad');
 
-        // Y también asegurar ejecución si es una recarga completa (F5)
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", ejecutarLogicaInscripcion);
+        // ELEMENTOS FACTURACIÓN
+        const checkFactura = document.getElementById('generar_factura');
+        const billingDetails = document.getElementById('billing-details');
+        const conceptoSelect = document.getElementById('modal_concepto');
+        const montoVisible = document.getElementById('modal_monto_visible');
+        const montoHidden = document.getElementById('modal_monto');
+
+
+        // --- FUNCIONES AUXILIARES ---
+
+        // 1. CONTROL DE SOLO LECTURA/BLOQUEO
+        const setReadOnly = (inputElement, isReadOnly) => {
+            if (inputElement) {
+                if (inputElement.tagName === 'SELECT') {
+                    inputElement.disabled = isReadOnly;
+                } else {
+                    inputElement.readOnly = isReadOnly;
+                }
+                inputElement.style.backgroundColor = isReadOnly ? "#e9ecef" : "";
+            }
+        };
+
+        // 2. LIMPIEZA DE CAMPOS PERSONALES Y LABORALES
+        function limpiarCamposPersonales() {
+            // Aplicar desbloqueo a todos los campos
+            setReadOnly(inputNombre, false);
+            setReadOnly(inputPat, false);
+            setReadOnly(inputMat, false);
+            setReadOnly(inputRFC, false);
+            setReadOnly(inputEmail, false);
+            setReadOnly(inputDepto, false);
+            setReadOnly(inputPuesto, false);
+            
+            // Limpiar valores (solo si no estamos en modo edición o si no hay old data)
+            if(!checkAnfitrion.checked || (checkAnfitrion.checked && selectorUsuario.value === "")) {
+                if(inputNombre) inputNombre.value = "";
+                if(inputPat) inputPat.value = "";
+                if(inputMat) inputMat.value = "";
+                if(inputDepto) inputDepto.value = "";
+                if(inputPuesto) inputPuesto.value = "";
+                if(inputRFC) inputRFC.value = "";
+                if(inputEmail) inputEmail.value = "";
+            }
+
+            if(inputEmail && emailHelper) emailHelper.style.display = 'none';
+            if(hiddenUserId) hiddenUserId.value = "";
+
+            // Limpiar campos laborales si se oculta la sección
+            if(inputDepto) inputDepto.value = "";
+            if(inputPuesto) inputPuesto.value = "";
         }
-    </script>
 
-   
+
+        // --- LÓGICA DE FACTURACIÓN (DESPLIEGUE DEL MENÚ) ---
+        // Esta función ahora muestra/oculta el bloque de detalles de la factura.
+        function toggleFactura() {
+            if (checkFactura && billingDetails) {
+                if (checkFactura.checked) {
+                    billingDetails.style.display = 'block';
+                } else {
+                    billingDetails.style.display = 'none';
+                }
+            }
+        }
+        
+        // Listener para el checkbox de Factura: establece que el usuario lo ha cambiado
+        if (checkFactura) {
+             checkFactura.addEventListener('change', function() {
+                this.dataset.userChanged = 'true'; // El usuario ha interactuado
+                toggleFactura();
+            });
+        }
+
+        // Listener para el selector de concepto: actualiza el monto
+        if (conceptoSelect) {
+            conceptoSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const amount = selectedOption.getAttribute('data-amount');
+                
+                if (montoVisible && montoHidden) {
+                    if (amount) {
+                        // Formatear el monto para visualización
+                        montoVisible.value = '$ ' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                        montoHidden.value = amount; // Valor limpio para el backend
+                    } else {
+                        montoVisible.value = '$ 0.00';
+                        montoHidden.value = '';
+                    }
+                }
+            });
+        }
+
+
+        // --- LÓGICA ANFITRION (TOGGLE PRINCIPAL) ---
+        if (checkAnfitrion && seccionLaboral) {
+            function toggleAnfitrion() {
+                if (checkAnfitrion.checked) {
+                    // Caso Anfitrión: Mostrar datos laborales y buscador
+                    seccionLaboral.style.display = 'block';
+                    if (containerBuscador) containerBuscador.style.display = 'block';
+                    
+                    // Si es trabajador, desmarcamos factura por defecto y la habilitamos
+                    if (checkFactura) {
+                        checkFactura.disabled = false; // Habilitar para que pueda desmarcarla
+                        
+                        // Si el usuario no la ha cambiado manualmente, la desmarcamos (por defecto)
+                        if (!checkFactura.dataset.userChanged) {
+                            checkFactura.checked = false;
+                            toggleFactura(); 
+                        }
+                    }
+                    
+                } else {
+                    // Caso Estudiante Regular: Ocultar y Forzar Factura OBLIGATORIA
+                    seccionLaboral.style.display = 'none';
+                    if (containerBuscador) containerBuscador.style.display = 'none';
+                    
+                    // 🚨 FORZAR FACTURA OBLIGATORIA Y BLOQUEAR 🚨
+                    if (checkFactura) {
+                        checkFactura.checked = true; // Se marca obligatoriamente
+                        checkFactura.dataset.userChanged = 'false'; // Reseteamos, esto no es cambio de usuario
+                        toggleFactura(); // 🚨 Esto despliega el menú de detalles de facturación 🚨
+                    }
+
+                    // Limpieza y desbloqueo de campos personales/laborales
+                    limpiarCamposPersonales();
+                }
+            }
+
+            // Listener Anfitrión
+            checkAnfitrion.addEventListener('change', toggleAnfitrion);
+            
+            // Ejecución inicial para aplicar el estado al cargar la página
+            toggleAnfitrion();
+        }
+
+
+        // --- LÓGICA AUTOCOMPLETADO (Solo si es Anfitrión y selecciona) ---
+        if (selectorUsuario) {
+            selectorUsuario.addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
+                const rfcValue = opt.getAttribute('data-rfc'); 
+                
+                if (this.value) {
+                    // 1. APLICACIÓN DE VALORES
+                    hiddenUserId.value = this.value;
+                    if(inputNombre) inputNombre.value = opt.getAttribute('data-nombre');
+                    if(inputPat) inputPat.value = opt.getAttribute('data-apellido_p');
+                    if(inputMat) inputMat.value = opt.getAttribute('data-apellido_m');
+                    if(inputTel) inputTel.value = opt.getAttribute('data-telefono');
+                    if(inputDepto) inputDepto.value = opt.getAttribute('data-department');
+                    if(inputPuesto) inputPuesto.value = opt.getAttribute('data-workstation');
+
+                    // RFC
+                    if (inputRFC) { 
+                        inputRFC.value = rfcValue || ""; 
+                    }
+                    
+                    // Email y Helper
+                    if(inputEmail) {
+                        inputEmail.value = opt.getAttribute('data-email');
+                        if(emailHelper) emailHelper.style.display = 'block';
+                    }
+                    
+                    // 2. APLICAR BLOQUEO
+                    setReadOnly(inputNombre, true);
+                    setReadOnly(inputPat, true);
+                    setReadOnly(inputMat, true);
+                    setReadOnly(inputRFC, true);
+                    setReadOnly(inputEmail, true);
+                    setReadOnly(inputDepto, true);
+                    setReadOnly(inputPuesto, true);
+
+                } else {
+                    // Deselección: Limpia y desbloquea
+                    limpiarCamposPersonales(); 
+                    // Necesitamos re-aplicar el toggleAnfitrion para asegurar que los campos laborales se oculten/muestren correctamente.
+                    toggleAnfitrion();
+                }
+            });
+        }
+
+
+        // --- LÓGICA CÁLCULO DE EDAD ---
+        if (inputFechaNac && inputEdad) {
+            function calcularEdad() {
+                const fechaNac = inputFechaNac.value;
+                if (fechaNac) {
+                    const birthDate = new Date(fechaNac);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDifference = today.getMonth() - birthDate.getMonth();
+                    
+                    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    inputEdad.value = age;
+                } else {
+                    inputEdad.value = '';
+                }
+            }
+
+            inputFechaNac.addEventListener('change', calcularEdad);
+            // Ejecutar al inicio por si hay un valor pre-cargado
+            calcularEdad();
+        }
+
+    }
+    ejecutarLogicaInscripcion();
+
+</script>
+    
 @endif
 @endsection

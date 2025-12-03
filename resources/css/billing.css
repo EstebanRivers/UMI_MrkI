@@ -58,13 +58,15 @@ body {
     margin: 0;
 }
 
-/* Estilos compartidos para Inputs y Selects */
+/* Estilos para Inputs y Selects - APLICAMOS FORMA DE PÍLDORA */
 .search-input,
 .filter-select {
     height: 42px; /* Altura uniforme */
     padding: 8px 14px;
     border: 1px solid #ced4da;
-    border-radius: 8px;
+    /* REDONDEO COMPLETO PARA PÍLDORA */
+    border-radius: 20px !important; 
+    /* FIN REDONDEO */
     font-size: 14px;
     transition: all 0.2s;
     background-color: #fff;
@@ -98,11 +100,16 @@ body {
     align-items: flex-end;
 }
 
+/* Estilo UNIFICADO (PÍLDORA AZUL) para los 3 botones de FILTROS */
 .action-group .btn {
     height: 42px;
     padding: 0 20px;
     border: none;
-    border-radius: 8px;
+    /* PÍLDORA Y COLOR AZUL UNIFICADO */
+    border-radius: 20px !important; 
+    background-color: #223F70 !important;
+    color: white !important;
+    /* FIN ESTILO UNIFICADO */
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -111,21 +118,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
 }
 
 .action-group .btn:hover {
+    background-color: #1a3158 !important; /* Tono más oscuro de #223F70 */
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
-
-.btn-primary { background-color: #223F70; color: white; }
-.btn-primary:hover { background-color: #1a3055; }
-
-.btn-secondary { background-color: #6c757d; color: white; text-decoration: none; }
-.btn-secondary:hover { background-color: #5a6268; }
-
-.export-btn { background-color: #f8f9fa; color: #343a40; border: 1px solid #ced4da; }
-.export-btn:hover { background-color: #e9ecef; }
 
 /* =========================================
    3. TABLA DE DATOS
@@ -174,7 +175,7 @@ table tbody tr.billing-main-row:hover { background-color: #f1f3f5; }
 /* Estados (Badges) */
 .estado { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .estado-icono { width: 14px; height: 14px; }
-.estado .pagada { color: #28a745; font-weight: 500; }
+.estado .pagada { color: #1a3158; font-weight: 500; }
 .estado .pendiente { color: #dc3545; font-weight: 500; }
 .estado .abonado { color: #ffc107; font-weight: 500; }
 
@@ -198,10 +199,20 @@ table tbody tr.billing-main-row:hover { background-color: #f1f3f5; }
     display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;
 }
 
+/* --- TÍTULO DEL MODAL (ACTUALIZADO A COLOR #223F70 y 26px) --- */
 .modal-content h2 {
-    flex-shrink: 0; padding: 25px; margin: 0;
-    color: #223F70; text-align: center; font-size: 1.2rem;
+    flex-shrink: 0; 
+    padding: 20px 25px; 
+    margin: 0 0 15px 0; 
+    
+    color: #223F70; /* Azul institucional */
+    
+    text-align: center; 
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;   /* Tamaño solicitado */
+    font-weight: 600;   /* Negrita */
     border-bottom: 1px solid #eee;
+    line-height: 1.3;
 }
 
 .modal-content form {
@@ -214,13 +225,14 @@ table tbody tr.billing-main-row:hover { background-color: #f1f3f5; }
 }
 .modal-content label:first-child { margin-top: 0; }
 
-/* Inputs del Modal */
+/* Inputs del Modal (Se mantiene borde redondeado, no de píldora) */
 .modal-content input[type="text"],
 .modal-content input[type="number"],
 .modal-content input[type="date"],
 .modal-content select {
     width: 100%; padding: 10px 12px;
-    border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
+    border: 1px solid #ccc; border-radius: 8px; /* Borde original */
+    font-size: 14px;
     box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -243,13 +255,18 @@ table tbody tr.billing-main-row:hover { background-color: #f1f3f5; }
 }
 .modal-content input[type="file"]::file-selector-button:hover { background-color: #e9ecef; }
 
+/* Botón Guardar en Modal (AZUL #223F70) */
 .modal-content button.guardar {
-    flex-shrink: 0; background: #223F70; color: #fff;
-    border: none; padding: 12px; width: 100%; border-radius: 0 0 12px 12px;
+    flex-shrink: 0; 
+    background: #223F70; /* Azul institucional */
+    color: #fff;
+    border: none; padding: 12px; width: 100%; border-radius: 0 0 12px 12px; 
     cursor: pointer; font-size: 16px; font-weight: bold;
     margin-top: 0; border-top: 1px solid #eee; transition: background-color 0.2s;
 }
-.modal-content button.guardar:hover { background: #1a3055; }
+.modal-content button.guardar:hover { 
+    background: #1a3158; /* Mismo hover que otros botones */
+}
 
 .modal .close {
     position: absolute; top: 18px; right: 20px; z-index: 10;
@@ -316,31 +333,97 @@ summary::-webkit-details-marker, summary::marker { display: none; }
 }
 
 /* --- FLECHAS (TRIÁNGULOS) --- */
-/* Esto hace que la flecha sea un bloque que puede rotar */
 .arrow-icon {
-    transition: transform 0.2s ease-in-out; /* <--- Aquí estaba el error */
-    display: inline-block;                  /* <--- Esta línea se había mezclado */
+    transition: transform 0.2s ease-in-out; 
+    display: inline-block; 
     font-size: 1em;
     color: #6c757d;
 }
-/* Flecha gris para periodos, blanca para usuarios */
 .period-accordion > details > summary .arrow-icon { color: #6c757d; }
 .user-accordion > details > summary .arrow-icon { margin-left: 15px; color: #FFFFFF; font-size: 1.1em; }
 
-/* Regla universal de rotación cuando está abierto */
 details[open] > summary .arrow-icon {
     transform: rotate(180deg);
 }
 
-/* Botón Agregar Factura */
+/* Botón principal "+ Agregar Concepto" (MANTIENE EL ESTILO ORIGINAL) */
+#openModalBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px; 
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #223F70; 
+    color: white;
+}
+
+#openModalBtn:hover {
+    background-color: #1a3158; 
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón Agregar Factura Genérico */
 .add-invoice-btn {
     margin-bottom: 15px; padding: 10px 20px; font-size: 0.85rem;
-    background-color: #28a745; color: white; border: none; border-radius: 6px;
+    background-color: #1a3158; color: white; border: none; border-radius: 6px;
     cursor: pointer; transition: background-color 0.2s;
     display: inline-flex; align-items: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-.add-invoice-btn:hover { background-color: #218838; }
+
+.add-invoice-btn:hover { background-color: #1a3158; }
+
+/* =========================================
+   BOTONES INTERNOS DE FACTURACIÓN (MANTENEMOS PÍLDORA AZUL)
+   ========================================= */
+
+/* Botón Grande "Agregar Factura Extra" */
+.js-trigger-factura { 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* PÍLDORA Y COLOR AZUL UNIFICADO */
+    background-color: #223F70 !important; 
+    color: #FFFFFF !important;
+    border: none;
+    border-radius: 20px !important; 
+    padding: 8px 24px; 
+    
+    /* Tipografía */
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500; 
+    font-size: 14px; 
+    line-height: 1.5;
+    
+    /* Comportamiento */
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    text-decoration: none;
+}
+
+/* Efecto Hover */
+.js-trigger-factura:hover {
+    background-color: #1a3055 !important; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Ajustes específicos para el botón pequeño "+ Agregar" en meses vacíos */
+button.btn-sm-add {
+    padding: 5px 15px !important;
+    font-size: 12px !important;
+    border-radius: 20px !important; 
+    height: auto; 
+    min-width: auto; 
+    background-color: #223F70 !important; 
+}
+
 
 /* =========================================
    6. SECCIÓN DE PAGOS Y ABONOS
@@ -396,13 +479,20 @@ details[open] > summary .arrow-icon {
 }
 .add-payment-form textarea { resize: vertical; min-height: 50px; }
 
+/* Botón Guardar Abono*/
 .add-payment-form .guardar-abono {
-    background: #28a745; color: white; padding: 10px 15px;
-    border: none; border-radius: 5px; cursor: pointer;
-    margin-top: 15px; font-weight: 600; width: 100%;
+    background: #223F70; 
+    color: white; 
+    border-radius: 5px; 
+    padding: 10px 15px;
+    border: none; 
+    cursor: pointer;
+    margin-top: 15px; 
+    font-weight: 600; 
+    width: 100%;
     transition: background-color 0.2s;
 }
-.add-payment-form .guardar-abono:hover { background-color: #218838; }
+.add-payment-form .guardar-abono:hover { background-color: #1a3158; }
 
 /* =========================================
    7. RESPONSIVE (MÓVIL)
@@ -432,59 +522,29 @@ details[open] > summary .arrow-icon {
 }
 
 /* =========================================
-   BOTONES ESTILO "ASISTENCIAS" (AZUL REDONDEADO)
+   8. PERSONALIZACIÓN DEL SCROLL (AZUL #223F70)
    ========================================= */
-
-/* Clase base para ambos botones (Grande y Pequeño) */
-.js-trigger-factura { /* Mantenemos ambos selectores por compatibilidad */
-    display: inline-flex;
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+    background: #223F70; /* Azul Institucional Actualizado */
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #1a3158; /* Un poco más oscuro al pasar el mouse */
+}
+/* =========================================
+   9. Estilos adicionales para la sección de usuarios en el acordeón
+   ========================================= */
+.user-container {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    
-    /* Color y Fondo */
-    background-color: #223F70; /* Azul oscuro institucional */
-    color: #FFFFFF;
-    border: none;
-    
-    /* Tipografía */
-    font-family: 'Poppins', sans-serif;
-    font-weight: 400; /* Regular */
-    font-size: 14px;  /* Ajustado para web (18px es muy grande para botones internos) */
-    line-height: 1.5;
-    
-    /* Forma */
-    border-radius: 36px; /* Bordes muy redondeados como en la imagen */
-    padding: 8px 24px;   /* Relleno cómodo */
-    
-    /* Comportamiento */
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 2px 5px rgba(34, 63, 112, 0.2); /* Sombra suave azul */
-    text-decoration: none;
-}
-
-/* Efecto Hover */
-.js-trigger-factura:hover,
-.add-invoice-btn:hover {
-    background-color: #1a3055; /* Azul un poco más oscuro */
-    box-shadow: 0 4px 8px rgba(34, 63, 112, 0.3);
-    transform: translateY(-1px);
-}
-
-/* Ajustes específicos para el botón pequeño (dentro del mes) */
-button.btn-sm-add {
-    padding: 5px 15px;      /* Más compacto */
-    font-size: 12px;        /* Letra más pequeña */
-    border-radius: 20px;    /* Redondeo proporcional */
-    height: auto;           /* Altura automática */
-    min-width: auto;        /* Sin ancho mínimo forzado */
-    background-color: #223F70; /* Aseguramos el azul */
-}
-
-/* Ajuste específico para el botón grande (dentro del usuario) */
-/* Si quieres que sea exactamente de 149px x 43px como en tu diseño: */
-.user-details > .js-trigger-factura {
-    min-width: 149px;
-    height: 43px;
-    font-size: 15px; /* Un poco más grande para el botón principal */
+    /* Controla el espacio entre elementos directamente */
+    gap: 15px; 
 }
