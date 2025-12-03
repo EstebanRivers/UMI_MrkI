@@ -428,11 +428,6 @@
         </div>
 
 <script>
-
-
-
-
-
     function ejecutarLogicaInscripcion() {
         // ELEMENTOS GENERALES
         const checkAnfitrion = document.getElementById('is_anfitrion');
@@ -574,7 +569,6 @@
                     // 🚨 FORZAR FACTURA OBLIGATORIA Y BLOQUEAR 🚨
                     if (checkFactura) {
                         checkFactura.checked = true; // Se marca obligatoriamente
-                        checkFactura.disabled = true; // Se bloquea para no desmarcar
                         checkFactura.dataset.userChanged = 'false'; // Reseteamos, esto no es cambio de usuario
                         toggleFactura(); // 🚨 Esto despliega el menú de detalles de facturación 🚨
                     }
