@@ -105,8 +105,8 @@
                                         data-email="{{ $u->email }}"
                                         data-telefono="{{ $u->telefono }}"
                                         data-workstation="{{ $u->workstation_id }}"
-                                        data-department="{{ $u->department_id }}">
-                                        {{ $u->nombre }} {{ $u->apellido_paterno }} - ({{ $u->email }})
+                                        data-department="{{ $u->department_id }}"
+                                        data-rfc="{{ $u->RFC }}"> {{ $u->nombre }} {{ $u->apellido_paterno }} - ({{ $u->email }})
                                     </option>
                                 @endforeach
                             @endif
@@ -177,7 +177,12 @@
                     </div>
                     <div class="form-field">
                         <label>RFC <small>(Opcional)</small></label>
-                        <input type="text" name="RFC" value="{{ old('RFC', $alumno->RFC ?? '') }}" placeholder="Generación automática si vacío">
+                        <input type="text" name="RFC" id="inputRFC" 
+                            value="{{ old('RFC', $alumno->RFC ?? '') }}" 
+                            placeholder="Generación automática si vacío"
+                            {{-- Agrega 'readonly' si ya existe un RFC para el alumno actual --}}
+                            {{ isset($alumno) && !empty($alumno->RFC) ? 'readonly' : '' }}
+                            style="{{ isset($alumno) && !empty($alumno->RFC) ? 'background-color: #f0f0f0;' : '' }}">
                     </div>
                 </div>
 
@@ -188,7 +193,7 @@
                                value="{{ old('fecha_nacimiento', $alumno->fecha_nacimiento ?? '') }}" required>
                     </div>
                     <div class="form-field">
-                        <label>Edad Calculada</label>
+                        <label>Edad</label>
                         <input type="number" id="edad" name="edad" value="{{ old('edad', $alumno->edad ?? '') }}" readonly style="background-color: #eee; cursor: not-allowed;">
                     </div>
                 </div>
@@ -478,7 +483,33 @@
                 if (selectorUsuario) {
                     selectorUsuario.addEventListener('change', function() {
                         const opt = this.options[this.selectedIndex];
+                        
+                        // 1. Obtener el valor del RFC (DEBE SER EL PRIMERO)
+                        const rfcValue = opt.getAttribute('data-rfc'); 
+                        
+                        // Variables auxiliares para los selectores que deben estar declaradas en la función principal:
+                        const inputRFC = document.getElementById('inputRFC'); 
+                        const inputEmail = document.getElementById('email'); 
+                        const emailHelper = document.getElementById('email_helper');
+                        
+                        // --- FUNCIÓN CENTRAL DE BLOQUEO ---
+                        const setReadOnly = (inputElement, isReadOnly) => {
+                            if (inputElement) {
+                                if (inputElement.tagName === 'SELECT') {
+                                    // Para SELECTs, usamos 'disabled'
+                                    inputElement.disabled = isReadOnly;
+                                } else {
+                                    // Para INPUTs de texto, usamos 'readonly'
+                                    inputElement.readOnly = isReadOnly;
+                                }
+                                // Aplicar estilo visual de bloqueo
+                                inputElement.style.backgroundColor = isReadOnly ? "#e9ecef" : "";
+                            }
+                        };
+
+
                         if (this.value) {
+                            // --- APLICACIÓN DE VALORES ---
                             hiddenUserId.value = this.value;
                             if(inputNombre) inputNombre.value = opt.getAttribute('data-nombre');
                             if(inputPat) inputPat.value = opt.getAttribute('data-apellido_p');
@@ -487,15 +518,48 @@
                             if(inputDepto) inputDepto.value = opt.getAttribute('data-department');
                             if(inputPuesto) inputPuesto.value = opt.getAttribute('data-workstation');
                             
+                            // RFC
+                            if (inputRFC && rfcValue) { 
+                                inputRFC.value = rfcValue; 
+                            } else if (inputRFC) {
+                                inputRFC.value = ""; // Limpiar si es nulo pero mantener el estado de anfitrión
+                            }
+                            
+                            // Email (usa la función central de bloqueo)
                             if(inputEmail) {
                                 inputEmail.value = opt.getAttribute('data-email');
-                                inputEmail.readOnly = true;
-                                inputEmail.style.background = "#e9ecef";
                                 if(emailHelper) emailHelper.style.display = 'block';
                             }
+                            
+                            // --- BLOQUEO TOTAL ---
+                            setReadOnly(inputNombre, true);
+                            setReadOnly(inputPat, true);
+                            setReadOnly(inputMat, true);
+                            setReadOnly(inputTel, true);
+                            setReadOnly(inputRFC, true);
+                            setReadOnly(inputEmail, true);
+                            setReadOnly(inputDepto, true);
+                            setReadOnly(inputPuesto, true);
+
                         } else {
+                            // --- DESBLOQUEO Y LIMPIEZA TOTAL ---
                             hiddenUserId.value = "";
-                            limpiarCamposPersonales();
+                            limpiarCamposPersonales(); // Asume que esta función limpia campos
+                            
+                            // Desbloquear todos los campos al anular la selección
+                            setReadOnly(inputNombre, false);
+                            setReadOnly(inputPat, false);
+                            setReadOnly(inputMat, false);
+                            setReadOnly(inputTel, false);
+                            setReadOnly(inputRFC, false);
+                            setReadOnly(inputEmail, false);
+                            setReadOnly(inputDepto, false);
+                            setReadOnly(inputPuesto, false);
+                            
+                            // Limpieza específica de RFC y Email si no están en limpiarCamposPersonales()
+                            if (inputRFC) inputRFC.value = "";
+                            if (inputEmail) inputEmail.value = "";
+                            if(emailHelper) emailHelper.style.display = 'none';
                         }
                     });
                 }
