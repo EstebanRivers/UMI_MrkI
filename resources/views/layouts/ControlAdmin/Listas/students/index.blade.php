@@ -126,23 +126,22 @@
                             <td style="text-align:center">
                                 <div class="actions-row" style="justify-content: center;">
                                     
-                                    {{-- 1. BOTÓN OJO (MODIFICADO) --}}
-                                    <button type="button" class="btn-icon" title="Ver Expediente" style="border:none; background:none;"
-                                        onclick="openStudentDetails(
-                                            '{{ $user->nombre }} {{ $user->apellido_paterno }} {{ $user->apellido_materno }}',
-                                            '{{ $user->email }}',
-                                            '{{ $user->telefono ?? 'N/A' }}',
-                                            '{{ $user->academicProfile->career->name ?? 'Sin Carrera' }}',
-                                            '{{ $user->academicProfile->semestre ?? '1' }}',
-                                            '{{ $user->academicProfile->status ?? 'Pendiente' }}',
-                                            '{{ $user->academicProfile->matricula ?? 'No Asignada' }}',
-                                            // URLs de Documentos
-                                            '{{ $user->academicProfile->doc_acta_nacimiento ? Storage::url($user->academicProfile->doc_acta_nacimiento) : '' }}',
-                                            '{{ $user->academicProfile->doc_certificado_prepa ? Storage::url($user->academicProfile->doc_certificado_prepa) : '' }}',
-                                            '{{ $user->academicProfile->doc_curp ? Storage::url($user->academicProfile->doc_curp) : '' }}',
-                                            '{{ $user->academicProfile->doc_ine ? Storage::url($user->academicProfile->doc_ine) : '' }}'
-                                        )">
-                                        <img src="{{ asset('images/icons/eye-solid-full.svg') }}" alt="Ver">
+                    
+                                {{-- 1. BOTÓN OJO (CORREGIDO) --}}
+                                <button type="button" class="btn-icon" title="Ver Expediente" style="border:none; background:none;"
+                                    data-action="open-expediente" 
+                                    data-name="{{ $user->nombre }} {{ $user->apellido_paterno }} {{ $user->apellido_materno }}"
+                                    data-email="{{ $user->email }}"
+                                    data-phone="{{ $user->telefono ?? 'N/A' }}"
+                                    data-career="{{ $user->academicProfile->career->name ?? 'Sin Carrera' }}"
+                                    data-semester="{{ $user->academicProfile->semestre ?? '1' }}"
+                                    data-status="{{ $user->academicProfile->status ?? 'Pendiente' }}"
+                                    data-matricula="{{ $user->academicProfile->matricula ?? 'No Asignada' }}"
+                                    data-doc-acta="{{ $user->academicProfile->doc_acta_nacimiento ? Storage::url($user->academicProfile->doc_acta_nacimiento) : '' }}"
+                                    data-doc-cert="{{ $user->academicProfile->doc_certificado_prepa ? Storage::url($user->academicProfile->doc_certificado_prepa) : '' }}"
+                                    data-doc-curp="{{ $user->academicProfile->doc_curp ? Storage::url($user->academicProfile->doc_curp) : '' }}"
+                                    data-doc-ine="{{ $user->academicProfile->doc_ine ? Storage::url($user->academicProfile->doc_ine) : '' }}">
+                                    <img src="{{ asset('images/icons/eye-solid-full.svg') }}" alt="Ver">
                                     </button>
                                     
                                     {{-- 2. EDITAR --}}
@@ -373,7 +372,11 @@
 </style>
 {{-- SCRIPTS --}}
 <script>
-    // --- 1. FUNCIONES DEL VISOR (NIVEL 2) - MOVIDAS AL ÁMBITO GLOBAL ---
+    // =============================================================
+    // 1. LÓGICA VISUAL (Funciones que muestran/ocultan)
+    // =============================================================
+    
+    // --- VISOR DE DOCUMENTOS ---
     function openDocViewer(url, title) {
         if (!url || url === '') return;
         document.getElementById('docViewerFrame').src = url;
@@ -386,41 +389,47 @@
         document.getElementById('docViewerFrame').src = ""; 
     }
 
-    // --- 2. FUNCIONES DEL EXPEDIENTE (NIVEL 1) - MOVIDAS AL ÁMBITO GLOBAL ---
-    function openStudentDetails(name, email, phone, career, semester, status, matricula, docActa, docCert, docCurp, docIne) {
+    // --- EXPEDIENTE ALUMNO ---
+    function openStudentDetails(data) {
+        // 1. Llenar Textos
+        document.getElementById('modalName').innerText = data.name;
+        document.getElementById('modalEmail').innerText = data.email;
+        document.getElementById('modalPhone').innerText = data.phone;
+        document.getElementById('modalCareer').innerText = data.career;
+        document.getElementById('modalSemester').innerText = data.semester;
+        document.getElementById('modalMatricula').innerText = data.matricula;
         
-        // Llenar textos
-        document.getElementById('modalName').innerText = name;
-        document.getElementById('modalEmail').innerText = email;
-        document.getElementById('modalPhone').innerText = phone;
-        document.getElementById('modalCareer').innerText = career;
-        document.getElementById('modalSemester').innerText = semester;
-        document.getElementById('modalMatricula').innerText = matricula;
-        
+        // 2. Configurar Badge (Etiqueta de color)
         const badge = document.getElementById('modalStatusBadge');
-        badge.innerText = status;
+        badge.innerText = data.status;
         badge.className = 'badge-status'; 
-        if(status === 'Alumno Activo') badge.classList.add('badge-green');
-        else if(status === 'Aspirante') badge.classList.add('badge-orange');
+        badge.classList.remove('badge-green', 'badge-orange', 'badge-gray');
+        
+        if(data.status === 'Alumno Activo') badge.classList.add('badge-green');
+        else if(data.status === 'Aspirante') badge.classList.add('badge-orange');
         else badge.classList.add('badge-gray');
 
-        // Configurar Botones
+        // 3. Configurar Botones de Documentos
         let docsCount = 0;
         const configureBtn = (btnId, url, title) => {
             const btn = document.getElementById(btnId);
             if (url && url.trim() !== '') {
                 btn.classList.remove('hidden');
-                btn.onclick = function() { openDocViewer(url, title); };
+                // Asignamos acción al botón del documento
+                btn.onclick = function(e) { 
+                    e.stopPropagation(); // Evita que el clic cierre el modal de abajo
+                    openDocViewer(url, title); 
+                };
                 docsCount++;
             } else {
                 btn.classList.add('hidden');
             }
         };
 
-        configureBtn('btnDocActa', docActa, 'Acta de Nacimiento');
-        configureBtn('btnDocCert', docCert, 'Certificado Preparatoria');
-        configureBtn('btnDocCurp', docCurp, 'CURP');
-        configureBtn('btnDocIne', docIne, 'INE');
+        configureBtn('btnDocActa', data.docActa, 'Acta de Nacimiento');
+        configureBtn('btnDocCert', data.docCert, 'Certificado Preparatoria');
+        configureBtn('btnDocCurp', data.docCurp, 'CURP');
+        configureBtn('btnDocIne', data.docIne, 'INE');
 
         document.getElementById('noDocsMsg').style.display = (docsCount === 0) ? 'block' : 'none';
         document.getElementById('studentDetailsModal').style.display = 'flex';
@@ -429,23 +438,41 @@
     function closeStudentDetails() {
         document.getElementById('studentDetailsModal').style.display = 'none';
     }
-    
-    // --- 3. FUNCIÓN DE INICIALIZACIÓN (Mantiene la ejecución en el scope local) ---
-    function ejecutarLogicaListaAlumnos() {
-        // Aquí iría cualquier listener o inicialización de variables que solo necesiten ejecutarse una vez, 
-        // pero NO las definiciones de las funciones que deben ser globales.
-        console.log("Listeners inicializados."); 
-    }
-    
-    // --- 4. PUNTO DE ENTRADA ---
-    document.addEventListener('DOMContentLoaded', ejecutarLogicaListaAlumnos);
-    
-    // Si estás usando Livewire/AJAX, también deberías inicializar:
-    if (window.Livewire) {
-        window.Livewire.hook('message.processed', () => {
-            ejecutarLogicaListaAlumnos();
-        });
-    }
+
+    // =============================================================
+    // 2. EL SUPER LISTENER (Controla TODO: Abrir y Cerrar)
+    // =============================================================
+    document.addEventListener('click', function(event) {
+        
+        // --- CASO A: ABRIR EL EXPEDIENTE ---
+        const openBtn = event.target.closest('[data-action="open-expediente"]');
+        if (openBtn) {
+            const d = openBtn.dataset;
+            openStudentDetails({
+                name: d.name, email: d.email, phone: d.phone,
+                career: d.career, semester: d.semester, status: d.status,
+                matricula: d.matricula, docActa: d.docActa, docCert: d.docCert,
+                docCurp: d.docCurp, docIne: d.docIne
+            });
+            return; // Ya hicimos el trabajo, terminamos.
+        }
+
+        // --- CASO B: CERRAR (Botón X) ---
+        // Si clic en algo que tenga la clase "modal-close"
+        if (event.target.closest('.modal-close')) {
+            closeStudentDetails();
+            closeDocViewer();
+            return;
+        }
+
+        // --- CASO C: CERRAR (Clic afuera / Fondo oscuro) ---
+        // Si el elemento clickeado es EXACTAMENTE el fondo (overlay) y no el contenido blanco
+        if (event.target.classList.contains('modal-overlay')) {
+            closeStudentDetails();
+            closeDocViewer();
+            return;
+        }
+    });
 
 </script>
 
