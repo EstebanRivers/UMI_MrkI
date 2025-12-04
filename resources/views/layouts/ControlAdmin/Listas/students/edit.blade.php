@@ -7,7 +7,7 @@
 @section('content')
     <div class="form-container">
         <div class="header-section">
-            <h2 class="form-title">✏️ Edición de Alumno / Reinscripción</h2>
+            <h2 class="form-title"> Edición de Alumno / Reinscripción</h2>
             {{-- Botón de regreso opcional --}}
             <a href="{{ request()->routeIs('control.*') ? route('control.students.index') : route('escolar.students.index') }}" 
                class="btn-back" style="float:right; text-decoration:none; color: #666; font-size: 0.9rem;">
@@ -86,7 +86,7 @@
 
 
                 {{-- 2. TIPO DE ASPIRANTE (LÓGICA ANFITRIÓN) --}}
-                <h3>📋 Información Laboral (Anfitrión)</h3>
+                <h3> Información Laboral (Anfitrión)</h3>
                 <hr>
                 <div class="form-group-double" style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                     <div class="form-field" style="flex-direction: row; align-items: center; gap: 10px;">
@@ -126,7 +126,7 @@
                 </div>
 
                 {{-- 3. DATOS PERSONALES --}}
-                <h3>👤 Datos Personales</h3>
+                <h3> Datos Personales</h3>
                 <hr>
                 <div class="form-group-triple">
                     <div class="form-field">
@@ -170,7 +170,7 @@
                 </div>
 
                 {{-- 4. DIRECCIÓN --}}
-                <h3>📍 Dirección</h3>
+                <h3> Dirección</h3>
                 <hr>
                 <div class="form-group-triple">
                     <div class="form-field">
@@ -198,7 +198,7 @@
                 </div>
 
                 {{-- 5. ACADÉMICO Y DOCUMENTOS --}}
-                <h3>🎓 Académico y Documentación</h3>
+                <h3> Académico y Documentación</h3>
                 <hr>
 
                 <div class="form-group-double">

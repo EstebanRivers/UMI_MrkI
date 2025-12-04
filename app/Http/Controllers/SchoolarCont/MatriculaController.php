@@ -109,7 +109,7 @@ class MatriculaController extends Controller
 
                 if (!$estaPagada) {
                     $deuda = $facturaPendiente->monto - $totalPagado;
-                    return redirect()->back()->with('error', '⛔ ACCIÓN BLOQUEADA: El alumno tiene pendiente el pago: "' . $facturaPendiente->concepto . '" (Resta: $' . number_format($deuda, 2) . '). Debe liquidar para recibir matrícula.');
+                    return redirect()->back()->with('error', ' ACCIÓN BLOQUEADA: El alumno tiene pendiente el pago: "' . $facturaPendiente->concepto . '" (Resta: $' . number_format($deuda, 2) . '). Debe liquidar para recibir matrícula.');
                 }
             }
             // =========================================================
@@ -123,7 +123,7 @@ class MatriculaController extends Controller
             $profile->matricula = $request->matricula;
             $profile->save();
 
-            return redirect()->back()->with('success', '✅ Matrícula asignada correctamente: ' . $request->matricula);
+            return redirect()->back()->with('success', ' Matrícula asignada correctamente: ' . $request->matricula);
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error del sistema: ' . $e->getMessage());

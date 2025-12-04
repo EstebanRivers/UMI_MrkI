@@ -186,7 +186,7 @@
 <div id="studentDetailsModal" class="modal-overlay" style="display: none; z-index: 9999;">
     <div class="modal-container expediente-modal"> 
         <div class="modal-header">
-            <h3>📂 Expediente del Alumno</h3>
+            <h3> Expediente del Alumno</h3>
             <button type="button" class="modal-close" onclick="closeStudentDetails()">&times;</button>
         </div>
         
