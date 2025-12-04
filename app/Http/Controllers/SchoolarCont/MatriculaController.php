@@ -92,7 +92,7 @@ class MatriculaController extends Controller
             $user = User::with('billings.payments')->findOrFail($id);
             
             // =========================================================
-            // 🔒 LÓGICA DE CANDADO: VERIFICAR PAGO POR UID
+            //  LÓGICA DE CANDADO: VERIFICAR PAGO POR UID
             // =========================================================
             $facturaPendiente = $user->billings()
                 ->where(function($q) {
