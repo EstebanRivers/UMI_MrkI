@@ -232,24 +232,11 @@
 </div>
 
 <script>
-    // --- Handlers separados para eliminar duplicados (Buena práctica en SPA) ---
-    function handleUploaderChange() {
-        if (this.files && this.files[0]) {
-            const label = document.querySelector(`label[for="${this.id}"]`);
-            if (label) label.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
-            
-            const formId = this.getAttribute('data-form-id');
-            if (formId) document.getElementById(formId).submit();
-        }
-    }
+    // =============================================================
+    // 1. LÓGICA VISUAL (Modales y Utilidades)
+    // =============================================================
 
-    function handleModalClick(e) {
-        if (e.target === document.getElementById('docViewerModal')) {
-            closeDocViewer();
-        }
-    }
-    
-    // --- FUNCIONES DEL MODAL (Globales para que el onclick funcione) ---
+    // --- VISOR DE DOCUMENTOS ---
     function openDocViewer(url, title) {
         const modal = document.getElementById('docViewerModal');
         if (modal) {
@@ -263,19 +250,14 @@
         const modal = document.getElementById('docViewerModal');
         if (modal) {
             modal.style.display = 'none';
-            document.getElementById('docViewerFrame').src = ''; // Limpiar para detener carga
+            document.getElementById('docViewerFrame').src = ''; 
         }
     }
 
-    // -------------------------------------------------------------
-    // FUNCIÓN CENTRAL DE INICIALIZACIÓN (Reusable)
-    // -------------------------------------------------------------
-    function initializePageElements() {
-
-        // 1. OCULTAR MENSAJE DE ÉXITO AUTOMÁTICAMENTE
+    // --- ALERTAS DE ÉXITO (Auto-hide) ---
+    function initSuccessAlerts() {
         const successAlert = document.getElementById('success-alert');
         if (successAlert) {
-            // Aplicar la lógica de opacidad y display que ya tenías
             setTimeout(function() {
                 successAlert.style.opacity = '0';
                 setTimeout(() => {
@@ -283,36 +265,73 @@
                 }, 500);
             }, 3000);
         }
-
-        // 2. INICIALIZADOR DE UPLOADS (Auto-submit)
-        const uploaders = document.querySelectorAll('.pdf-uploader');
-        uploaders.forEach(input => {
-            // 🚨 IMPORTANTE: Remover el listener antes de agregarlo para evitar duplicados en navegaciones SPA/AJAX
-            input.removeEventListener('change', handleUploaderChange); 
-            input.addEventListener('change', handleUploaderChange);
-        });
-
-        // 3. CERRAR MODAL CON CLIC AFUERA
-        const docViewerModal = document.getElementById('docViewerModal');
-        if (docViewerModal) {
-            docViewerModal.removeEventListener('click', handleModalClick);
-            docViewerModal.addEventListener('click', handleModalClick);
-        }
     }
 
-    // -------------------------------------------------------------
-    // 🚨 PUNTO DE INICIALIZACIÓN (Asegura que se ejecute en F5 y en navegación AJAX) 🚨
-    // -------------------------------------------------------------
-    // 1. Inicialización en la carga inicial (F5 / DOMContentLoaded)
-    document.addEventListener('DOMContentLoaded', initializePageElements);
+    // =============================================================
+    // 2. SUPER LISTENER DE "CLICS" (Delegación) 
+    //    Maneja: Cierre de Modales y Apertura de Visor
+    // =============================================================
+    document.addEventListener('click', function(event) {
+        
+        // A. CERRAR MODAL (Botón X o Clic afuera)
+        if (event.target.closest('.modal-close') || event.target.classList.contains('modal-overlay')) {
+            closeDocViewer();
+            return;
+        }
 
-    // 2. Si usas Livewire o PJAX, esta función se ejecutará después de cada componente cargado
+        // B. ABRIR VISOR (Si usaras data-attributes en lugar de onclick inline en el futuro)
+        // Por ahora tu botón "VER DOCUMENTO" usa onclick inline, así que funciona bien.
+    });
+
+    // =============================================================
+    // 3. SUPER LISTENER DE "CAMBIOS" (Delegación)
+    //    Maneja: Subida automática de archivos (File Uploads)
+    // =============================================================
+    document.addEventListener('change', function(event) {
+        
+        // Verificamos si el elemento que cambió tiene la clase 'pdf-uploader'
+        if (event.target && event.target.matches('.pdf-uploader')) {
+            
+            const input = event.target; // El input file
+            
+            // Validamos que haya archivo seleccionado
+            if (input.files && input.files[0]) {
+                
+                // 1. Feedback Visual: Cambiar el texto del label a "Subiendo..."
+                // Buscamos el label asociado usando el ID del input
+                const label = document.querySelector(`label[for="${input.id}"]`);
+                if (label) {
+                    label.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+                    label.style.opacity = '0.7';
+                    label.style.pointerEvents = 'none'; // Evitar doble clic
+                }
+
+                // 2. Enviar el Formulario
+                const formId = input.getAttribute('data-form-id');
+                const form = document.getElementById(formId);
+                
+                if (form) {
+                    form.submit();
+                } else {
+                    console.error('No se encontró el formulario con ID:', formId);
+                }
+            }
+        }
+    });
+
+    // =============================================================
+    // 4. PUNTO DE ENTRADA (Solo para lo que no es evento delegado)
+    // =============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        initSuccessAlerts();
+    });
+
+    // Si usas Livewire y el mensaje de éxito se recarga por AJAX, reactívalo:
     if (window.Livewire) {
         window.Livewire.hook('message.processed', (message, component) => {
-            // Re-inicializa todos los eventos después de que Livewire haya procesado el DOM
-            initializePageElements();
+            initSuccessAlerts();
         });
-    } 
+    }
 
 </script>
 @endsection
