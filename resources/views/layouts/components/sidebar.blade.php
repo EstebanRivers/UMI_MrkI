@@ -97,11 +97,6 @@
                                 <a href="#">Boleta de Calif.</a>
                             </li>
                         @endif
-                         @if($isMaster && $isUniversity)
-                            <li class="{{ request()->routeIs('MiInformacion.constancias') ? 'active-submenu' : '' }}">
-                                <a href="#">Constancias</a>
-                            </li>
-                        @endif
                     </ul>
                 </li>
             @else

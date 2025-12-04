@@ -34,9 +34,9 @@
                 <h2 class="form-title">
                     {{-- Título Dinámico --}}
                     @if(isset($alumno))
-                        🔄 Reinscripción de Alumno <span style="font-size: 0.8em; opacity: 0.8;">(Al Semestre {{ $alumno->semestre + 1 }})</span>
+                         Reinscripción de Alumno <span style="font-size: 0.8em; opacity: 0.8;">(Al Semestre {{ $alumno->semestre + 1 }})</span>
                     @else
-                        📝 Nuevo Registro de Aspirante
+                         Nuevo Registro de Aspirante
                     @endif
                 </h2>
                 <a href="{{ route('escolar.students.index') }}" class="btn-back" style="text-decoration: none; color: #666;">
@@ -79,7 +79,7 @@
                 @endif
 
                 {{-- 1. TIPO DE REGISTRO --}}
-                <h3>📋 Clasificación del Ingreso</h3>
+                <h3> Clasificación del Ingreso</h3>
                 <hr>
                 <div class="form-group-double" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
                     <div class="form-field" style="flex-direction: row; align-items: center; gap: 10px;">
@@ -148,7 +148,7 @@
                 </div>
 
                 {{-- 2. DATOS PERSONALES --}}
-                <h3>👤 Datos Personales</h3>
+                <h3> Datos Personales</h3>
                 <hr>
                 <div class="form-group-triple">
                     <div class="form-field">
@@ -199,7 +199,7 @@
                 </div>
 
                 {{-- 3. DIRECCIÓN --}}
-                <h3>📍 Domicilio</h3>
+                <h3> Domicilio</h3>
                 <hr>
                 <div class="form-group-triple">
                     <div class="form-field">
@@ -227,7 +227,7 @@
                 </div>
 
                 {{-- 4. ACADÉMICO Y DOCUMENTOS --}}
-                <h3>🎓 Datos Académicos y Documentación</h3>
+                <h3> Datos Académicos y Documentación</h3>
                 <hr>
                 <div class="form-group-double">
                     <div class="form-field">
@@ -381,7 +381,7 @@
                 {{-- SECCIÓN HISTORIAL (Solo para Reinscripciones) --}}
                 @if(isset($alumno) && isset($historialInscripciones))
                     <div class="history-container" style="margin-top: 30px;">
-                        <h3>📂 Historial de Inscripciones Anteriores</h3>
+                        <h3> Historial de Inscripciones Anteriores</h3>
                         <hr>
                         <div style="overflow-x: auto;">
                             <table class="umi-table" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
@@ -566,11 +566,11 @@
                     seccionLaboral.style.display = 'none';
                     if (containerBuscador) containerBuscador.style.display = 'none';
                     
-                    // 🚨 FORZAR FACTURA OBLIGATORIA Y BLOQUEAR 🚨
+                    //  FORZAR FACTURA OBLIGATORIA Y BLOQUEAR 
                     if (checkFactura) {
                         checkFactura.checked = true; // Se marca obligatoriamente
                         checkFactura.dataset.userChanged = 'false'; // Reseteamos, esto no es cambio de usuario
-                        toggleFactura(); // 🚨 Esto despliega el menú de detalles de facturación 🚨
+                        toggleFactura(); //  Esto despliega el menú de detalles de facturación 🚨
                     }
 
                     // Limpieza y desbloqueo de campos personales/laborales
