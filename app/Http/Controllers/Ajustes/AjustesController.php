@@ -206,106 +206,147 @@ class AjustesController extends Controller
                 break; 
 
             case 'users':
-              
-                $validatedData = $request->validate([
-                    'nombre' => 'required|string|max:255',
-                    'apellido_paterno' => 'required|string|max:255',
-                    'apellido_materno' => 'nullable|string|max:255',
-                    'RFC' => ['required', 'string', 'max:13', 'unique:users,RFC'], 
-                    'email' => ['required', 'email', 'unique:users,email'],
+             
+           
+            $validatedData = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido_paterno' => 'required|string|max:255',
+                'apellido_materno' => 'nullable|string|max:255',
+                'RFC' => ['required', 'string', 'max:13'],
+                'email' => ['required', 'email'],          
+                'role_id' => 'required|exists:roles,id',
+                'institution_id' => 'required|exists:institutions,id',
+                'department_id' => 'nullable|exists:departments,id',
+                'workstation_id' => 'nullable|exists:workstations,id',
+               
+            ]);
+ 
+            $selectedRole = Role::find($validatedData['role_id']);
+ 
+           
+           
+           
+            if ($selectedRole && $selectedRole->name === 'control_administrativo') {
+                if (!$request->has('modules_enabled') || empty($request->input('modules_enabled'))) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'modules_enabled' => 'Para el rol de Control Administrativo, debes seleccionar al menos un permiso.',
+                    ]);
+                }
+            }
+ 
+           
+            if ($selectedRole && $selectedRole->name === 'anfitrion') {
+                $errors = [];
+                if (empty($request->input('department_id'))) {
+                    $errors['department_id'] = 'El Departamento es obligatorio para el rol de Anfitrión.';
+                }
+                if (empty($request->input('workstation_id'))) {
+                    $errors['workstation_id'] = 'El Puesto es obligatorio para el rol de Anfitrión.';
+                }
+                if (!empty($errors)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages($errors);
+                }
+            }
+ 
+           
+            $existingUser = User::withTrashed()->where('RFC', $validatedData['RFC'])->first();
+ 
+            if ($existingUser) {
+               
+               
+               
+                if ($existingUser->trashed()) {
+                    $existingUser->restore();
+                }
+ 
+               
+                $hasRole = $existingUser->roles()
+                    ->where('role_id', $validatedData['role_id'])
+                    ->wherePivot('institution_id', $validatedData['institution_id'])
+                    ->exists();
+ 
+                if ($hasRole) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'RFC' => 'Este usuario ya tiene el rol de ' . $selectedRole->name . ' asignado en esta institución.',
+                    ]);
+                }
+ 
+               
+                $user = $existingUser;
+                $message = 'Rol agregado al usuario existente';
+ 
+               
+ 
+            } else {
+               
+                $request->validate([
+                    'RFC' => 'unique:users,RFC',
+                    'email' => 'unique:users,email',
                     'password' => 'required|string|min:8|confirmed',
-                    'role_id' => 'required|exists:roles,id',
-                    'institution_id' => 'required|exists:institutions,id',
-                    'department_id' => 'nullable|exists:departments,id',
-                    'workstation_id' => 'nullable|exists:workstations,id',
                 ], [
                     'RFC.unique' => 'Este RFC ya está registrado.',
                     'email.unique' => 'Este correo ya está registrado.',
-
                     'password.confirmed' => 'Las contraseñas no coinciden.',
                     'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
                 ]);
-                
-                
-                $selectedRole = Role::find($validatedData['role_id']);
-                
-                if ($selectedRole && $selectedRole->name === 'control_administrativo') {
-                    
-                    if (!$request->has('modules_enabled') || empty($request->input('modules_enabled'))) {
-                       
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'modules_enabled' => 'Para el rol de Control Administrativo, debes seleccionar al menos un permiso.',
-                        ]);
-                    }
-                }
-
-                if ($selectedRole && $selectedRole->name === 'anfitrion') {
-                    
-                    $errors = [];
-                    
-                    // Verificamos Departamento
-                    if (empty($request->input('department_id'))) {
-                        $errors['department_id'] = 'El Departamento es obligatorio para el rol de Anfitrión.';
-                    }
-                    
-                    // Verificamos Puesto
-                    if (empty($request->input('workstation_id'))) {
-                        $errors['workstation_id'] = 'El Puesto es obligatorio para el rol de Anfitrión.';
-                    }
-
-                    // Si hay errores, detenemos todo
-                    if (!empty($errors)) {
-                        throw \Illuminate\Validation\ValidationException::withMessages($errors);
-                    }
-                }
-
-                
+ 
+               
                 $userData = [
                     'nombre' => $validatedData['nombre'],
                     'apellido_paterno' => $validatedData['apellido_paterno'],
                     'apellido_materno' => $validatedData['apellido_materno'],
                     'RFC' => $validatedData['RFC'],
                     'email' => $validatedData['email'],
-                    'password' => Hash::make($validatedData['password']),
+                    'password' => Hash::make($request->password),
                     'department_id' => $validatedData['department_id'],
                     'workstation_id' => $validatedData['workstation_id'],
                     'institution_id' => $validatedData['institution_id'],
                     'role_id' => $validatedData['role_id'],
                 ];
-                
-               
+ 
                 $user = User::create($userData);
                 $message = 'Nuevo usuario creado';
-
-                $institution_id_to_add = $validatedData['institution_id'];
-                $role_id_to_add = $validatedData['role_id'];
-                
-              
-                $user->institutions()->syncWithoutDetaching([$institution_id_to_add]);
-
-                
-                $user->roles()->syncWithoutDetaching([
-                    $role_id_to_add => ['institution_id' => $institution_id_to_add]
-                ]);
-                
-                $message .= ' y asignado correctamente.';
-
-                
-                $roleName = Role::find($role_id_to_add)->name;
-                $academicRoles = ['docente', 'control_escolar', 'control_administrativo', 'estudiante']; 
-
-                if (in_array($roleName, $academicRoles)) {
-                    $profileData = [];
-                    if ($roleName === 'control_administrativo') {
-                        $profileData['modules'] = $request->input('modules_enabled', []);
-                        $message .= ' Módulos guardados.';
-                    }
-                    $user->academicProfile()->create($profileData); 
-                } else {
+            }
+ 
+       
+           
+            $institution_id_to_add = $validatedData['institution_id'];
+            $role_id_to_add = $validatedData['role_id'];
+ 
+           
+            $user->institutions()->syncWithoutDetaching([$institution_id_to_add]);
+ 
+         
+            $user->roles()->syncWithoutDetaching([
+                $role_id_to_add => ['institution_id' => $institution_id_to_add]
+            ]);
+ 
+            $message .= ' y asignado correctamente.';
+ 
+           
+           
+            $roleName = $selectedRole->name;
+            $academicRoles = ['docente', 'control_escolar', 'control_administrativo', 'estudiante'];
+ 
+            if (in_array($roleName, $academicRoles)) {
+             
+                $profileData = [];
+                if ($roleName === 'control_administrativo') {
+                    $profileData['modules'] = $request->input('modules_enabled', []);
+                    $message .= ' Módulos guardados.';
+                }
+               
+               
+                $user->academicProfile()->create($profileData);
+ 
+            } else {
+               
+                if (!$user->corporateProfile) {
                     $user->corporateProfile()->create();
                 }
-                
-                $clear_spa_cache = true;
+            }
+ 
+            $clear_spa_cache = true;
                 break;
         } 
 

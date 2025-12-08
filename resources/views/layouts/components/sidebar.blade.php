@@ -63,18 +63,20 @@
         <ul>
 
             {{-- 1. MI INFORMACIÓN --}}
-            @if($hasInfoSubmenu)
+            @if($isUniversity)
+                {{-- CASO UNIVERSIDAD: Muestra Submenú con Horario, Clases, etc. --}}
                 <li class="has-submenu {{ request()->routeIs('MiInformacion.*') ? 'active' : '' }}">
                     <a href="#">
                         <span class="icon" aria-hidden="true">
                             <img src="{{ asset('images/icons/user-solid-full.svg') }}" alt="Info Icon" style="width:24px;height:24px" loading="lazy">
                         </span>
                         <span class="text">Mi Información</span>
-                    </a>
+                        <i class="fas fa-chevron-down dropdown-icon"></i> </a>
                     <ul class="submenu">
                         <li class="{{ request()->routeIs('MiInformacion.index') ? 'active-submenu' : '' }}">
                             <a href="{{ route('MiInformacion.index') }}">Perfil</a>
                         </li>
+                        {{-- Opciones académicas solo visibles en contexto Universidad --}}
                         <li class="{{ request()->routeIs('MiInformacion.clases') ? 'active-submenu' : '' }}">
                             <a href="{{ route('MiInformacion.clases') }}">Clases</a>
                         </li>
@@ -84,22 +86,17 @@
                         <li class="{{ request()->routeIs('MiInformacion.historial') ? 'active-submenu' : '' }}">
                             <a href="{{ route('MiInformacion.historial') }}">Historial Académico</a>
                         </li>
-                        @if($isDocenteGroup)
-                            <li class="{{ request()->routeIs('MiInformacion.boletas') ? 'active-submenu' : '' }}">
-                                <a href="#">Boletas</a>
-                            </li>
-                        @endif
-                        @if($isStudentGroup)
-                             <li class="{{ request()->routeIs('MiInformacion.reticula') ? 'active-submenu' : '' }}">
-                                <a href="#">Retícula Escolar</a>
-                            </li>
+                       
+                        {{-- Opciones Extra (Boletas) --}}
+                        @if($isDocenteGroup || $isStudentGroup)
                              <li class="{{ request()->routeIs('MiInformacion.boletas') ? 'active-submenu' : '' }}">
-                                <a href="#">Boleta de Calif.</a>
+                                <a href="#">Boletas</a>
                             </li>
                         @endif
                     </ul>
                 </li>
             @else
+                {{-- CASO CORPORATIVO / ANFITRIÓN: Link Directo al Perfil (Sin flecha, sin submenú) --}}
                 <li class="{{ request()->routeIs('MiInformacion.index') ? 'active' : '' }}">
                     <a href="{{ route('MiInformacion.index') }}">
                         <span class="icon" aria-hidden="true">
